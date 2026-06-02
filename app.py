@@ -114,7 +114,7 @@ def _tickets(S):
         cd = TICKET_CATS[cat]
         rep = random.choice(EU)
         ast = random.choice(IT)
-        st = random.choice({"critical":["open","in_progress","resolved"],"high":["open","in_progress","in_progress","resolved","resolved"],"medium":["open","in_progress","resolved","resolved","resolved"],"low":["resolved","resolved","resolved","in_progress"]}[cd["priority"]])
+        st = random.choice({"critical":["open","in_progress","pending","resolved"],"high":["open","in_progress","in_progress","pending","resolved","resolved"],"medium":["open","in_progress","pending","resolved","resolved","resolved"],"low":["resolved","resolved","resolved","in_progress","pending"]}[cd["priority"]])
         da = random.randint(0,60)
         cd2 = datetime.utcnow()-timedelta(days=da,hours=random.randint(6,18))
         rs = None
@@ -217,6 +217,7 @@ def dashboard():
     op=c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0]
     res=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
     prog=c.execute("SELECT COUNT(*) FROM tickets WHERE status='in_progress'").fetchone()[0]
+    pend=c.execute("SELECT COUNT(*) FROM tickets WHERE status='pending'").fetchone()[0]
     recent=c.execute('SELECT * FROM tickets ORDER BY created_at DESC LIMIT 10').fetchall()
     bp=c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as oc FROM tickets GROUP BY province').fetchall()
     bc=c.execute('SELECT category,COUNT(*) as cnt FROM tickets GROUP BY category ORDER BY cnt DESC').fetchall()
@@ -228,7 +229,7 @@ def dashboard():
     c.close()
     cl=[r['category'] for r in bc];cc=[r['cnt'] for r in bc]
     tp=round(bc[0]['cnt']/total*100) if bc and total>0 else 0
-    return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,in_progress=prog,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
+    return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,in_progress=prog,pending=pend,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
 
 @app.route('/tickets')
 @login_required
@@ -316,7 +317,7 @@ def api_create():
 @login_required
 def api_status(tid):
     st=request.json.get('status','')
-    if st not in ('open','in_progress','resolved','closed'):return jsonify(success=False,error='Invalid'),400
+    if st not in ('open','in_progress','pending','resolved','closed'):return jsonify(success=False,error='Invalid'),400
     c=get_db()
     if st=='resolved':
         now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")

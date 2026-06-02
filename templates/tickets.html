@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
  <h4 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>IT Tickets</h4>
  <div class="d-flex gap-2">
-  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteBtn" onclick="bulkDelete()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก</button>
+  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteBtn" onclick="bulkDelete()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก <span id="bulkDeleteCount">(0/0)</span></button>
   <button class="btn btn-sm btn-primary" onclick="openNewTicket()"><i class="bi bi-plus-lg me-1"></i>New Ticket</button>
  </div>
 </div>
@@ -89,8 +89,9 @@
      <td>
       {% if t.status=='open' %}<span class="badge bg-primary">เปิด</span>
       {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
+      {% elif t.status=='pending' %}<span class="badge bg-secondary">รอดำเนิน</span>
       {% elif t.status=='resolved' %}<span class="badge bg-success">เสร็จ</span>
-      {% else %}<span class="badge bg-secondary">ปิด</span>{% endif %}
+      {% else %}<span class="badge bg-dark">ปิด</span>{% endif %}
      </td>
      <td class="d-none d-md-table-cell"><small>{{ t.reported_by }}</small></td>
      <td class="d-none d-md-table-cell"><small>{{ t.assigned_to or '-' }}</small></td>
@@ -133,6 +134,7 @@
      <div class="col-md-3"><label class="form-label small">สถานะ</label>
       <select class="form-select form-select-sm" id="mStatus">
        <option value="open">เปิด</option><option value="in_progress">กำลังดำเนิน</option>
+       <option value="pending">รอดำเนิน</option>
        <option value="resolved">เสร็จ</option><option value="closed">ปิด</option>
       </select>
      </div>
@@ -174,6 +176,9 @@ if(params.get('province')) document.getElementById('filterProvince').value = par
 document.addEventListener('DOMContentLoaded', function(){
  ticketsTable = initTable('#ticketsTable',{order:[[10,'desc']]});
  applyFilters();
+ document.querySelectorAll('.row-check').forEach(cb=>cb.addEventListener('change',()=>{
+  updateBulkCount();
+ }));
 });
 
 function handleRowClick(e, url, staffId){
@@ -219,9 +224,18 @@ function clearFilters(){
  applyFilters();
 }
 
+function updateBulkCount(){
+ const total=document.querySelectorAll('.row-check').length;
+ const checked=document.querySelectorAll('.row-check:checked').length;
+ const btn=document.getElementById('bulkDeleteBtn');
+ const span=document.getElementById('bulkDeleteCount');
+ if(checked>0){btn.style.display='inline-block';span.textContent='('+checked+'/'+total+')';}
+ else{btn.style.display='none';}
+}
+
 function toggleAll(cb){
  document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
- document.getElementById('bulkDeleteBtn').style.display = cb.checked ? 'inline-block' : 'none';
+ updateBulkCount();
 }
 
 function getSelected(){
@@ -270,7 +284,7 @@ function editTicket(id){
  for(let i=0;i<catSel.options.length;i++){if(catSel.options[i].text.includes(tdata.category.substring(0,6))){catSel.selectedIndex=i;break}}
  const priSel = document.getElementById('mPriority');
  for(let i=0;i<priSel.options.length;i++){if(priSel.options[i].value===tdata.priority.toLowerCase()){priSel.selectedIndex=i;break}}
- const stMap = {'เปิด':'open','กำลังดำเนิน':'in_progress','เสร็จ':'resolved','ปิด':'closed'};
+ const stMap = {'เปิด':'open','กำลังดำเนิน':'in_progress','รอดำเนิน':'pending','เสร็จ':'resolved','ปิด':'closed'};
  const stSel = document.getElementById('mStatus');
  const stVal = stMap[tdata.status]||'open';
  for(let i=0;i<stSel.options.length;i++){if(stSel.options[i].value===stVal){stSel.selectedIndex=i;break}}

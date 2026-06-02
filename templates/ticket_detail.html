@@ -16,10 +16,11 @@
                     <div class="col-md-3"><strong>จังหวัด:</strong><br>{{ ticket.province }}</div>
                     <div class="col-md-3"><strong>หมวด:</strong><br>{{ ticket.category }}</div>
                     <div class="col-md-3"><strong>สถานะ:</strong><br>
-                        {% if ticket.status=='resolved' %}<span class="badge bg-success">เสร็จแล้ว</span>
+                        {% if ticket.status=='open' %}<span class="badge bg-primary">เปิด</span>
                         {% elif ticket.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
-                        {% elif ticket.status=='closed' %}<span class="badge bg-secondary">ปิด</span>
-                        {% else %}<span class="badge bg-primary">เปิด</span>{% endif %}
+                        {% elif ticket.status=='pending' %}<span class="badge bg-secondary">รอดำเนิน</span>
+                        {% elif ticket.status=='resolved' %}<span class="badge bg-success">เสร็จแล้ว</span>
+                        {% else %}<span class="badge bg-dark">ปิด</span>{% endif %}
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -113,6 +114,7 @@
                         <select class="form-select form-select-sm" style="max-width:180px;" id="updateStatus" onchange="if(this.value){quickStatus(this.value);this.value='';}">
                             <option value="">เปลี่ยนสถานะ...</option>
                             <option value="in_progress">🔧 กำลังดำเนิน</option>
+                            <option value="pending">⏳ รอดำเนิน</option>
                             <option value="resolved">✅ เสร็จแล้ว</option>
                             <option value="closed">🔒 ปิด</option>
                             <option value="open">🔄 เปิดใหม่</option>

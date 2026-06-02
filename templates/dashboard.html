@@ -44,10 +44,22 @@
         <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-muted mb-1">🔧 กำลังดำเนิน</h6>
+                    <h6 class="text-muted mb-1">🔧 กำลังดำเนินการ</h6>
                     <h3 class="mb-0 fw-bold text-info">{{ in_progress }}</h3>
                 </div>
                 <i class="bi bi-gear stat-icon text-info"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/tickets?status=pending" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">⏳ รอดำเนินการ</h6>
+                    <h3 class="mb-0 fw-bold text-secondary">{{ pending }}</h3>
+                </div>
+                <i class="bi bi-pause-circle stat-icon text-secondary"></i>
             </div>
         </div></a>
     </div>
@@ -123,7 +135,7 @@
             <tbody>
                 {% for t in recent %}
                 <tr onclick="location.href='/ticket/{{ t.id }}'" style="cursor:pointer">
-                    <td><strong>#{{ t.id }}</strong></td>
+                    <td><span class="id-badge">{{ t.id }}</span></td>
                     <td><span class="branch-tag">{{ t.branch }}</span></td>
                     <td>{{ t.title }}</td>
                     <td class="d-none d-md-table-cell"><small>{{ t.category }}</small></td>
@@ -133,8 +145,12 @@
                         <span class="badge bg-primary">เปิด</span>
                         {% elif t.status == 'in_progress' %}
                         <span class="badge bg-warning text-dark">กำลังดำเนิน</span>
-                        {% else %}
+                        {% elif t.status == 'pending' %}
+                        <span class="badge bg-secondary">รอดำเนิน</span>
+                        {% elif t.status == 'resolved' %}
                         <span class="badge bg-success">เสร็จ</span>
+                        {% else %}
+                        <span class="badge bg-dark">ปิด</span>
                         {% endif %}
                     </td>
                     <td class="d-none d-md-table-cell">{% if t.ai_suggestion %}<span class="ai-badge">AI แนะนำ</span>{% endif %}</td>
