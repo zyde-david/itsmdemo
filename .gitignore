@@ -1,4 +1,4 @@
-# Generated data (regeneratable)
+# Generated data (exclude from git)
 tickets.db
 *.db
 __pycache__/
@@ -14,3 +14,4 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+tickets.db
