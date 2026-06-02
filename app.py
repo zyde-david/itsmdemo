@@ -106,7 +106,10 @@ def _tickets(S):
     IT = [s for s in S if s["is_it"]]
     if not IT: IT = [{"name":"นายซุลธาน เทค","branch":"สาขาเมืองปัตตานี","province":"ปัตตานี"},{"name":"นายอารีฟ","branch":"สาขาเมืองนราธิวาส","province":"นราธิวาส"}]
     T = []
+    tc = 0
     for _ in range(random.randint(85,105)):
+        tc += 1
+        ticket_code = f"TK-2026-{tc:04d}"
         cat = random.choice(list(TICKET_CATS.keys()))
         cd = TICKET_CATS[cat]
         rep = random.choice(EU)
@@ -118,27 +121,36 @@ def _tickets(S):
         if st in ("resolved","closed"):
             rd = cd2+timedelta(hours=random.randint(1,72))
             if rd<datetime.now(): rs=rd.strftime("%Y-%m-%d %H:%M:%S")
-        T.append({"branch":rep["branch"],"province":rep["province"],"category":cat,"title":random.choice(cd["titles"]),"description":f"แจ้ง: {random.choice(cd['titles'])} ที่{rep['branch']} โดย{rep['name']}","priority":cd["priority"],"status":st,"reported_by":rep["name"],"assigned_to":ast["name"],"created_at":cd2.strftime("%Y-%m-%d %H:%M:%S"),"resolved_at":rs,"ai_suggestion":cd["ai"],"ai_confidence":round(random.uniform(0.65,0.98),2)})
+        T.append({"ticket_code":ticket_code,"branch":rep["branch"],"province":rep["province"],"category":cat,"title":random.choice(cd["titles"]),"description":f"แจ้ง: {random.choice(cd['titles'])} ที่{rep['branch']} โดย{rep['name']}","priority":cd["priority"],"status":st,"reported_by":rep["name"],"assigned_to":ast["name"],"asset_id":0,"created_at":cd2.strftime("%Y-%m-%d %H:%M:%S"),"reported_at":cd2.strftime("%Y-%m-%d %H:%M:%S"),"resolved_at":rs,"ai_suggestion":cd["ai"],"ai_confidence":round(random.uniform(0.65,0.98),2)})
     return T
 
 def _assets():
     A = []
     sc = {}
-    AC = {"คอมพิวเตอร์":{"m":["Dell OptiPlex 3090","HP ProDesk 400 G7","Lenovo M70q"],"p":"PC"},"เครื่องพิมพ์":{"m":["HP LaserJet M404dn","Epson L3250","Brother HL-L2350DW","Canon G3010"],"p":"PRT"},"Scanner":{"m":["Fujitsu fi-7160","Epson DS-1640","Brother DS-640"],"p":"SCN"},"Router":{"m":["Cisco ISR 1111","MikroTik hEX","TP-Link ER7206"],"p":"RT"},"Switch":{"m":["Cisco SG250-26","TP-Link TL-SG1024","MikroTik CRS326"],"p":"SW"},"UPS":{"m":["APC 1500VA","Eaton 5S 1500VA","CyberPower OL2000"],"p":"UPS"},"เครื่องนับเงิน":{"m":["GLORY GFR-S60ITF","Cassida 8800"],"p":"CNT"},"Notebook":{"m":["Dell Latitude 3420","HP EliteBook 840","ThinkPad E14"],"p":"NB"}}
+    # branch code mapping
+    bcm = {}
+    for b in ALL_BRANCHES:
+        code = "".join([w[0] for w in b["district"].split() if w])[:2].upper()
+        if not code: code = b["province"][:2].upper()
+        bcm[b["branch"]] = code
+    AC = {"คอมพิวเตอร์":{"m":["Dell OptiPlex 3090","HP ProDesk 400 G7","Lenovo M70q"],"p":"PC","spec":"Core i5/8GB/256GB SSD"},"เครื่องพิมพ์":{"m":["HP LaserJet M404dn","Epson L3250","Brother HL-L2350DW","Canon G3010"],"p":"PRT","spec":"Laser/Inkjet A4"},"Scanner":{"m":["Fujitsu fi-7160","Epson DS-1640","Brother DS-640"],"p":"SCN","spec":"A4 Duplex 60ppm"},"Router":{"m":["Cisco ISR 1111","MikroTik hEX","TP-Link ER7206"],"p":"RT","spec":"Gigabit VPN Router"},"Switch":{"m":["Cisco SG250-26","TP-Link TL-SG1024","MikroTik CRS326"],"p":"SW","spec":"24-Port Gigabit"},"UPS":{"m":["APC 1500VA","Eaton 5S 1500VA","CyberPower OL2000"],"p":"UPS","spec":"1500VA Online"}}
+    S_pool = ["นายสมชาย ใจดี","นางสาวปราณี สุขใจ","นายวิชัai","นางสาวกนกพร พูนผล"]
     for b in ALL_BRANCHES:
         n = random.randint(4,6) if b["type"]=="main" else random.randint(1,3) if b["type"]=="service_point" else random.randint(2,4)
         ch = random.sample(list(AC.keys()),k=min(n,len(AC)))
         if n>=2: ch[0]="คอมพิวเตอร์"
         if n>=3: ch[1]="เครื่องพิมพ์"
+        bc = bcm.get(b["branch"], "XX")
         for at in ch[:n]:
-            c2 = AC[at]; mdl=random.choice(c2["m"]); p=c2["p"]
+            c2 = AC[at]; mdl=random.choice(c2["m"]); p=c2["p"]; sp=c2["spec"]
             sc[p]=sc.get(p,100)+1
-            sn=f"{p}-{b['province'][:3].upper()}-{sc[p]:04d}"
+            sn=f"{p}-{bc}-{sc[p]:04d}"
+            asset_code=f"{p}-{bc}-{sc[p]:04d}"
             st=random.choices(["active","active","active","active","maintenance","retired"],weights=[65,12,8,5,5,5],k=1)[0]
             lc=datetime.now()-timedelta(days=random.randint(3,60))
             nx=lc+timedelta(days=90)
-            nm2={"active":random.choice(["สถานะปกติ","ใช้งานปกติ"]),"maintenance":random.choice(["รออะไล่","ส่งซ่อน"]),"retired":random.choice(["เกษียณแล้ว","รอจำหน่าย"])}
-            A.append({"branch":b["branch"],"asset_type":at,"name":mdl,"serial":sn,"status":st,"last_check":lc.strftime("%Y-%m-%d"),"next_check":nx.strftime("%Y-%m-%d"),"notes":nm2.get(st,"")})
+            nm2={"active":random.choice(["สถานะปกติ","ใช้งานปกติ"]),"maintenance":random.choice(["รออะไหล่","ส่งซ่อน"]),"retired":random.choice(["เกษียณแล้ว","รอจำหน่าย"])}
+            A.append({"asset_code":asset_code,"branch":b["branch"],"asset_type":at,"name":mdl,"serial":sn,"status":st,"brand":mdl.split()[0],"spec":sp,"assigned_to":random.choice(S_pool),"last_check":lc.strftime("%Y-%m-%d"),"next_check":nx.strftime("%Y-%m-%d"),"notes":nm2.get(st,"")})
     return A
 
 KB = [
@@ -179,7 +191,7 @@ def init_db():
     print('Seeding...')
     S=_staff();T=_tickets(S);A=_assets()
     for s in S:c.execute('INSERT INTO staff (name,role,branch,province,is_it) VALUES (?,?,?,?,?)',(s['name'],s['role'],s['branch'],s['province'],1 if s['is_it'] else 0))
-    for t in T:c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,resolved_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(t.get('ticket_code',''),t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t.get('asset_id',0),t['created_at'],t['resolved_at'],t['ai_suggestion'],t['ai_confidence']))
+    for t in T:c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,resolved_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(t.get('ticket_code',''),t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t.get('asset_id',0),t['created_at'],t.get('reported_at',''),t['resolved_at'],t['ai_suggestion'],t['ai_confidence']))
     for a in A:c.execute('INSERT INTO assets (asset_code,branch,asset_type,name,serial,status,brand,spec,assigned_to,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',(a.get('asset_code',''),a['branch'],a['asset_type'],a['name'],a['serial'],a['status'],a.get('brand',''),a.get('spec',''),a.get('assigned_to',''),a['last_check'],a['next_check'],a['notes']))
     for k in KB:c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,?)',(k['title'],k['cat'],k['content'],k['v']))
     c.commit();c.close()
@@ -229,17 +241,21 @@ def tickets_page():
 @app.route('/ticket/<int:ticket_id>')
 @login_required
 def ticket_detail(ticket_id):
-    c=get_db();t=c.execute('SELECT * FROM tickets WHERE id=?',(ticket_id,)).fetchone();c.close()
+    c=get_db()
+    t=c.execute('SELECT * FROM tickets WHERE id=?',(ticket_id,)).fetchone()
+    notes=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(ticket_id,)).fetchall()
+    c.close()
     if not t:return 'Not found',404
-    notes=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(ticket_id,)).fetchall();c.close()
     return render_template('ticket_detail.html',ticket=t,notes=notes)
 
 @app.route('/asset/<int:asset_id>')
 @login_required
 def asset_detail(asset_id):
-    c=get_db();a=c.execute('SELECT * FROM assets WHERE id=?',(asset_id,)).fetchone()
-    if not a:return 'Not found',404
+    c=get_db()
+    a=c.execute('SELECT * FROM assets WHERE id=?',(asset_id,)).fetchone()
+    if not a: c.close(); return 'Not found',404
     linked=c.execute('SELECT * FROM tickets WHERE asset_id=? ORDER BY created_at DESC',(asset_id,)).fetchall()
+    c.close()
     return render_template('asset_detail.html',asset=a,linked_tickets=linked)
 
 @app.route('/assets')
