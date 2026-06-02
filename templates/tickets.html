@@ -90,7 +90,7 @@
  </tr></thead>
  <tbody>
   {% for t in tickets %}
-  <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-category="{{ t.category }}" data-province="{{ t.province }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
+  <tr data-id="{{ t.id }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
    <td><input type="checkbox" class="ticket-check" value="{{ t.id }}"></td>
    <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
    <td><span class="branch-tag">{{ t.branch }}</span></td>
@@ -178,37 +178,22 @@ function toggleTicketFilter(){
 
 function applyTicketFilters(){
   if(!ticketsTable) return;
-  ticketsTable.draw();
-}
-
-// Persistent filter — registered once after table init, reads current dropdown values on every draw
-function registerTicketFilter(){
-  if(!ticketsTable) return;
+  const status = document.getElementById('tFilterStatus').value;
+  const priority = document.getElementById('tFilterPriority').value;
+  const branch = document.getElementById('tFilterBranch').value;
+  const category = document.getElementById('tFilterCategory').value;
+  const province = document.getElementById('tFilterProvince').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(settings.nTable.id !== 'ticketsTable') return true;
-    const status = document.getElementById('tFilterStatus').value;
-    const priority = document.getElementById('tFilterPriority').value;
-    const branch = document.getElementById('tFilterBranch').value;
-    const category = document.getElementById('tFilterCategory').value;
-    const province = document.getElementById('tFilterProvince').value;
-    const node = ticketsTable.row(dataIndex).node();
-    if(!node) return true;
-    if(status && node.dataset.status !== status) return false;
-    if(priority && node.dataset.priority !== priority) return false;
-    if(branch && node.dataset.branch !== branch) return false;
-    if(category && node.dataset.category !== category) return false;
-    if(province && node.dataset.province !== province) return false;
+    if(status && data[8] != status) return false;
+    if(priority && data[7] != priority) return false;
+    if(branch && data[3] != branch) return false;
+    if(category && data[4] != category) return false;
+    if(province && data[2] != province) return false;
     return true;
   });
+  ticketsTable.draw();
+  $.fn.dataTable.ext.search.pop();
 }
-
-document.addEventListener('DOMContentLoaded',function(){
-  ticketsTable = initTable('#ticketsTable',{order:[[11,'desc']]});
-  registerTicketFilter();
-  document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
-    document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
-  }));
-});
   document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
     document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
   }));
