@@ -22,11 +22,11 @@
     <label class="form-label small mb-1">สถานะ</label>
     <select class="form-select form-select-sm" id="tFilterStatus" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     <option value="open">เปิด</option>
-     <option value="in_progress">กำลังดำเนิน</option>
-     <option value="pending">รอดำเนิน</option>
-     <option value="resolved">เสร็จแล้ว</option>
-     <option value="closed">ปิด</option>
+     <option value="เปิด">เปิด</option>
+     <option value="กำลังดำเนิน">กำลังดำเนิน</option>
+     <option value="รอดำเนิน">รอดำเนิน</option>
+     <option value="เสร็จ">เสร็จ</option>
+     <option value="ปิด">ปิด</option>
     </select>
    </div>
    <div class="col-md-2">
@@ -95,13 +95,12 @@
      <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>
      <td><small>{{ t.category }}</small></td>
      <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
-     <td data-order="{{ t.status }}" data-filter="{{ t.status }}">
-      {% if t.status=='open' %}<span class="badge bg-primary">เปิด</span>
-      {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
-      {% elif t.status=='pending' %}<span class="badge bg-secondary">รอดำเนิน</span>
-      {% elif t.status=='resolved' %}<span class="badge bg-success">เสร็จ</span>
-      {% else %}<span class="badge bg-dark">ปิด</span>{% endif %}
-     </td>
+     <td><span class="badge badge-status status-{{ t.status }}">
+      {% if t.status=='open' %}เปิด
+      {% elif t.status=='in_progress' %}กำลังดำเนิน
+      {% elif t.status=='pending' %}รอดำเนิน
+      {% elif t.status=='resolved' %}เสร็จ
+      {% else %}ปิด{% endif %}</span></td>
      <td class="d-none d-md-table-cell"><small>{{ t.reported_by }}</small></td>
      <td class="d-none d-md-table-cell"><small>{{ t.assigned_to or '-' }}</small></td>
      <td><small>{{ t.created_at[:10] if t.created_at else '-' }}</small></td>
@@ -192,6 +191,8 @@ function applyTicketFilters(){
   ticketsTable.draw();
   $.fn.dataTable.ext.search.pop();
 }
+
+function filterTicketStatus(s){document.getElementById('tFilterStatus').value=s;applyTicketFilters();}
 
 document.addEventListener('DOMContentLoaded', function(){
   ticketsTable = initTable('#ticketsTable',{order:[[10,'desc']]});
