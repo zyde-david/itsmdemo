@@ -172,6 +172,7 @@ let ticketsTable;
 function toggleTicketFilter(){
   const row = document.getElementById('tFilterRow');
   const chevron = document.getElementById('tFilterChevron');
+  if(!row){alert('tFilterRow not found');return;}
   row.classList.toggle('show');
   chevron.classList.toggle('bi-chevron-down');
   chevron.classList.toggle('bi-chevron-right');
