@@ -179,27 +179,26 @@ function toggleTicketFilter(){
   chevron.classList.toggle('bi-chevron-right');
 }
 
-// Persistent custom filter — registered once, reads current values on every draw
-// Uses data-* attributes on the <tr> (raw values) instead of rendered cell text (Thai labels)
-$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-  if(settings.nTable.id !== 'ticketsTable') return true;
-  const row = settings.aoData[dataIndex].nTr;
+// Push filter, draw, then pop — same pattern as assets page
+function applyTicketFilters(){
+  if(!ticketsTable) return;
   const status = document.getElementById('filterStatus').value;
   const priority = document.getElementById('filterPriority').value;
   const branch = document.getElementById('filterBranch').value;
   const category = document.getElementById('filterCategory').value;
   const province = document.getElementById('filterProvince').value;
-  if(status && row.dataset.status !== status) return false;
-  if(priority && row.dataset.priority !== priority) return false;
-  if(branch && row.dataset.branch !== branch) return false;
-  if(category && row.dataset.category !== category) return false;
-  if(province && row.dataset.province !== province) return false;
-  return true;
-});
-
-// Just redraw — the persistent filter function handles everything
-function applyTicketFilters(){
-  if(ticketsTable) ticketsTable.draw();
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(settings.nTable.id !== 'ticketsTable') return true;
+    const row = settings.aoData[dataIndex].nTr;
+    if(status && row.dataset.status !== status) return false;
+    if(priority && row.dataset.priority !== priority) return false;
+    if(branch && row.dataset.branch !== branch) return false;
+    if(category && row.dataset.category !== category) return false;
+    if(province && row.dataset.province !== province) return false;
+    return true;
+  });
+  ticketsTable.draw();
+  $.fn.dataTable.ext.search.pop();
 }
 
 // Debounce timer for search input
