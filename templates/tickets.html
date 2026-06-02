@@ -12,7 +12,6 @@
 <!-- Filter Row -->
 <div class="card mb-3">
  <div class="card-body py-2">
-  <!-- Mobile toggle button -->
   <div class="d-md-none mb-2">
    <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="toggleTicketFilter()">
     <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down" id="tFilterChevron"></i>
@@ -21,18 +20,18 @@
   <div class="row g-2 align-items-end mobile-filter-row" id="tFilterRow">
    <div class="col-md-2">
     <label class="form-label small mb-1">สถานะ</label>
-    <select class="form-select form-select-sm" id="filterStatus" onchange="applyTicketFilters()">
+    <select class="form-select form-select-sm" id="tFilterStatus" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     <option value="open">เปิด</option>
-     <option value="in_progress">กำลังดำเนิน</option>
-     <option value="pending">รอดำเนิน</option>
-     <option value="resolved">เสร็จแล้ว</option>
-     <option value="closed">ปิด</option>
+     <option value="เปิด">เปิด</option>
+     <option value="กำลังดำเนิน">กำลังดำเนิน</option>
+     <option value="รอดำเนิน">รอดำเนิน</option>
+     <option value="เสร็จแล้ว">เสร็จแล้ว</option>
+     <option value="ปิด">ปิด</option>
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ความสำคัญ</label>
-    <select class="form-select form-select-sm" id="filterPriority" onchange="applyTicketFilters()">
+    <select class="form-select form-select-sm" id="tFilterPriority" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
      <option value="critical">Critical</option>
      <option value="high">High</option>
@@ -42,14 +41,14 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">สาขา</label>
-    <select class="form-select form-select-sm" id="filterBranch" onchange="applyTicketFilters()">
+    <select class="form-select form-select-sm" id="tFilterBranch" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
      {% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">หมวด</label>
-    <select class="form-select form-select-sm" id="filterCategory" onchange="applyTicketFilters()">
+    <select class="form-select form-select-sm" id="tFilterCategory" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
      <option value="ระบบ Core Banking">ระบบ Core Banking</option>
      <option value="เครือข่าย/อินเทอร์เน็ต">เครือข่าย/อินเทอร์เน็ต</option>
@@ -61,7 +60,7 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">จังหวัด</label>
-    <select class="form-select form-select-sm" id="filterProvince" onchange="applyTicketFilters()">
+    <select class="form-select form-select-sm" id="tFilterProvince" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
      <option value="ปัตตานี">ปัตตานี</option>
      <option value="ยะลา">ยะลา</option>
@@ -70,7 +69,7 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
-    <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="debounceTicketSearch()">
+    <input type="text" class="form-control form-control-sm" id="tFilterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="applyTicketFilters()">
    </div>
   </div>
  </div>
@@ -170,7 +169,6 @@
 <script>
 let ticketsTable;
 
-// Mobile filter toggle
 function toggleTicketFilter(){
   const row = document.getElementById('tFilterRow');
   const chevron = document.getElementById('tFilterChevron');
@@ -181,45 +179,35 @@ function toggleTicketFilter(){
 
 function applyTicketFilters(){
   if(!ticketsTable) return;
-  const status = document.getElementById('filterStatus').value;
-  const priority = document.getElementById('filterPriority').value;
-  const branch = document.getElementById('filterBranch').value;
-  const category = document.getElementById('filterCategory').value;
-  const province = document.getElementById('filterProvince').value;
+  const status = document.getElementById('tFilterStatus').value;
+  const priority = document.getElementById('tFilterPriority').value;
+  const branch = document.getElementById('tFilterBranch').value;
+  const category = document.getElementById('tFilterCategory').value;
+  const province = document.getElementById('tFilterProvince').value;
+  const search = document.getElementById('tFilterSearch').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(status){
-      const cell = settings.aoData[dataIndex].anCells[7];
-      const raw = cell ? cell.getAttribute('data-filter') : null;
-      if(raw !== status) return false;
-    }
+    if(status && data[7] != status) return false;
     if(priority && data[6] != priority) return false;
     if(branch && data[2] != branch) return false;
     if(category && data[5] != category) return false;
     if(province && data[3] != province) return false;
+    if(search){
+      const rowStr = data.join(' ').toLowerCase();
+      if(rowStr.indexOf(search.toLowerCase()) === -1) return false;
+    }
     return true;
   });
   ticketsTable.draw();
   $.fn.dataTable.ext.search.pop();
 }
 
-// Debounce timer for search input
-let _ticketSearchTimer;
-function debounceTicketSearch(){
-  clearTimeout(_ticketSearchTimer);
-  _ticketSearchTimer = setTimeout(function(){
-    if(ticketsTable){
-      ticketsTable.search(document.getElementById('filterSearch').value).draw();
-    }
-  }, 300);
-}
-
 // Read URL params into filters on load
 const _tp = new URLSearchParams(window.location.search);
-if(_tp.get('status')) document.getElementById('filterStatus').value = _tp.get('status');
-if(_tp.get('priority')) document.getElementById('filterPriority').value = _tp.get('priority');
-if(_tp.get('branch')) document.getElementById('filterBranch').value = _tp.get('branch');
-if(_tp.get('province')) document.getElementById('filterProvince').value = _tp.get('province');
-if(_tp.get('category')) document.getElementById('filterCategory').value = _tp.get('category');
+if(_tp.get('status')) document.getElementById('tFilterStatus').value = _tp.get('status');
+if(_tp.get('priority')) document.getElementById('tFilterPriority').value = _tp.get('priority');
+if(_tp.get('branch')) document.getElementById('tFilterBranch').value = _tp.get('branch');
+if(_tp.get('province')) document.getElementById('tFilterProvince').value = _tp.get('province');
+if(_tp.get('category')) document.getElementById('tFilterCategory').value = _tp.get('category');
 
 document.addEventListener('DOMContentLoaded', function(){
   ticketsTable = initTable('#ticketsTable',{order:[[10,'desc']]});
