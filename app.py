@@ -109,7 +109,7 @@ def _tickets(S):
     tc = 0
     for _ in range(random.randint(85,105)):
         tc += 1
-        ticket_code = f"TK-2026-{tc:04d}"
+        ticket_code = f"TK-26-{tc:04d}"
         cat = random.choice(list(TICKET_CATS.keys()))
         cd = TICKET_CATS[cat]
         rep = random.choice(EU)

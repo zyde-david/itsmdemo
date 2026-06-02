@@ -16,15 +16,15 @@
                 <div class="row g-2 small">
                     <div class="col-6">
                         <span class="text-muted">สมาชิก:</span>
-                        <strong>{{ "{:,}".format(s.members) }}</strong>
+                        <strong>{{ s.members_fmt }}</strong>
                     </div>
                     <div class="col-6">
                         <span class="text-muted">เงินฝาก/เดือน:</span>
-                        <strong>{{ "{:,.0f}".format(s.monthly_deposit/1000000) }}M</strong>
+                        <strong>{{ s.deposit_fmt }}M</strong>
                     </div>
                     <div class="col-6">
                         <span class="text-muted">เบิกกู้/เดือน:</span>
-                        <strong>{{ "{:,.0f}".format(s.monthly_loan/1000000) }}M</strong>
+                        <strong>{{ s.loan_fmt }}M</strong>
                     </div>
                     <div class="col-6">
                         <span class="text-muted">Tickets:</span>
