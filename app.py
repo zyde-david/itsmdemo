@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 import hashlib
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-import sqlite3, random, os
+import sqlite3, random, os, logging
 from datetime import datetime, timedelta
 from functools import wraps
 
-app = Flask(__name__)
+# Ensure static files resolve correctly on WSGI hosts (PythonAnywhere, etc.)
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, static_folder=os.path.join(_BASE_DIR, 'static'))
 app.config['SECRET_KEY'] = 'demo-2026-secret'
-DB_PATH = os.path.join(os.path.dirname(__file__), 'tickets.db')
+DB_PATH = os.path.join(_BASE_DIR, 'tickets.db')
+
+app.logger.setLevel(logging.ERROR)
 
 ADMIN_HASH = hashlib.sha256(b'demo2026').hexdigest()
 
