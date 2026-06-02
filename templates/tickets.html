@@ -181,30 +181,34 @@ function applyTicketFilters(){
   ticketsTable.draw();
 }
 
-// Persistent filter — registered once, reads current dropdown values on every draw
-$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-  if(settings.nTable.id !== 'ticketsTable') return true;
-  const status = document.getElementById('tFilterStatus').value;
-  const priority = document.getElementById('tFilterPriority').value;
-  const branch = document.getElementById('tFilterBranch').value;
-  const category = document.getElementById('tFilterCategory').value;
-  const province = document.getElementById('tFilterProvince').value;
-  const node = ticketsTable.row(dataIndex).node();
-  if(!node) return true;
-  if(status && node.dataset.status !== status) return false;
-  if(priority && node.dataset.priority !== priority) return false;
-  if(branch && node.dataset.branch !== branch) return false;
-  if(category && node.dataset.category !== category) return false;
-  if(province && node.dataset.province !== province) return false;
-  return true;
-});
-
-function toggleAllTickets(cb){document.querySelectorAll('.ticket-check').forEach(c=>c.checked=cb.checked);}
-function deleteOneTicket(id){if(!confirm('ลบ Ticket?'))return;fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
-function bulkDeleteTickets(){const ids=[...document.querySelectorAll('.ticket-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' Ticket?'))return;Promise.all(ids.map(id=>fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
+// Persistent filter — registered once after table init, reads current dropdown values on every draw
+function registerTicketFilter(){
+  if(!ticketsTable) return;
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(settings.nTable.id !== 'ticketsTable') return true;
+    const status = document.getElementById('tFilterStatus').value;
+    const priority = document.getElementById('tFilterPriority').value;
+    const branch = document.getElementById('tFilterBranch').value;
+    const category = document.getElementById('tFilterCategory').value;
+    const province = document.getElementById('tFilterProvince').value;
+    const node = ticketsTable.row(dataIndex).node();
+    if(!node) return true;
+    if(status && node.dataset.status !== status) return false;
+    if(priority && node.dataset.priority !== priority) return false;
+    if(branch && node.dataset.branch !== branch) return false;
+    if(category && node.dataset.category !== category) return false;
+    if(province && node.dataset.province !== province) return false;
+    return true;
+  });
+}
 
 document.addEventListener('DOMContentLoaded',function(){
   ticketsTable = initTable('#ticketsTable',{order:[[11,'desc']]});
+  registerTicketFilter();
+  document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
+    document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
+  }));
+});
   document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
     document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
   }));
