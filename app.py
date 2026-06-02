@@ -32,25 +32,36 @@ ALL_BRANCHES = [
  {"branch":"สาขาหนองจิก","district":"หนองจิก","province":"ปัตตานี","type":"branch"},
  {"branch":"สาขาปะนาเระ","district":"ปะนาเระ","province":"ปัตตานี","type":"branch"},
  {"branch":"สาขามายอ","district":"มายอ","province":"ปัตตานี","type":"branch"},
- {"branch":"สาขายะหริ่ง","district":"ยะหริ่ง","province":"ปัตตานี","type":"branch"},
  {"branch":"สาขาทุ่งยางแดง","district":"ทุ่งยางแดง","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขาสายบุรี","district":"สายบุรี","province":"ปัตตานี","type":"branch"},
  {"branch":"สาขาไม้แก่น","district":"ไม้แก่น","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขายะหริ่ง","district":"ยะหริ่ง","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขายะรัง","district":"ยะรัง","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขากะพ้อ","district":"กะพ้อ","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขาแม่ลาน","district":"แม่ลาน","province":"ปัตตานี","type":"branch"},
  {"branch":"สาขาเมืองยะลา","district":"เมืองยะลา","province":"ยะลา","type":"main"},
  {"branch":"สาขาบันนังสตา","district":"บันนังสตา","province":"ยะลา","type":"branch"},
- {"branch":"สาขาเบตง","district":"เบตง","province":"ยะลา","type":"branch"},
  {"branch":"สาขายะหา","district":"ยะหา","province":"ยะลา","type":"branch"},
  {"branch":"สาขารามัน","district":"รามัน","province":"ยะลา","type":"branch"},
+ {"branch":"สาขาเบตง","district":"เบตง","province":"ยะลา","type":"branch"},
+ {"branch":"สาขากาบัง","district":"กาบัง","province":"ยะลา","type":"branch"},
+ {"branch":"สาขากรงปินัง","district":"กรงปินัง","province":"ยะลา","type":"branch"},
+ {"branch":"สาขาธารโต","district":"ธารโต","province":"ยะลา","type":"branch"},
  {"branch":"สาขาเมืองนราธิวาส","district":"เมืองนราธิวาส","province":"นราธิวาส","type":"main"},
  {"branch":"สาขาตากใบ","district":"ตากใบ","province":"นราธิวาส","type":"branch"},
  {"branch":"สาขาบาเจาะ","district":"บาเจาะ","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขายี่งอ","district":"ยี่งอ","province":"นราธิวาส","type":"branch"},
  {"branch":"สาขาระแงะ","district":"ระแงะ","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขารือเสาะ","district":"รือเสาะ","province":"นราธิวาส","type":"branch"},
  {"branch":"สาขาศรีสาคร","district":"ศรีสาคร","province":"นราธิวาส","type":"branch"},
- {"branch":"สาขาสุไหงปาดี","district":"สุไหงปาดี","province":"นราธิวาส","type":"branch"},
- {"branch":"สาขาสุไหงโก-ลก","district":"สุไหงโก-ลก","province":"นราธิวาส","type":"branch"},
- {"branch":"สาขาจะแนะ","district":"จะแนะ","province":"นราธิวาส","type":"branch"},
  {"branch":"สาขาแว้ง","district":"แว้ง","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาสุคิริน","district":"สุคิริน","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาสุไหงโก-ลก","district":"สุไหงโก-ลก","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาสุไหงปาดี","district":"สุไหงปาดี","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาจะแนะ","district":"จะแนะ","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาเจาะไอร้อง","district":"เจาะไอร้อง","province":"นราธิวาส","type":"branch"},
 ]
-NUM_BRANCHES = len(ALL_BRANCHES)
+NUM_BRANCHES = len(ALL_BRANCHES)  # 33
 
 TICKET_CATS = {
  "ระบบ Core Banking":{"titles":["Core Banking ล่ม","เข้า Core ไม่ได้","บันทึกรายการไม่ได้","ถอนเงินผิดพลาด","ปิดรอบวันไม่ได้","พิมพ์ใบเสร็จไม่ได้","สินเชื่อดอกเบี้ยผิดปกติ","ระบบสมาชิก Error"],"priority":"critical","ai":"1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"},
@@ -139,6 +150,18 @@ KB = [
     {"title":"แจ้งปัญหา IT","cat":"ทั่วไป","content":"1. เข้า Tickets\n2. New Ticket\n3. เลือกหมวด\n4. ระบุรายละเอียด\n5. Submit","v":342},
     {"title":"แก้จอฟ้า BSOD","cat":"คอมพิวเตอร์","content":"1. ปิดเครื่อง 10 วิ\n2. F8 Safe Mode\n3. รีเซ็ต Driver\n4. แจ้ง IT","v":78},
     {"title":"ใช้เครื่องนับเงิน","cat":"ทั่วไป","content":"1. เปิดเครื่อง\n2. วางธนบัตร\n3. กดนับ\n4. เช็คยอด\n5. Confirm","v":124},
+    {"title":"ติดตั้ง Printer ใหม่","cat":"เครื่องพิมพ์","content":"1. Download Driver จากเว็บผู้ผลิต\n2. ติดตั้ง Driver\n3. เชื่อมต่อ USB/Network\n4. เพิ่ม Printer ใน Settings\n5. Test Print","v":201},
+    {"title":"แก้ WiFi ดรอปชะงัก","cat":"เครือข่าย","content":"1. เช็คสัญญาณ WiFi\n2. เปลี่ยน Channel Router\n3. เช็ค Interference\n4. ติดตั้ง Access Point เพิ่ม\n5. แจ้ง ISP","v":145},
+    {"title":"อัพเดท Windows Update","cat":"คอมพิวเตอร์","content":"1. บันทึกงานทั้งหมด\n2. เปิด Settings → Update\n3. Check for Updates\n4. รอดาวน์โหลด\n5. Restart เครื่อง","v":189},
+    {"title":"แก้เครื่องสแกนเนอร์ไม่ทำงาน","cat":"เครื่องพิมพ์","content":"1. เช็คสาย USB\n2. ติดตั้ง Driver ใหม่\n3. เช็ค Software\n4. ทดสอบสแกน\n5. แจ้ง IT ถ้ายังไม่ได้","v":67},
+    {"title":"เปิดใช้งานโปรแกรม Core Banking","cat":"Core Banking","content":"1. เข้าระบบ Core\n2. ใส่ User/Password\n3. เช็ค VPN ก่อน\n4. เลือกเมนูงาน\n5. เริ่มทำรายการ","v":234},
+    {"title":"ถอด/เปลี่ยนตลับหมึก","cat":"เครื่องพิมพ์","content":"1. ปิดเครื่อง\n2. เปิดฝาหน้า\n3. ดึงตลับหมึกเก่า\n4. ใส่ตลับใหม่\n5. ปิดฝา เปิดเครื่อง","v":156},
+    {"title":"แก้ IP Camera ภาพไม่ขึ้น","cat":"เครือข่าย","content":"1. เช็คสาย LAN Camera\n2. ตรวจสอบ IP Address\n3. Ping Camera\n4. รีสตาร์ท NVR\n5. แจ้ง IT","v":89},
+    {"title":"ใช้เครื่องบันทึกเงิน","cat":"ทั่วไป","content":"1. เปิดเครื่อง\n2. ใส่รหัสพนักงาน\n3. ทำรายการปกติ\n4. ปิดกะ → สรุปยอด\n5. ส่งเงิน","v":178},
+    {"title":"แก้ Password ล็อก","cat":"Core Banking","content":"1. กด Forgot Password\n2. รอ OTP SMS\n3. ใส่ OTP\n4. ตั้งรหัสใหม่\n5. เข้าระบบใหม่","v":267},
+    {"title":"Backup ข้อมูลก่อนปิดวัน","cat":"Core Banking","content":"1. ปิดระบบ Core\n2. สำรองข้อมูล (Backup)\n3. เช็ค Log\n4. ปิด Server\n5. ปิดไฟ","v":145},
+    {"title":"แก้เครื่องเปิดไม่ติด","cat":"คอมพิวเตอร์","content":"1. เช็คสายไฟ\n2. เช็ค Power Supply\n3. กด Power ค้าง 10 วิ\n4. ถอด RAM เช็ค\n5. แจ้ง IT","v":56},
+    {"title":"เช็คสต็อกเอกสาร","cat":"ทั่วไป","content":"1. เข้าระบบ Stock\n2. เลือกประเภทเอกสาร\n3. ตรวจสอบจำนวน\n4. สั่งเพิ่มถ้าต่ำกว่า\n5. บันทึก","v":112},
 ]
 
 def get_db():
@@ -147,7 +170,8 @@ def get_db():
 def init_db():
     c=get_db()
     c.execute('CREATE TABLE IF NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,role TEXT,branch TEXT,province TEXT,is_it INTEGER DEFAULT 0)')
-    c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL)')
+    c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,asset_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,reported_at TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL)')
+    c.execute('CREATE TABLE IF NOT EXISTS work_notes (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,last_check DATE,next_check DATE,notes TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
     if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
@@ -283,6 +307,21 @@ def api_delete(tid):
     c=get_db();c.execute('DELETE FROM tickets WHERE id=?',(tid,));c.commit();c.close()
     return jsonify(success=True)
 
+# ── Work Notes API ──
+@app.route('/api/ticket/<int:tid>/notes',methods=['GET'])
+@login_required
+def api_notes_get(tid):
+    c=get_db();rows=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(tid,)).fetchall();c.close()
+    return jsonify(notes=[dict(r) for r in rows])
+
+@app.route('/api/ticket/<int:tid>/notes',methods=['POST'])
+@login_required
+def api_notes_add(tid):
+    d=request.json;c=get_db()
+    c.execute('INSERT INTO work_notes (ticket_id,note,created_by) VALUES (?,?,?)',(tid,d.get('note',''),d.get('created_by','Admin')))
+    c.commit();nid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    return jsonify(success=True,id=nid)
+
 @app.route('/api/chatbot',methods=['POST'])
 @login_required
 def chatbot():
@@ -294,6 +333,23 @@ def chatbot():
     return jsonify(answer=a)
 
 # ── Asset API ──
+@app.route('/api/asset/search',methods=['GET'])
+@login_required
+def api_asset_search():
+    serial=request.args.get('serial','');c=get_db()
+    a=c.execute('SELECT * FROM assets WHERE serial LIKE ?',('%'+serial+'%',)).fetchone()
+    if not a: return jsonify(asset=None)
+    cnt=c.execute('SELECT COUNT(*) FROM tickets WHERE asset_id=?',(a['id'],)).fetchone()[0];c.close()
+    return jsonify(asset=dict(a),ticket_count=cnt)
+
+@app.route('/api/asset/<int:aid>',methods=['GET'])
+@login_required
+def api_asset_get(aid):
+    c=get_db();a=c.execute('SELECT * FROM assets WHERE id=?',(aid,)).fetchone()
+    if not a: c.close();return jsonify(asset=None)
+    cnt=c.execute('SELECT COUNT(*) FROM tickets WHERE asset_id=?',(aid,)).fetchone()[0]
+    c.close();return jsonify(asset=dict(a),ticket_count=cnt)
+
 @app.route('/api/asset',methods=['POST'])
 @login_required
 def api_asset_create():

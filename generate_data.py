@@ -131,32 +131,45 @@ IT_ROLES = [
     "System Administrator",
 ]
 
-# ─── Branch Data (16 branches, 3 provinces) ───
 ALL_BRANCHES = [
-    # ปัตตานี (8)
-    {"branch": "สาขาเมืองปัตตานี",     "district": "เมืองปัตตานี",     "province": "ปัตตานี",    "type": "main"},
-    {"branch": "สาขาหนองจิก",          "district": "หนองจิก",          "province": "ปัตตานี",    "type": "branch"},
-    {"branch": "สาขายะหริ่ง",          "district": "ยะหริ่ง",          "province": "ปัตตานี",    "type": "branch"},
-    {"branch": "สาขามายอ",             "district": "มายอ",             "province": "ปัตตานี",    "type": "branch"},
-    {"branch": "สาขาโคกโพธิ์",        "district": "โคกโพธิ์",        "province": "ปัตตานี",    "type": "branch"},
-    {"branch": "สาขาปะนาเระ",         "district": "ปะนาเระ",         "province": "ปัตตานี",    "type": "branch"},
-    {"branch": "สาขาถนนพุทธศาสนา",    "district": "เมืองปัตตานี",     "province": "ปัตตานี",    "type": "branch"},
-    {"branch": "สาขาระแว้ง",           "district": "ระแว้ง",           "province": "ปัตตานี",    "type": "branch"},
-    # ยะลา (4)
-    {"branch": "สาขาเมืองยะลา",       "district": "เมืองยะลา",       "province": "ยะลา",       "type": "main"},
-    {"branch": "สาขาบันนังสตา",       "district": "บันนังสตา",       "province": "ยะลา",       "type": "branch"},
-    {"branch": "สาขาเบตง",            "district": "เบตง",            "province": "ยะลา",       "type": "branch"},
-    {"branch": "สาขายะรม",            "district": "เบตง",            "province": "ยะลา",       "type": "service_point"},
-    # นราธิวาส (7)
-    {"branch": "สาขาเมืองนราธิวาส",   "district": "เมืองนราธิวาส",   "province": "นราธิวาส",   "type": "main"},
-    {"branch": "สาขาตากใบ",            "district": "ตากใบ",            "province": "นราธิวาส",   "type": "branch"},
-    {"branch": "สาขาสุไหงปาดี",       "district": "สุไหงปาดี",       "province": "นราธิวาส",   "type": "branch"},
-    {"branch": "สาศารุษะเตมีย์",     "district": "เมืองนราธิวาส",   "province": "นราธิวาส",   "type": "branch"},
-    {"branch": "สาขาบาเจาะ",           "district": "บาเจาะ",           "province": "นราธิวาส",   "type": "branch"},
-    {"branch": "สาขาจะแนะ",            "district": "จะแนะ",            "province": "นราธิวาส",   "type": "branch"},
-    {"branch": "สาขาสุไหงโก-ลก",      "district": "สุไหงโก-ลก",      "province": "นราธิวาส",   "type": "branch"},
+    # ปัตตานี (12 อำเภอ)
+    {"branch": "สาขาเมืองปัตตานี",       "district": "เมืองปัตตานี",   "province": "ปัตตานี",     "type": "main"},
+    {"branch": "สาขาโคกโพธิ์",          "district": "โคกโพธิ์",      "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขาหนองจิก",          "district": "หนองจิก",      "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขาปะนาเระ",          "district": "ปะนาเระ",      "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขามายอ",             "district": "มายอ",         "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขาทุ่งยางแดง",       "district": "ทุ่งยางแดง",   "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขาสายบุรี",          "district": "สายบุรี",      "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขาไม้แก่น",           "district": "ไม้แก่น",       "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขายะหริ่ง",          "district": "ยะหริ่ง",      "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขายะรัง",             "district": "ยะรัง",        "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขากะพ้อ",             "district": "กะพ้อ",        "province": "ปัตตานี",     "type": "branch"},
+    {"branch": "สาขาแม่ลาน",            "district": "แม่ลาน",       "province": "ปัตตานี",     "type": "branch"},
+    # ยะลา (8 อำเภอ)
+    {"branch": "สาขาเมืองยะลา",        "district": "เมืองยะลา",    "province": "ยะลา",        "type": "main"},
+    {"branch": "สาขาบันนังสตา",        "district": "บันนังสตา",    "province": "ยะลา",        "type": "branch"},
+    {"branch": "สาขายะหา",              "district": "ยะหา",         "province": "ยะลา",        "type": "branch"},
+    {"branch": "สาขารามัน",             "district": "รามัน",        "province": "ยะลา",        "type": "branch"},
+    {"branch": "สาขาเบตง",              "district": "เบตง",         "province": "ยะลา",        "type": "branch"},
+    {"branch": "สาขากาบัง",             "district": "กาบัง",        "province": "ยะลา",        "type": "branch"},
+    {"branch": "สาขากรงปินัง",          "district": "กรงปินัง",     "province": "ยะลา",        "type": "branch"},
+    {"branch": "สาขาธารโต",              "district": "ธารโต",        "province": "ยะลา",        "type": "branch"},
+    # นราธิวาส (13 อำเภอ)
+    {"branch": "สาขาเมืองนราธิวาส",    "district": "เมืองนราธิวาส", "province": "นราธิวาส",    "type": "main"},
+    {"branch": "สาขาตากใบ",             "district": "ตากใบ",        "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาบาเจาะ",            "district": "บาเจาะ",       "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขายี่งอ",              "district": "ยี่งอ",         "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาระแงะ",             "district": "ระแงะ",        "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขารือเสาะ",           "district": "รือเสาะ",      "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาศรีสาคร",           "district": "ศรีสาคร",      "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาแว้ง",               "district": "แว้ง",          "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาสุคิริน",            "district": "สุคิริน",       "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาสุไหงโก-ลก",       "district": "สุไหงโก-ลก",   "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาสุไหงปาดี",         "district": "สุไหงปาดี",    "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาจะแนะ",             "district": "จะแนะ",        "province": "นราธิวาส",    "type": "branch"},
+    {"branch": "สาขาเจาะไอร้อง",        "district": "เจาะไอร้อง",  "province": "นราธิวาส",    "type": "branch"},
 ]
-
+NUM_BRANCHES = len(ALL_BRANCHES)  # 33
 
 def generate_name():
     """Generate a realistic Thai/Malay-Muslim name"""

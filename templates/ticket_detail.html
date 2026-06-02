@@ -1,112 +1,278 @@
 {% extends "base.html" %}
-{% block title %}Ticket #{{ ticket.id }} — ระบบจัดการ IT{% endblock %}
+{% block title %}Ticket #{{ ticket.id }} — ITSM Demo{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col-md-8">
+        <!-- Ticket Header -->
         <div class="card mb-3">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Ticket #{{ ticket.id }} — {{ ticket.title }}</h5>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>Ticket #{{ ticket.id }} — {{ ticket.title }}</h5>
+                <a href="/tickets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>กลับ</a>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
-                    <div class="col-md-4"><strong>สาขา:</strong> {{ ticket.branch }}</div>
-                    <div class="col-md-4"><strong>จังหวัด:</strong> {{ ticket.province }}</div>
-                    <div class="col-md-4"><strong>หมวด:</strong> {{ ticket.category }}</div>
+                    <div class="col-md-3"><strong>สาขา:</strong><br>{{ ticket.branch }}</div>
+                    <div class="col-md-3"><strong>จังหวัด:</strong><br>{{ ticket.province }}</div>
+                    <div class="col-md-3"><strong>หมวด:</strong><br>{{ ticket.category }}</div>
+                    <div class="col-md-3"><strong>สถานะ:</strong><br>
+                        {% if ticket.status == 'resolved' %}<span class="badge bg-success">เสร็จแล้ว</span>
+                        {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนินการ</span>
+                        {% elif ticket.status == 'closed' %}<span class="badge bg-secondary">ปิด</span>
+                        {% else %}<span class="badge bg-primary">เปิด</span>{% endif %}
+                    </div>
                 </div>
                 <div class="row mb-3">
-                    <div class="col-md-4"><strong>ความสำคัญ:</strong>
-                        <span class="badge-priority priority-{{ ticket.priority }}">{{ ticket.priority }}</span>
-                    </div>
-                    <div class="col-md-4"><strong>สถานะ:</strong>
-                        {% if ticket.status == 'resolved' %}
-                        <span class="badge bg-success">เสร็จแล้ว</span>
-                        {% elif ticket.status == 'in_progress' %}
-                        <span class="badge bg-warning text-dark">กำลังดำเนินการ</span>
-                        {% elif ticket.status == 'closed' %}
-                        <span class="badge bg-secondary">ปิด</span>
-                        {% else %}
-                        <span class="badge bg-primary">เปิด</span>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-4"><strong>ผู้แจ้ง:</strong> {{ ticket.reported_by }}</div>
+                    <div class="col-md-3"><strong>ความสำคัญ:</strong><br><span class="badge-priority priority-{{ ticket.priority }}">{{ ticket.priority }}</span></div>
+                    <div class="col-md-3"><strong>ผู้แจ้ง:</strong><br>{{ ticket.reported_by }}</div>
+                    <div class="col-md-3"><strong>มอบหมาย:</strong><br>{{ ticket.assigned_to or 'ยังไม่มอบหมาย' }}</div>
+                    <div class="col-md-3"><strong>Asset:</strong><br><span id="ticketAssetInfo">-</span></div>
                 </div>
                 <div class="mb-3"><strong>รายละเอียด:</strong><br><span class="text-muted">{{ ticket.description }}</span></div>
-                <div class="row mb-3">
-                    <div class="col-md-6"><strong>วันที่แจ้ง:</strong> {{ ticket.created_at }}</div>
-                    <div class="col-md-6"><strong>มอบหมายให้:</strong> {{ ticket.assigned_to or 'ยังไม่มอบหมาย' }}</div>
+                <div class="row">
+                    <div class="col-md-4"><strong>วันที่แจ้ง:</strong><br>{{ ticket.created_at }}</div>
+                    <div class="col-md-4"><strong>วันที่แก้ไข:</strong><br>{{ ticket.resolved_at or '-' }}</div>
+                    <div class="col-md-4"><strong>ระยะเวลา:</strong><br><span id="duration">-</span></div>
                 </div>
-                {% if ticket.resolved_at %}
-                <div class="mb-3"><strong>วันที่แก้ไข:</strong> {{ ticket.resolved_at }}</div>
-                {% endif %}
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
+
         <!-- AI Suggestion -->
         {% if ticket.ai_suggestion %}
         <div class="card border-primary mb-3">
             <div class="card-header bg-white">
                 <span class="ai-badge"><i class="bi bi-stars me-1"></i>AI แนะนำวิธีแก้</span>
-                <small class="text-muted ms-2">ความมั่นใจ {{ "%.0f"|format(ticket.ai_confidence * 100) }}%</small>
+                <small class="text-muted ms-2">{{ "%.0f" format(ticket.ai_confidence * 100) }}% confident</small>
             </div>
-            <div class="card-body">
-                <div style="white-space: pre-line; font-size: 0.9rem;">{{ ticket.ai_suggestion }}</div>
-            </div>
+            <div class="card-body"><div style="white-space: pre-line; font-size: 0.9rem;">{{ ticket.ai_suggestion }}</div></div>
         </div>
         {% endif %}
 
+        <!-- Work Notes / Timeline (Chat Style) -->
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-chat-left-text me-2"></i>Work Notes / Timeline</span>
+                <small class="text-muted" id="noteCount">0 notes</small>
+            </div>
+            <div class="card-body">
+                <div id="timeline" style="max-height:500px;overflow-y:auto;">
+                    <!-- Milestone: Created -->
+                    <div class="d-flex mb-3">
+                        <div class="me-3 text-center" style="min-width:40px;">
+                            <div class="bg-primary text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-pencil"></i></div>
+                            <div style="width:2px;height:40px;background:#ddd;margin:4px auto 0;"></div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="bg-light rounded p-2 px-3 small">
+                                <strong>{{ ticket.reported_by }}</strong> แจ้งปัญหา
+                                <br><small><span class="badge bg-primary">เปิด</span> <span class="badge bg-secondary">{{ ticket.priority }}</span></small>
+                            </div>
+                            <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ ticket.created_at }}</small>
+                        </div>
+                    </div>
+                    <!-- Work notes load here -->
+                    <div id="notesContainer"></div>
+                    <!-- Milestone: Active/Resolved -->
+                    {% if ticket.status == 'resolved' %}
+                    <div class="d-flex mb-3">
+                        <div class="me-3 text-center" style="min-width:40px;">
+                            <div class="bg-success text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-check-lg"></i></div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="bg-light rounded p-2 px-3 small"><strong>สำเร็จแล้ว</strong> — ปิด Ticket</div>
+                            <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ ticket.resolved_at }}</small>
+                        </div>
+                    </div>
+                    {% elif ticket.status == 'in_progress' %}
+                    <div class="d-flex mb-3">
+                        <div class="me-3 text-center" style="min-width:40px;">
+                            <div class="bg-warning text-dark rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-gear"></i></div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="bg-light rounded p-2 px-3 small"><strong>{{ ticket.assigned_to or 'IT Team' }}</strong> กำลังดำเนินการ</div>
+                            <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>ปัจจุบัน</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Add Note Input -->
+                <div class="mt-3">
+                    <div class="d-flex gap-2 mb-2">
+                        <input type="text" class="form-control form-control-sm flex-grow-1" id="noteInput" placeholder="เพิ่ม work note... (Enter เพื่อส่ง)">
+                        <input type="text" class="form-control form-control-sm" id="noteAuthor" placeholder="ชื่อ" style="max-width:150px;" value="IT Admin">
+                        <button class="btn btn-sm btn-primary" onclick="addNote()"><i class="bi bi-send"></i></button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" style="max-width:180px;" id="updateStatus">
+                            <option value="">🟡 เปลี่ยนสถานะ...</option>
+                            <option value="in_progress">🔧 กำลังดำเนินการ</option>
+                            <option value="resolved">✅ เสร็จแล้ว</option>
+                            <option value="closed">🔒 ปิด</option>
+                            <option value="open">🔄 เปิดใหม่</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm" id="reassignInput" placeholder="มอบหมายให้ใคร..." style="max-width:200px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
         <!-- Actions -->
         <div class="card mb-3">
             <div class="card-header bg-white fw-bold">ดำเนินการ</div>
             <div class="card-body">
                 {% if ticket.status != 'resolved' and ticket.status != 'closed' %}
-                <button class="btn btn-success w-100 mb-2" onclick="updateStatus('resolved')">
-                    <i class="bi bi-check-lg me-1"></i>ปิด Ticket (เสร็จแล้ว)
-                </button>
-                <button class="btn btn-warning w-100 mb-2" onclick="updateStatus('in_progress')">
-                    <i class="bi bi-gear me-1"></i>กำลังดำเนินการ
-                </button>
+                <button class="btn btn-sm btn-success w-100 mb-2" onclick="quickStatus('resolved')"><i class="bi bi-check-lg me-1"></i>ปิด Ticket</button>
+                <button class="btn btn-sm btn-warning w-100 mb-2" onclick="quickStatus('in_progress')"><i class="bi bi-gear me-1"></i>กำลังดำเนิน</button>
                 {% endif %}
-                {% if ticket.status == 'resolved' %}
-                <button class="btn btn-outline-primary w-100 mb-2" onclick="updateStatus('open')">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>เปิดใหม่
-                </button>
+                {% if ticket.status == 'resolved' or ticket.status == 'closed' %}
+                <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="quickStatus('open')"><i class="bi bi-arrow-counterclockwise me-1"></i>เปิดใหม่</button>
                 {% endif %}
-                <a href="/tickets" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-arrow-left me-1"></i>กลับไป Tickets
-                </a>
+                <hr>
+                <small class="text-muted d-block mb-1">มอบหมายให้:</small>
+                <input type="text" class="form-control form-control-sm mb-2" id="assignToInput" value="{{ ticket.assigned_to or '' }}" placeholder="ชื่อผู้รับผิดชอบ">
+                <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="reassign()"><i class="bi bi-person-plus me-1"></i>มอบหมาย</button>
+                <small class="text-muted d-block mb-1">เชื่อม Asset:</small>
+                <input type="text" class="form-control form-control-sm mb-2" id="assetSerialInput" placeholder="Serial Number...">
+                <button class="btn btn-sm btn-outline-dark w-100 mb-2" onclick="linkAsset()"><i class="bi bi-box-seam me-1"></i>เชื่อม Asset</button>
             </div>
         </div>
 
-        <!-- Timeline -->
+        <!-- Linked Assets -->
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-bold"><i class="bi bi-box-seam me-2"></i>Assets ที่เกี่ยวข้อง</div>
+            <div class="card-body" id="linkedAssets">
+                <small class="text-muted">ไม่มี asset ที่เชื่อมโยง</small>
+            </div>
+        </div>
+
+        <!-- Takeover Info -->
         <div class="card">
-            <div class="card-header bg-white fw-bold">Timeline</div>
+            <div class="card-header bg-white fw-bold"><i class="bi bi-info-circle me-2"></i>ผู้รับผิดชอบ</div>
             <div class="card-body">
-                <div class="mb-2"><span class="badge bg-primary">📝 แจ้งปัญหา</span><br><small>{{ ticket.created_at }}</small></div>
-                {% if ticket.status == 'resolved' %}
-                <div class="mb-2"><span class="badge bg-success">✅ เสร็จสิ้น</span><br><small>{{ ticket.resolved_at or 'เมื่อผ่านมา' }}</small></div>
-                {% elif ticket.status == 'in_progress' %}
-                <div class="mb-2"><span class="badge bg-warning text-dark">🔧 กำลังดำเนินการ</span><br><small>อัปเดตล่าสุด: วันนี้</small></div>
-                {% else %}
-                <div class="mb-2"><span class="badge bg-secondary">⏳ รอดำเนินการ</span></div>
-                {% endif %}
+                <div class="d-flex align-items-center mb-2">
+                    <div class="bg-primary text-white rounded-circle me-2" style="width:32px;height:32px;line-height:32px;text-align:center;">{{ (ticket.assigned_to or 'IT')[0] }}</div>
+                    <div><strong>{{ ticket.assigned_to or 'ยังไม่มอบหมาย' }}</strong><br><small class="text-muted">ผู้รับผิดชอบปัจจุบัน</small></div>
+                </div>
+                <small class="text-muted"><i class="bi bi-shield-check me-1"></i>หากผู้รับผิดชอบลา สามารถ Reassign ให้คนอื่นได้</small>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-async function updateStatus(status) {
-    const labels = { resolved: 'ปิด Ticket', in_progress: 'กำลังดำเนินการ', open: 'เปิดใหม่' };
-    if (!confirm('ยืนยันเปลี่ยนสถานะเป็น: ' + labels[status] + '?')) return;
-    const resp = await fetch('/api/ticket/{{ ticket.id }}/status', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({status: status})
+const TICKET_ID = {{ ticket.id }};
+const INITIAL_STATUS = '{{ ticket.status }}';
+const INITIAL_ASSET_ID = {{ ticket.asset_id or 0 }};
+
+// Load work notes
+async function loadNotes(){
+    const r = await fetch('/api/ticket/'+TICKET_ID+'/notes');
+    const d = await r.json();
+    const container = document.getElementById('notesContainer');
+    container.innerHTML = '';
+    document.getElementById('noteCount').innerText = d.notes.length + ' notes';
+    d.notes.forEach(n => {
+        const statusBadge = n.note.match(/🔧|✅|🔒|🔄/);
+        container.innerHTML += `
+        <div class="d-flex mb-3">
+            <div class="me-3 text-center" style="min-width:40px;">
+                <div class="bg-light text-dark rounded-circle border" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-chat-dots"></i></div>
+                <div style="width:2px;height:30px;background:#ddd;margin:4px auto 0;"></div>
+            </div>
+            <div class="flex-grow-1">
+                <div class="bg-light rounded p-2 px-3 small">
+                    <strong>${n.created_by}</strong>: ${n.note}
+                </div>
+                <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>${n.created_at}</small>
+            </div>
+        </div>`;
     });
-    const data = await resp.json();
-    if (data.success) location.reload();
-    else alert('Error: ' + (data.error || 'ไม่สามารถอัปเดตได้'));
+    if(d.notes.length > 0) document.getElementById('timeline').scrollTop = document.getElementById('timeline').scrollHeight;
 }
+
+// Load linked assets
+async function loadLinkedAsset(){
+    if(!INITIAL_ASSET_ID){
+        document.getElementById('ticketAssetInfo').innerText = '-';
+        return;
+    }
+    const r = await fetch('/api/asset/'+INITIAL_ASSET_ID);
+    const d = await r.json();
+    if(d.asset){
+        document.getElementById('ticketAssetInfo').innerHTML = `<a href="/assets">#${d.asset.id} ${d.asset.name}</a>`;
+        document.getElementById('linkedAssets').innerHTML = `
+            <div class="small"><strong>${d.asset.name}</strong> (${d.asset.asset_type})<br>
+            <small class="text-muted">Serial: ${d.asset.serial}</small>
+            <br><small class="text-muted"><i class="bi bi-ticket me-1"></i>${d.ticket_count} tickets linked</small></div>`;
+    }
+}
+
+document.getElementById('noteInput').addEventListener('keypress', e => { if(e.key==='Enter') addNote(); });
+
+async function addNote(){
+    const note = document.getElementById('noteInput').value.trim();
+    const author = document.getElementById('noteAuthor').value.trim() || 'IT Admin';
+    const statusChange = document.getElementById('updateStatus').value;
+    const reassignTo = document.getElementById('reassignInput').value.trim();
+    if(!note && !statusChange && !reassignTo) return;
+
+    let fullNote = note;
+    if(reassignTo) fullNote += (fullNote ? '\n' : '') + '🔄 มอบหมายให้: ' + reassignTo;
+
+    if(note){
+        await fetch('/api/ticket/'+TICKET_ID+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:fullNote,created_by:author})});
+    }
+    document.getElementById('noteInput').value = '';
+    document.getElementById('updateStatus').value = '';
+    document.getElementById('reassignInput').value = '';
+
+    if(statusChange) await quickStatus(statusChange);
+    if(reassignTo) await reassign(reassignTo);
+
+    loadNotes();
+}
+
+async function quickStatus(status){
+    const labels = { resolved: 'ปิด Ticket', in_progress: 'กำลังดำเนินการ', open: 'เปิดใหม่', closed: 'ปิด' };
+    if(!confirm('เปลี่ยนสถานะเป็น: ' + labels[status] + '?')) return;
+    await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:status})});
+    location.reload();
+}
+
+async function reassign(to){
+    const name = to || document.getElementById('assignToInput').value.trim();
+    if(!name) return;
+    await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_to:name})});
+    location.reload();
+}
+
+async function linkAsset(){
+    const serial = document.getElementById('assetSerialInput').value.trim();
+    if(!serial) return;
+    const r = await fetch('/api/asset/search?serial='+encodeURIComponent(serial));
+    const d = await r.json();
+    if(d.asset){
+        await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:d.asset.id})});
+        location.reload();
+    } else {
+        alert('ไม่พบ Asset ที่มี Serial: ' + serial);
+    }
+}
+
+// Duration calculation
+(function(){
+    const created = new Date('{{ ticket.created_at }}');
+    const resolved = '{{ ticket.resolved_at }}' ? new Date('{{ ticket.resolved_at }}') : new Date();
+    const diff = Math.floor((resolved - created) / (1000*60*60));
+    const days = Math.floor(diff / 24);
+    const hrs = diff % 24;
+    document.getElementById('duration').innerText = days > 0 ? days + ' วัน ' + hrs + ' ชม.' : hrs + ' ชม.';
+})();
+
+loadNotes();
+loadLinkedAsset();
 </script>
 {% endblock %}
