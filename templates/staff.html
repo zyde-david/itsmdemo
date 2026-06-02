@@ -16,7 +16,12 @@
 <!-- Filter Row -->
 <div class="card mb-3">
  <div class="card-body py-2">
-  <div class="row g-2 align-items-end">
+  <div class="d-md-none mb-2">
+   <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="toggleStaffFilter()">
+    <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down" id="sFilterChevron"></i>
+   </button>
+  </div>
+  <div class="row g-2 align-items-end mobile-filter-row" id="sFilterRow">
    <div class="col-md-2">
     <label class="form-label small mb-1">สาขา</label>
     <select class="form-select form-select-sm" id="sFilterBranch" onchange="applyStaffFilters()">
@@ -28,12 +33,14 @@
     <label class="form-label small mb-1">จังหวัด</label>
     <select class="form-select form-select-sm" id="sFilterProvince" onchange="applyStaffFilters()">
      <option value="">ทั้งหมด</option>
+     {% for p in staff_provinces %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ตำแหน่ง</label>
     <select class="form-select form-select-sm" id="sFilterRole" onchange="applyStaffFilters()">
      <option value="">ทั้งหมด</option>
+     {% for r in staff_roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-1">
@@ -47,9 +54,6 @@
    <div class="col-md-3">
     <label class="form-label small mb-1">ค้นหา</label>
     <input type="text" class="form-control form-control-sm" id="sFilterSearch" placeholder="ชื่อ..." oninput="applyStaffFilters()">
-   </div>
-   <div class="col-md-2">
-    <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearStaffFilters()"><i class="bi bi-x-circle me-1"></i>ล้าง</button>
    </div>
   </div>
  </div>
@@ -116,41 +120,40 @@
 </div>
 
 <script>
-// Populate filter dropdowns from data
-const provinces=[...new Set([{% for s in staff %}'{{ s.province }}'{% if not loop.last %},{% endif %}{% endfor %}])];
-provinces.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;document.getElementById('sFilterProvince').appendChild(o);});
-const roles=[...new Set([{% for s in staff %}'{{ s.role }}'{% if not loop.last %},{% endif %}{% endfor %}])];
-roles.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;document.getElementById('sFilterRole').appendChild(o);});
+function toggleStaffFilter(){
+  const row = document.getElementById('sFilterRow');
+  const chevron = document.getElementById('sFilterChevron');
+  row.classList.toggle('show');
+  chevron.classList.toggle('bi-chevron-down');
+  chevron.classList.toggle('bi-chevron-right');
+}
 
 function applyStaffFilters(){
- const branch=document.getElementById('sFilterBranch').value;
- const province=document.getElementById('sFilterProvince').value;
- const role=document.getElementById('sFilterRole').value;
- const isIt=document.getElementById('sFilterIsIt').value;
- const search=document.getElementById('sFilterSearch').value.toLowerCase();
- document.querySelectorAll('#staffTable tbody tr').forEach(row=>{
-  let show=true;
-  if(branch&&row.dataset.branch!==branch)show=false;
-  if(province&&row.dataset.province!==province)show=false;
-  if(role&&row.dataset.role!==role)show=false;
-  if(isIt&&row.dataset.isIt!==isIt)show=false;
-  if(search&&!row.innerText.toLowerCase().includes(search))show=false;
-  row.style.display=show?'':'none';
- });
+  if(!window.staffTable) return;
+  const branch = document.getElementById('sFilterBranch').value;
+  const province = document.getElementById('sFilterProvince').value;
+  const role = document.getElementById('sFilterRole').value;
+  const isIt = document.getElementById('sFilterIsIt').value;
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(branch && data[4] != branch) return false;
+    if(province && data[5] != province) return false;
+    if(role && data[3] != role) return false;
+    if(isIt && data[6] != isIt) return false;
+    return true;
+  });
+  window.staffTable.draw();
+  $.fn.dataTable.ext.search.pop();
 }
-function clearStaffFilters(){
- ['sFilterBranch','sFilterProvince','sFilterRole','sFilterIsIt','sFilterSearch'].forEach(id=>document.getElementById(id).value='');
- applyStaffFilters();
-}
+
 function toggleAllStaff(cb){document.querySelectorAll('.staff-check').forEach(c=>c.checked=cb.checked);}
 function deleteOneStaff(id){if(!confirm('ลบพนักงาน?'))return;fetch('/api/staff/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
 function bulkDeleteStaff(){const ids=[...document.querySelectorAll('.staff-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' พนักงาน?'))return;Promise.all(ids.map(id=>fetch('/api/staff/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
 
 document.addEventListener('DOMContentLoaded',function(){
- initTable('#staffTable',{order:[[5,'desc'],[4,'asc'],[1,'asc']]});
- document.querySelectorAll('.staff-check').forEach(cb=>cb.addEventListener('change',()=>{
-  document.getElementById('bulkDeleteStaffBtn').style.display=[...document.querySelectorAll('.staff-check:checked')].length?'inline-block':'none';
- }));
+  window.staffTable = initTable('#staffTable',{order:[[5,'desc'],[4,'asc'],[1,'asc']]});
+  document.querySelectorAll('.staff-check').forEach(cb=>cb.addEventListener('change',()=>{
+    document.getElementById('bulkDeleteStaffBtn').style.display=[...document.querySelectorAll('.staff-check:checked')].length?'inline-block':'none';
+  }));
 });
 
 function handleRowClick(e, url, staffId){

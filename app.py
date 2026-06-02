@@ -184,6 +184,10 @@ def init_db():
     c.execute('CREATE TABLE IF NOT EXISTS work_notes (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_code TEXT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,brand TEXT,spec TEXT,assigned_to TEXT,last_check DATE,next_check DATE,notes TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
+    # Migration: add kb_id to tickets if missing
+    cols = [row[1] for row in c.execute('PRAGMA table_info(tickets)')]
+    if 'kb_id' not in cols:
+        c.execute('ALTER TABLE tickets ADD COLUMN kb_id INTEGER DEFAULT 0')
     if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
         c.close();return
     print('Seeding...')
@@ -279,9 +283,16 @@ def ticket_detail(ticket_id):
     c=get_db()
     t=c.execute('SELECT * FROM tickets WHERE id=?',(ticket_id,)).fetchone()
     notes=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(ticket_id,)).fetchall()
+    staff=c.execute('SELECT * FROM staff ORDER BY is_it DESC, name').fetchall()
+    assets=c.execute('SELECT * FROM assets WHERE status="active" ORDER BY branch,serial').fetchall()
+    kb=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall()
+    kb_linked=None
+    if t and t['kb_id']:
+        kb_linked=c.execute('SELECT * FROM knowledge_base WHERE id=?',(t['kb_id'],)).fetchone()
     c.close()
     if not t:return 'Not found',404
-    return render_template('ticket_detail.html',ticket=t,notes=notes)
+    return render_template('ticket_detail.html',ticket=t,notes=notes,
+        staff_list=staff,asset_list=assets,kb_articles=kb,kb_linked=kb_linked)
 
 @app.route('/asset/<int:asset_id>')
 @login_required
@@ -309,7 +320,7 @@ def assets_page():
         a = dict(r)
         a['province'] = branch_to_province.get(a['branch'], '-')
         assets_list.append(a)
-    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES)
+    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES,asset_types=sorted(set(a['asset_type'] for a in assets_list)))
 
 @app.route('/staff')
 @login_required
@@ -318,13 +329,16 @@ def staff_page():
     total=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
     itc=c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0]
     c.close()
-    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES)
+    provinces = sorted(set(s['province'] for s in rows))
+    roles = sorted(set(s['role'] for s in rows))
+    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles)
 
 @app.route('/knowledge')
 @login_required
 def kb_page():
     c=get_db();rows=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall();c.close()
-    return render_template('knowledge.html',articles=rows)
+    cats = sorted(set(r['category'] for r in rows))
+    return render_template('knowledge.html',articles=rows,kb_categories=cats)
 
 @app.route('/kb/<int:kb_id>')
 @login_required
@@ -374,7 +388,7 @@ def api_edit(tid):
     # Only update fields that are provided and non-empty — prevents partial updates from wiping data
     sets = []
     vals = []
-    for field in ('title','description','priority','status','assigned_to','branch','category','reported_by','asset_id'):
+    for field in ('title','description','priority','status','assigned_to','branch','category','reported_by','asset_id','kb_id'):
         val = d.get(field, None)
         if val is not None and val != '':
             sets.append(f'{field}=?')
@@ -391,6 +405,15 @@ def api_edit(tid):
 @login_required
 def api_delete(tid):
     c=get_db();c.execute('DELETE FROM tickets WHERE id=?',(tid,));c.commit();c.close()
+    return jsonify(success=True)
+
+@app.route('/api/ticket/<int:tid>/kb',methods=['POST'])
+@login_required
+def api_ticket_kb(tid):
+    d=request.json;c=get_db()
+    kb_id=d.get('kb_id',0)
+    c.execute('UPDATE tickets SET kb_id=? WHERE id=?',(kb_id,tid))
+    c.commit();c.close()
     return jsonify(success=True)
 
 # ── Work Notes API ──

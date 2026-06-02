@@ -44,9 +44,10 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 /* Mobile nav link text */
 .sidebar .nav-link span.nav-text{display:inline}
 
-/* Mobile filter: hide by default on small screens */
+/* Mobile filter: hidden by default on small screens, toggled via JS */
 @media(max-width:767.98px){
-  #filterRow{display:none}
+  .mobile-filter-row{display:none}
+  .mobile-filter-row.show{display:flex!important}
 }
 
 /* Responsive tables: card view on mobile */

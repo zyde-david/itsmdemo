@@ -18,7 +18,12 @@
 <!-- Filter Row -->
 <div class="card mb-3">
  <div class="card-body py-2">
-  <div class="row g-2 align-items-end">
+  <div class="d-md-none mb-2">
+   <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="toggleAssetFilter()">
+    <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down" id="aFilterChevron"></i>
+   </button>
+  </div>
+  <div class="row g-2 align-items-end mobile-filter-row" id="aFilterRow">
    <div class="col-md-2">
     <label class="form-label small mb-1">สถานะ</label>
     <select class="form-select form-select-sm" id="aFilterStatus" onchange="applyAssetFilters()">
@@ -32,6 +37,7 @@
     <label class="form-label small mb-1">ประเภท</label>
     <select class="form-select form-select-sm" id="aFilterType" onchange="applyAssetFilters()">
      <option value="">ทั้งหมด</option>
+     {% for t in asset_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-2">
@@ -53,9 +59,6 @@
    <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
     <input type="text" class="form-control form-control-sm" id="aFilterSearch" placeholder="รุ่น, serial..." oninput="applyAssetFilters()">
-   </div>
-   <div class="col-md-1">
-    <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearAssetFilters()"><i class="bi bi-x-circle me-1"></i>ล้าง</button>
    </div>
   </div>
  </div>
@@ -119,43 +122,42 @@
 </div>
 
 <script>
-const assetTypes = [...new Set([{% for a in assets %}'{{ a.asset_type }}'{% if not loop.last %},{% endif %}{% endfor %}])];
-assetTypes.forEach(t => { const o=document.createElement('option');o.value=t;o.textContent=t;document.getElementById('aFilterType').appendChild(o); });
+function toggleAssetFilter(){
+  const row = document.getElementById('aFilterRow');
+  const chevron = document.getElementById('aFilterChevron');
+  row.classList.toggle('show');
+  chevron.classList.toggle('bi-chevron-down');
+  chevron.classList.toggle('bi-chevron-right');
+}
 
 function filterAssetStatus(s){document.getElementById('aFilterStatus').value=s;applyAssetFilters();}
+
 function applyAssetFilters(){
- const status=document.getElementById('aFilterStatus').value;
- const type=document.getElementById('aFilterType').value;
- const branch=document.getElementById('aFilterBranch').value;
- const search=document.getElementById('aFilterSearch').value.toLowerCase();
- document.querySelectorAll('#assetsTable tbody tr').forEach(row=>{
-  let show=true;
-  if(status&&row.dataset.status!==status)show=false;
-  if(type&&row.dataset.type!==type)show=false;
-  if(branch&&row.dataset.branch!==branch)show=false;
-  const province=document.getElementById('aFilterProvince').value;
-  if(province&&row.dataset.province!==province)show=false;
-  if(search&&!row.innerText.toLowerCase().includes(search))show=false;
-  row.style.display=show?'':'none';
- });
+  if(!window.assetTable) return;
+  const status = document.getElementById('aFilterStatus').value;
+  const type = document.getElementById('aFilterType').value;
+  const branch = document.getElementById('aFilterBranch').value;
+  const province = document.getElementById('aFilterProvince').value;
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(status && data[7] != status) return false;
+    if(type && data[4] != type) return false;
+    if(branch && data[2] != branch) return false;
+    if(province && data[3] != province) return false;
+    return true;
+  });
+  window.assetTable.draw();
+  $.fn.dataTable.ext.search.pop();
 }
-function clearAssetFilters(){
- document.getElementById('aFilterStatus').value='';
- document.getElementById('aFilterType').value='';
- document.getElementById('aFilterBranch').value='';
- document.getElementById('aFilterProvince').value='';
- document.getElementById('aFilterSearch').value='';
- applyAssetFilters();
-}
+
 function toggleAllAssets(cb){document.querySelectorAll('.asset-check').forEach(c=>c.checked=cb.checked);}
 function deleteOneAsset(id){if(!confirm('ลบ Asset?'))return;fetch('/api/asset/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
 function bulkDeleteAssets(){const ids=[...document.querySelectorAll('.asset-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' Asset?'))return;Promise.all(ids.map(id=>fetch('/api/asset/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
 
 document.addEventListener('DOMContentLoaded',function(){
- initTable('#assetsTable',{order:[[1,'asc']]});
- document.querySelectorAll('.asset-check').forEach(cb=>cb.addEventListener('change',()=>{
-  document.getElementById('bulkDeleteAssetBtn').style.display=[...document.querySelectorAll('.asset-check:checked')].length?'inline-block':'none';
- }));
+  window.assetTable = initTable('#assetsTable',{order:[[1,'asc']]});
+  document.querySelectorAll('.asset-check').forEach(cb=>cb.addEventListener('change',()=>{
+    document.getElementById('bulkDeleteAssetBtn').style.display=[...document.querySelectorAll('.asset-check:checked')].length?'inline-block':'none';
+  }));
 });
 
 function handleRowClick(e, url){

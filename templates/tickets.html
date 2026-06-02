@@ -12,73 +12,67 @@
 <!-- Filter Row -->
 <div class="card mb-3">
  <div class="card-body py-2">
-  <form method="GET" action="/tickets" id="filterForm">
-  <!-- Mobile toggle -->
+  <!-- Mobile toggle button -->
   <div class="d-md-none mb-2">
-   <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="toggleFilter()">
-    <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down" id="filterChevron"></i>
+   <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="toggleTicketFilter()">
+    <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down" id="tFilterChevron"></i>
    </button>
   </div>
-  <div class="row g-2 align-items-end" id="filterRow">
+  <div class="row g-2 align-items-end mobile-filter-row" id="tFilterRow">
    <div class="col-md-2">
     <label class="form-label small mb-1">สถานะ</label>
-    <select class="form-select form-select-sm" name="status" id="filterStatus">
+    <select class="form-select form-select-sm" id="filterStatus" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     <option value="open" {% if filter_status=='open' %}selected{% endif %}>เปิด</option>
-     <option value="in_progress" {% if filter_status=='in_progress' %}selected{% endif %}>กำลังดำเนิน</option>
-     <option value="pending" {% if filter_status=='pending' %}selected{% endif %}>รอดำเนิน</option>
-     <option value="resolved" {% if filter_status=='resolved' %}selected{% endif %}>เสร็จแล้ว</option>
-     <option value="closed" {% if filter_status=='closed' %}selected{% endif %}>ปิด</option>
+     <option value="open">เปิด</option>
+     <option value="in_progress">กำลังดำเนิน</option>
+     <option value="pending">รอดำเนิน</option>
+     <option value="resolved">เสร็จแล้ว</option>
+     <option value="closed">ปิด</option>
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ความสำคัญ</label>
-    <select class="form-select form-select-sm" name="priority" id="filterPriority">
+    <select class="form-select form-select-sm" id="filterPriority" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     <option value="critical" {% if filter_priority=='critical' %}selected{% endif %}>Critical</option>
-     <option value="high" {% if filter_priority=='high' %}selected{% endif %}>High</option>
-     <option value="medium" {% if filter_priority=='medium' %}selected{% endif %}>Medium</option>
-     <option value="low" {% if filter_priority=='low' %}selected{% endif %}>Low</option>
+     <option value="critical">Critical</option>
+     <option value="high">High</option>
+     <option value="medium">Medium</option>
+     <option value="low">Low</option>
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">สาขา</label>
-    <select class="form-select form-select-sm" name="branch" id="filterBranch">
+    <select class="form-select form-select-sm" id="filterBranch" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     {% for b in branches %}<option value="{{ b.branch }}" {% if filter_branch==b.branch %}selected{% endif %}>{{ b.district }}</option>{% endfor %}
+     {% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">หมวด</label>
-    <select class="form-select form-select-sm" name="category" id="filterCategory">
+    <select class="form-select form-select-sm" id="filterCategory" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     <option value="ระบบ Core Banking" {% if filter_category=='ระบบ Core Banking' %}selected{% endif %}>ระบบ Core Banking</option>
-     <option value="เครือข่าย/อินเทอร์เน็ต" {% if filter_category=='เครือข่าย/อินเทอร์เน็ต' %}selected{% endif %}>เครือข่าย/อินเทอร์เน็ต</option>
-     <option value="VPN/ระบบเสีย" {% if filter_category=='VPN/ระบบเสีย' %}selected{% endif %}>VPN/ระบบเสีย</option>
-     <option value="เครื่องพิมพ์/สมุด" {% if filter_category=='เครื่องพิมพ์/สมุด' %}selected{% endif %}>เครื่องพิมพ์/สมุด</option>
-     <option value="คอมพิวเตอร์เสีย" {% if filter_category=='คอมพิวเตอร์เสีย' %}selected{% endif %}>คอมพิวเตอร์เสีย</option>
-     <option value="ไฟฟ้า/สาธารณูปโภค" {% if filter_category=='ไฟฟ้า/สาธารณูปโภค' %}selected{% endif %}>ไฟฟ้า/สาธารณูปโภค</option>
+     <option value="ระบบ Core Banking">ระบบ Core Banking</option>
+     <option value="เครือข่าย/อินเทอร์เน็ต">เครือข่าย/อินเทอร์เน็ต</option>
+     <option value="VPN/ระบบเสีย">VPN/ระบบเสีย</option>
+     <option value="เครื่องพิมพ์/สมุด">เครื่องพิมพ์/สมุด</option>
+     <option value="คอมพิวเตอร์เสีย">คอมพิวเตอร์เสีย</option>
+     <option value="ไฟฟ้า/สาธารณูปโภค">ไฟฟ้า/สาธารณูปโภค</option>
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">จังหวัด</label>
-    <select class="form-select form-select-sm" name="province" id="filterProvince">
+    <select class="form-select form-select-sm" id="filterProvince" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     <option value="ปัตตานี" {% if filter_province=='ปัตตานี' %}selected{% endif %}>ปัตตานี</option>
-     <option value="ยะลา" {% if filter_province=='ยะลา' %}selected{% endif %}>ยะลา</option>
-     <option value="นราธิวาส" {% if filter_province=='นราธิวาส' %}selected{% endif %}>นราธิวาส</option>
+     <option value="ปัตตานี">ปัตตานี</option>
+     <option value="ยะลา">ยะลา</option>
+     <option value="นราธิวาส">นราธิวาส</option>
     </select>
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
-    <input type="text" class="form-control form-control-sm" name="search" id="filterSearch" placeholder="พิมพ์..." value="{{ filter_search }}">
-   </div>
-   <div class="col-md-2 d-flex gap-1">
-    <button type="submit" class="btn btn-sm btn-primary flex-grow-1"><i class="bi bi-search"></i></button>
-    <a href="/tickets" class="btn btn-sm btn-outline-secondary flex-grow-1"><i class="bi bi-x-circle"></i></a>
+    <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="applyTicketFilters()">
    </div>
   </div>
-  </form>
  </div>
 </div>
 
@@ -177,26 +171,52 @@
 let ticketsTable;
 
 // Mobile filter toggle
-function toggleFilter(){
-  const row = document.getElementById('filterRow');
-  const chevron = document.getElementById('filterChevron');
-  if(row.style.display === 'none'){
-    row.style.display = '';
+function toggleTicketFilter(){
+  const row = document.getElementById('tFilterRow');
+  const chevron = document.getElementById('tFilterChevron');
+  row.classList.toggle('show');
+  if(row.classList.contains('show')){
     chevron.classList.remove('bi-chevron-right');
     chevron.classList.add('bi-chevron-down');
   } else {
-    row.style.display = 'none';
     chevron.classList.remove('bi-chevron-down');
     chevron.classList.add('bi-chevron-right');
   }
 }
 
+// Real-time filter using DataTables API (works correctly with pagination)
+function applyTicketFilters(){
+  if(!ticketsTable) return;
+  const status = document.getElementById('filterStatus').value;
+  const priority = document.getElementById('filterPriority').value;
+  const branch = document.getElementById('filterBranch').value;
+  const category = document.getElementById('filterCategory').value;
+  const province = document.getElementById('filterProvince').value;
+
+  // Use DataTables custom search
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(status && data[7] != status) return false;
+    if(priority && data[6] != priority) return false;
+    if(branch && data[2] != branch) return false;
+    if(category && data[5] != category) return false;
+    if(province && data[3] != province) return false;
+    return true;
+  });
+  ticketsTable.draw();
+  $.fn.dataTable.ext.search.pop();
+}
+
+// Read URL params into filters on load
+const _tp = new URLSearchParams(window.location.search);
+if(_tp.get('status')) document.getElementById('filterStatus').value = _tp.get('status');
+if(_tp.get('priority')) document.getElementById('filterPriority').value = _tp.get('priority');
+if(_tp.get('branch')) document.getElementById('filterBranch').value = _tp.get('branch');
+if(_tp.get('province')) document.getElementById('filterProvince').value = _tp.get('province');
+if(_tp.get('category')) document.getElementById('filterCategory').value = _tp.get('category');
+
 document.addEventListener('DOMContentLoaded', function(){
-  // Hide filter row on mobile by default
-  if(window.innerWidth < 768){
-    document.getElementById('filterRow').style.display = 'none';
-  }
   ticketsTable = initTable('#ticketsTable',{order:[[10,'desc']]});
+  if(_tp.toString()) applyTicketFilters();
   document.querySelectorAll('.row-check').forEach(cb=>cb.addEventListener('change',()=>{
     updateBulkCount();
   }));
@@ -208,110 +228,4 @@ function handleRowClick(e, url, staffId){
   else if(staffId){editStaff(staffId);}
 }
 
-function updateBulkCount(){
- const total=document.querySelectorAll('.row-check').length;
- const checked=document.querySelectorAll('.row-check:checked').length;
- const btn=document.getElementById('bulkDeleteBtn');
- const span=document.getElementById('bulkDeleteCount');
- if(checked>0){btn.style.display='inline-block';span.textContent='('+checked+'/'+total+')';}
- else{btn.style.display='none';}
-}
-
-function toggleAll(cb){
- document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
- updateBulkCount();
-}
-
-function getSelected(){
- return [...document.querySelectorAll('.row-check:checked')].map(c => c.value);
-}
-
-function bulkDelete(){
- const ids = getSelected();
- if(!ids.length) return;
- if(!confirm('ลบ '+ids.length+' Ticket?')) return;
- Promise.all(ids.map(id => fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());
-}
-
-function deleteOne(id){
- if(!confirm('ลบ Ticket #'+id+'?')) return;
- fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});
-}
-
-function editTicket(id){
- const rows = document.querySelectorAll('#ticketsTable tbody tr');
- let tdata = null;
- rows.forEach(row=>{
-  if(row.dataset.id==id.toString()){
-   const cells = row.querySelectorAll('td');
-   tdata = {
-    id: id.toString(),
-    branch: cells[2].textContent.trim(),
-    title: cells[4].textContent.trim(),
-    category: cells[5].textContent.trim(),
-    priority: cells[6].textContent.trim(),
-    status: cells[7].textContent.trim(),
-    reporter: cells[8].textContent.trim(),
-    assignee: cells[9].textContent.trim(),
-    date: cells[10].textContent.trim()
-   };
-  }
- });
- if(!tdata) return;
- document.getElementById('mTicketId').value = id;
- document.getElementById('mId').innerText = id;
- document.getElementById('mTitle').value = tdata.title;
- document.getElementById('mReporter').value = tdata.reporter;
- document.getElementById('mAssignee').value = tdata.assignee;
- document.getElementById('mDesc').value = '';
- const catSel = document.getElementById('mCategory');
- for(let i=0;i<catSel.options.length;i++){if(catSel.options[i].text.includes(tdata.category.substring(0,6))){catSel.selectedIndex=i;break}}
- const priSel = document.getElementById('mPriority');
- for(let i=0;i<priSel.options.length;i++){if(priSel.options[i].value===tdata.priority.toLowerCase()){priSel.selectedIndex=i;break}}
- const stMap = {'เปิด':'open','กำลังดำเนิน':'in_progress','รอดำเนิน':'pending','เสร็จ':'resolved','ปิด':'closed'};
- const stSel = document.getElementById('mStatus');
- const stVal = stMap[tdata.status]||'open';
- for(let i=0;i<stSel.options.length;i++){if(stSel.options[i].value===stVal){stSel.selectedIndex=i;break}}
- const brSel = document.getElementById('mBranch');
- for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].text.includes(tdata.branch.replace('สาขา',''))){brSel.selectedIndex=i;break}}
- new bootstrap.Modal(document.getElementById('editModal')).show();
-}
-
-function saveTicket(){
- const id = document.getElementById('mTicketId').value;
- const data = {
-  title: document.getElementById('mTitle').value,
-  description: document.getElementById('mDesc').value,
-  category: document.getElementById('mCategory').value,
-  priority: document.getElementById('mPriority').value,
-  status: document.getElementById('mStatus').value,
-  branch: document.getElementById('mBranch').value,
-  reported_by: document.getElementById('mReporter').value,
-  assigned_to: document.getElementById('mAssignee').value
- };
- const url = id ? '/api/ticket/'+id+'/edit' : '/api/ticket';
- fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
- .then(r=>r.json()).then(d=>{
-  if(d.success){bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();location.reload()}
-  else alert('Error: '+(d.error||'ไม่สามารถบันทึกได้'));
- });
-}
-
-function deleteTicket(){
- const id = document.getElementById('mTicketId').value;
- if(!confirm('ยืนยันลบ Ticket #'+id+'?')) return;
- fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}})
- .then(r=>r.json()).then(d=>{if(d.success)location.reload()});
-}
-
-function openNewTicket(){
- document.getElementById('mTicketId').value = '';
- document.getElementById('mId').innerText = 'NEW';
- document.getElementById('mTitle').value = '';
- document.getElementById('mDesc').value = '';
- document.getElementById('mReporter').value = '';
- document.getElementById('mAssignee').value = '';
- new bootstrap.Modal(document.getElementById('editModal')).show();
-}
-</script>
 {% endblock %}

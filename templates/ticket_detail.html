@@ -139,16 +139,46 @@
                 <hr>
                 <small class="text-muted d-block mb-1">มอบหมาย:</small>
                 <div class="input-group input-group-sm mb-2">
-                    <input type="text" class="form-control" id="assignToInput" value="{{ ticket.assigned_to or '' }}">
-                    <button class="btn btn-outline-primary" onclick="reassign()"><i class="bi bi-person-plus"></i></button>
+                    <select class="form-select form-select-sm" id="assignToSelect" onchange="reassign()">
+                        <option value="">-- ยังไม่มอบหมาย --</option>
+                        {% for s in staff_list %}
+                        <option value="{{ s.name }}" {% if ticket.assigned_to == s.name %}selected{% endif %}>{{ s.name }} ({{ s.role }})</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <small class="text-muted d-block mb-1">เชื่อม Asset (Serial):</small>
+                <small class="text-muted d-block mb-1">เชื่อม Asset:</small>
                 <div class="input-group input-group-sm mb-2">
-                    <input type="text" class="form-control" id="assetSerialInput" placeholder="Serial...">
-                    <button class="btn btn-outline-dark" onclick="linkAsset()"><i class="bi bi-box-seam"></i></button>
+                    <select class="form-select form-select-sm" id="assetSelect" onchange="linkAsset()">
+                        <option value="">-- เลือก Asset --</option>
+                        {% for a in asset_list %}
+                        <option value="{{ a.id }}" {% if ticket.asset_id == a.id %}selected{% endif %}>{{ a.serial }} — {{ a.name }} ({{ a.branch }})</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
         </div>
+
+        <!-- Knowledge Base -->
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-bold"><i class="bi bi-book me-2"></i>ความรู้ (KB)</div>
+            <div class="card-body">
+                <div class="input-group input-group-sm mb-2">
+                    <select class="form-select form-select-sm" id="kbSelect" onchange="attachKb()">
+                        <option value="">-- แนบบทความ KB --</option>
+                        {% for kb in kb_articles %}
+                        <option value="{{ kb.id }}" {% if ticket.kb_id == kb.id %}selected{% endif %}>{{ kb.title }} ({{ kb.category }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if ticket.kb_id %}
+                <div class="alert alert-info py-1 px-2 mb-0 small">
+                    <i class="bi bi-check-circle me-1"></i>แนบ KB: <strong>{{ kb_linked.title }}</strong>
+                    — <a href="/kb/{{ kb_linked.id }}" target="_blank">ดูบทความ</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header bg-white fw-bold"><i class="bi bi-person-circle me-2"></i>ผู้รับผิดชอบ</div>
             <div class="card-body text-center">
@@ -181,19 +211,22 @@ async function quickStatus(st){
     await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st})});
     location.reload();
 }
-async function reassign(to){
-    const name=to||document.getElementById('assignToInput').value.trim();
-    if(!name)return;
+async function reassign(){
+    const name = document.getElementById('assignToSelect').value;
     await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_to:name})});
     location.reload();
 }
 async function linkAsset(){
-    const serial=document.getElementById('assetSerialInput').value.trim();
-    if(!serial)return;
-    const r=await fetch('/api/asset/search?serial='+encodeURIComponent(serial));
-    const d=await r.json();
-    if(d.asset){await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:d.asset.id})});location.reload();}
-    else alert('ไม่พบ Asset: '+serial);
+    const assetId = document.getElementById('assetSelect').value;
+    if(!assetId)return;
+    await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:parseInt(assetId)})});
+    location.reload();
+}
+async function attachKb(){
+    const kbId = document.getElementById('kbSelect').value;
+    if(!kbId)return;
+    await fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:parseInt(kbId)})});
+    location.reload();
 }
 (function(){
     const c=new Date('{{ ticket.created_at }}Z');

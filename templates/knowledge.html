@@ -5,6 +5,38 @@
  <h4 class="mb-0"><i class="bi bi-book me-2"></i>Knowledge Base (ฐานความรู้ IT)</h4>
  <button class="btn btn-sm btn-primary" onclick="openNewKB()"><i class="bi bi-plus-lg me-1"></i>เพิ่มบทความ</button>
 </div>
+
+<!-- Filter Row -->
+<div class="card mb-3">
+ <div class="card-body py-2">
+  <div class="d-md-none mb-2">
+   <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="toggleKbFilter()">
+    <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down" id="kbFilterChevron"></i>
+   </button>
+  </div>
+  <div class="row g-2 align-items-end mobile-filter-row" id="kbFilterRow">
+   <div class="col-md-4">
+    <label class="form-label small mb-1">ค้นหา</label>
+    <input type="text" class="form-control form-control-sm" id="kbFilterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="applyKbFilters()">
+   </div>
+   <div class="col-md-3">
+    <label class="form-label small mb-1">หมวด</label>
+    <select class="form-select form-select-sm" id="kbFilterCat" onchange="applyKbFilters()">
+     <option value="">ทั้งหมด</option>
+     {% for cat in kb_categories %}<option value="{{ cat }}">{{ cat }}</option>{% endfor %}
+    </select>
+   </div>
+   <div class="col-md-3">
+    <label class="form-label small mb-1">เรียงตาม</label>
+    <select class="form-select form-select-sm" id="kbFilterSort" onchange="applyKbFilters()">
+     <option value="views">ยอดเข้าชม</option>
+     <option value="title">ชื่อ</option>
+    </select>
+   </div>
+  </div>
+ </div>
+</div>
+
 <div class="card"><div class="card-body p-2">
 <table id="kbTable" class="table table-hover mb-0" style="width:100%">
  <thead class="table-light"><tr><th>ID</th><th>หัวข้อ</th><th>หมวดหมู่</th><th>ยอดเข้าชม</th><th>จัดการ</th></tr></thead>
@@ -51,7 +83,34 @@
 
 <script>
 let kbTable;
-document.addEventListener('DOMContentLoaded',function(){kbTable=initTable('#kbTable',{order:[[3,'desc']]})});
+
+function toggleKbFilter(){
+  const row = document.getElementById('kbFilterRow');
+  const chevron = document.getElementById('kbFilterChevron');
+  row.classList.toggle('show');
+  chevron.classList.toggle('bi-chevron-down');
+  chevron.classList.toggle('bi-chevron-right');
+}
+
+function applyKbFilters(){
+  if(!kbTable) return;
+  const cat = document.getElementById('kbFilterCat').value;
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(cat && data[2] != cat) return false;
+    return true;
+  });
+  kbTable.draw();
+  $.fn.dataTable.ext.search.pop();
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  const sortCol = document.getElementById('kbFilterSort').value;
+  kbTable = initTable('#kbTable',{order:[[sortCol === 'views' ? 3 : 1,'desc']]});
+  document.getElementById('kbFilterSort').addEventListener('change', function(){
+    const col = this.value === 'views' ? 3 : 1;
+    kbTable.order([col, 'desc']).draw();
+  });
+});
 
 function handleRowClick(e, url){
  if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
