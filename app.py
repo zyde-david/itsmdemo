@@ -272,10 +272,18 @@ def tickets_page():
         q += ' WHERE ' + ' AND '.join(where)
     q += ' ORDER BY created_at DESC'
     rows=c.execute(q, params).fetchall()
+    total=c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
+    open_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0]
+    in_progress=c.execute("SELECT COUNT(*) FROM tickets WHERE status='in_progress'").fetchone()[0]
+    pending=c.execute("SELECT COUNT(*) FROM tickets WHERE status='pending'").fetchone()[0]
+    resolved=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
+    closed_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0]
     c.close()
     return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES,
         filter_status=status, filter_priority=priority, filter_branch=branch,
-        filter_province=province, filter_category=category, filter_search=search)
+        filter_province=province, filter_category=category, filter_search=search,
+        total=total, open_tickets=open_tickets, in_progress=in_progress,
+        pending=pending, resolved=resolved, closed_tickets=closed_tickets)
 
 @app.route('/ticket/<int:ticket_id>')
 @login_required

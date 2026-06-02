@@ -9,6 +9,16 @@
  </div>
 </div>
 
+<!-- Status Stat Cards -->
+<div class="row g-2 mb-3">
+ <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทั้งหมด</h6><h5 class="mb-0 fw-bold text-primary">{{ total|default(0) }}</h5></div></div></a></div>
+ <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('open');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">เปิด</h6><h5 class="mb-0 fw-bold text-primary">{{ open_tickets|default(0) }}</h5></div></div></a></div>
+ <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('in_progress');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">กำลังดำเนิน</h6><h5 class="mb-0 fw-bold text-warning">{{ in_progress|default(0) }}</h5></div></div></a></div>
+ <div class="col-8 col-md-2"><a href="#" onclick="filterTicketStatus('pending');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">รอดำเนิน</h6><h5 class="mb-0 fw-bold text-secondary">{{ pending|default(0) }}</h5></div></div></a></div>
+ <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('resolved');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">เสร็จแล้ว</h6><h5 class="mb-0 fw-bold text-success">{{ resolved|default(0) }}</h5></div></div></a></div>
+ <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('closed');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ปิด</h6><h5 class="mb-0 fw-bold text-dark">{{ closed_tickets|default(0) }}</h5></div></div></a></div>
+</div>
+
 <!-- Filter Row -->
 <div class="card mb-3">
  <div class="card-body py-2">
@@ -168,24 +178,26 @@ function toggleTicketFilter(){
 
 function applyTicketFilters(){
   if(!ticketsTable) return;
+  ticketsTable.draw();
+}
+
+// Persistent filter — registered once, reads current dropdown values on every draw
+$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+  if(settings.nTable.id !== 'ticketsTable') return true;
   const status = document.getElementById('tFilterStatus').value;
   const priority = document.getElementById('tFilterPriority').value;
   const branch = document.getElementById('tFilterBranch').value;
   const category = document.getElementById('tFilterCategory').value;
   const province = document.getElementById('tFilterProvince').value;
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    const rowData = ticketsTable.row(dataIndex).data();
-    const node = ticketsTable.row(dataIndex).node();
-    if(status && node && node.dataset.status !== status) return false;
-    if(priority && node && node.dataset.priority !== priority) return false;
-    if(branch && node && node.dataset.branch !== branch) return false;
-    if(category && node && node.dataset.category !== category) return false;
-    if(province && node && node.dataset.province !== province) return false;
-    return true;
-  });
-  ticketsTable.draw();
-  $.fn.dataTable.ext.search.pop();
-}
+  const node = ticketsTable.row(dataIndex).node();
+  if(!node) return true;
+  if(status && node.dataset.status !== status) return false;
+  if(priority && node.dataset.priority !== priority) return false;
+  if(branch && node.dataset.branch !== branch) return false;
+  if(category && node.dataset.category !== category) return false;
+  if(province && node.dataset.province !== province) return false;
+  return true;
+});
 
 function toggleAllTickets(cb){document.querySelectorAll('.ticket-check').forEach(c=>c.checked=cb.checked);}
 function deleteOneTicket(id){if(!confirm('ลบ Ticket?'))return;fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
