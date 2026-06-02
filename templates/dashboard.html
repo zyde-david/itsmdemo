@@ -3,7 +3,7 @@
 {% block content %}
 <!-- Stat Cards — clickable -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <a href="/tickets" class="text-decoration-none">
         <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
@@ -15,7 +15,7 @@
             </div>
         </div></a>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <a href="/tickets?status=open" class="text-decoration-none">
         <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
@@ -27,7 +27,7 @@
             </div>
         </div></a>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <a href="/tickets?status=resolved" class="text-decoration-none">
         <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
@@ -39,7 +39,7 @@
             </div>
         </div></a>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <a href="/tickets?status=in_progress" class="text-decoration-none">
         <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
@@ -116,8 +116,8 @@
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>ID</th><th>สาขา</th><th>ปัญหา</th><th>หมวด</th>
-                    <th>ความสำคัญ</th><th>สถานะ</th><th>AI</th>
+                    <th>ID</th><th>สาขา</th><th>ปัญหา</th><th class="d-none d-md-table-cell">หมวด</th>
+                    <th>ความสำคัญ</th><th>สถานะ</th><th class="d-none d-md-table-cell">AI</th>
                 </tr>
             </thead>
             <tbody>
@@ -126,7 +126,7 @@
                     <td><strong>#{{ t.id }}</strong></td>
                     <td><span class="branch-tag">{{ t.branch }}</span></td>
                     <td>{{ t.title }}</td>
-                    <td><small>{{ t.category }}</small></td>
+                    <td class="d-none d-md-table-cell"><small>{{ t.category }}</small></td>
                     <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
                     <td>
                         {% if t.status == 'open' %}
@@ -137,7 +137,7 @@
                         <span class="badge bg-success">เสร็จ</span>
                         {% endif %}
                     </td>
-                    <td>{% if t.ai_suggestion %}<span class="ai-badge">AI แนะนำ</span>{% endif %}</td>
+                    <td class="d-none d-md-table-cell">{% if t.ai_suggestion %}<span class="ai-badge">AI แนะนำ</span>{% endif %}</td>
                 </tr>
                 {% endfor %}
             </tbody>

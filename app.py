@@ -116,23 +116,21 @@ def _tickets(S):
         ast = random.choice(IT)
         st = random.choice({"critical":["open","in_progress","resolved"],"high":["open","in_progress","in_progress","resolved","resolved"],"medium":["open","in_progress","resolved","resolved","resolved"],"low":["resolved","resolved","resolved","in_progress"]}[cd["priority"]])
         da = random.randint(0,60)
-        cd2 = datetime.now()-timedelta(days=da,hours=random.randint(6,18))
+        cd2 = datetime.utcnow()-timedelta(days=da,hours=random.randint(6,18))
         rs = None
         if st in ("resolved","closed"):
             rd = cd2+timedelta(hours=random.randint(1,72))
-            if rd<datetime.now(): rs=rd.strftime("%Y-%m-%d %H:%M:%S")
+            if rd<datetime.utcnow(): rs=rd.strftime("%Y-%m-%d %H:%M:%S")
         T.append({"ticket_code":ticket_code,"branch":rep["branch"],"province":rep["province"],"category":cat,"title":random.choice(cd["titles"]),"description":f"แจ้ง: {random.choice(cd['titles'])} ที่{rep['branch']} โดย{rep['name']}","priority":cd["priority"],"status":st,"reported_by":rep["name"],"assigned_to":ast["name"],"asset_id":0,"created_at":cd2.strftime("%Y-%m-%d %H:%M:%S"),"reported_at":cd2.strftime("%Y-%m-%d %H:%M:%S"),"resolved_at":rs,"ai_suggestion":cd["ai"],"ai_confidence":round(random.uniform(0.65,0.98),2)})
     return T
 
 def _assets():
     A = []
     sc = {}
-    # branch code mapping
-    bcm = {}
-    for b in ALL_BRANCHES:
-        code = "".join([w[0] for w in b["district"].split() if w])[:2].upper()
-        if not code: code = b["province"][:2].upper()
-        bcm[b["branch"]] = code
+    # branch numeric code (01-33, ordered by province then district)
+    branch_num = {}
+    for i, b in enumerate(ALL_BRANCHES):
+        branch_num[b["branch"]] = i + 1  # 1-based
     AC = {"คอมพิวเตอร์":{"m":["Dell OptiPlex 3090","HP ProDesk 400 G7","Lenovo M70q"],"p":"PC","spec":"Core i5/8GB/256GB SSD"},"เครื่องพิมพ์":{"m":["HP LaserJet M404dn","Epson L3250","Brother HL-L2350DW","Canon G3010"],"p":"PRT","spec":"Laser/Inkjet A4"},"Scanner":{"m":["Fujitsu fi-7160","Epson DS-1640","Brother DS-640"],"p":"SCN","spec":"A4 Duplex 60ppm"},"Router":{"m":["Cisco ISR 1111","MikroTik hEX","TP-Link ER7206"],"p":"RT","spec":"Gigabit VPN Router"},"Switch":{"m":["Cisco SG250-26","TP-Link TL-SG1024","MikroTik CRS326"],"p":"SW","spec":"24-Port Gigabit"},"UPS":{"m":["APC 1500VA","Eaton 5S 1500VA","CyberPower OL2000"],"p":"UPS","spec":"1500VA Online"}}
     S_pool = ["นายสมชาย ใจดี","นางสาวปราณี สุขใจ","นายวิชัai","นางสาวกนกพร พูนผล"]
     for b in ALL_BRANCHES:
@@ -140,12 +138,12 @@ def _assets():
         ch = random.sample(list(AC.keys()),k=min(n,len(AC)))
         if n>=2: ch[0]="คอมพิวเตอร์"
         if n>=3: ch[1]="เครื่องพิมพ์"
-        bc = bcm.get(b["branch"], "XX")
+        bn = branch_num.get(b["branch"], 1)
         for at in ch[:n]:
             c2 = AC[at]; mdl=random.choice(c2["m"]); p=c2["p"]; sp=c2["spec"]
             sc[p]=sc.get(p,100)+1
-            sn=f"{p}-{bc}-{sc[p]:04d}"
-            asset_code=f"{p}-{bc}-{sc[p]:04d}"
+            sn=f"{bn:02d}{p}{sc[p]:04d}"
+            asset_code=f"{bn:02d}{p}{sc[p]:04d}"
             st=random.choices(["active","active","active","active","maintenance","retired"],weights=[65,12,8,5,5,5],k=1)[0]
             lc=datetime.now()-timedelta(days=random.randint(3,60))
             nx=lc+timedelta(days=90)
@@ -268,7 +266,13 @@ def assets_page():
     maint=c.execute("SELECT COUNT(*) FROM assets WHERE status='maintenance'").fetchone()[0]
     retired=c.execute("SELECT COUNT(*) FROM assets WHERE status='retired'").fetchone()[0]
     c.close()
-    return render_template('assets.html',assets=rows,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES)
+    branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+    assets_list = []
+    for r in rows:
+        a = dict(r)
+        a['province'] = branch_to_province.get(a['branch'], '-')
+        assets_list.append(a)
+    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES)
 
 @app.route('/staff')
 @login_required
@@ -303,7 +307,8 @@ def api_create():
     for k,v in TICKET_CATS.items():
         if k==cat:ai=v['ai'];pri=v['priority'];break
     c=get_db()
-    c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?)',(d.get('branch',''),d.get('province',''),cat,d.get('title',''),d.get('description',''),pri,'open',d.get('reported_by',''),'',ai,round(random.uniform(0.7,0.98),2)))
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',(d.get('branch',''),d.get('province',''),cat,d.get('title',''),d.get('description',''),pri,'open',d.get('reported_by',''),'',now_str,now_str,ai,round(random.uniform(0.7,0.98),2)))
     c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
     return jsonify(success=True,ticket_id=tid)
 
@@ -313,8 +318,11 @@ def api_status(tid):
     st=request.json.get('status','')
     if st not in ('open','in_progress','resolved','closed'):return jsonify(success=False,error='Invalid'),400
     c=get_db()
-    if st=='resolved':c.execute('UPDATE tickets SET status=?,resolved_at=CURRENT_TIMESTAMP WHERE id=?',(st,tid))
-    else:c.execute('UPDATE tickets SET status=?,resolved_at=NULL WHERE id=?',(st,tid))
+    if st=='resolved':
+        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        c.execute('UPDATE tickets SET status=?,resolved_at=? WHERE id=?',(st,now_str,tid))
+    else:
+        c.execute('UPDATE tickets SET status=?,resolved_at=NULL WHERE id=?',(st,tid))
     c.commit();c.close()
     return jsonify(success=True)
 
@@ -322,7 +330,23 @@ def api_status(tid):
 @login_required
 def api_edit(tid):
     d=request.json;c=get_db()
-    c.execute('UPDATE tickets SET title=?,description=?,priority=?,status=?,assigned_to=? WHERE id=?',(d.get('title',''),d.get('description',''),d.get('priority','medium'),d.get('status','open'),d.get('assigned_to',''),tid))
+    t=c.execute('SELECT * FROM tickets WHERE id=?',(tid,)).fetchone()
+    if not t:
+        c.close()
+        return jsonify(success=False,error='Not Found'),404
+    # Only update fields that are provided and non-empty — prevents partial updates from wiping data
+    sets = []
+    vals = []
+    for field in ('title','description','priority','status','assigned_to','branch','category','reported_by','asset_id'):
+        val = d.get(field, None)
+        if val is not None and val != '':
+            sets.append(f'{field}=?')
+            vals.append(val)
+    if not sets:
+        c.close()
+        return jsonify(success=True)
+    vals.append(tid)
+    c.execute(f'UPDATE tickets SET {",".join(sets)} WHERE id=?', vals)
     c.commit();c.close()
     return jsonify(success=True)
 
@@ -343,7 +367,8 @@ def api_notes_get(tid):
 @login_required
 def api_notes_add(tid):
     d=request.json;c=get_db()
-    c.execute('INSERT INTO work_notes (ticket_id,note,created_by) VALUES (?,?,?)',(tid,d.get('note',''),d.get('created_by','Admin')))
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,d.get('note',''),d.get('created_by','Admin'),now_str))
     c.commit();nid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
     return jsonify(success=True,id=nid)
 
@@ -351,7 +376,16 @@ def api_notes_add(tid):
 @login_required
 def chatbot():
     q=request.json.get('question','').lower()
-    R={"printer":"🔧 เครื่องพิมพ์\n1. เช็ค Sensor\n2. ลูกยาง\n3. Calibrate\n4. แจ้ง IT","vpn":"🔒 VPN\n1. เช็คอินเทอร์เน็ต\n2. รีสตาร์ท Router\n3. เช็ค WAN IP","network":"🌐 เครือข่าย\n1. Ping Gateway\n2. เช็ค LAN\n3. รีสตาร์ท Modem","core":"⚠️ Core Banking\nแจ้ง IT ทันที!","สมุด":"🔧 เครื่องพิมพ์: 1.Sensor 2.ลูกยาง 3.Calibrate","อินเทอร์เน็ต":"🌐 แก้: 1.Router 2.Ping 8.8.8.8 3.รีสตาร์ท"}
+    R={
+        "printer":"🔧 เครื่องพิมพ์\n1. เช็ค Sensor\n2. ลูกยาง\n3. Calibrate\n4. แจ้ง IT",
+        "เครื่องพิมพ์":"🔧 เครื่องพิมพ์\n1. เช็ค Sensor\n2. ลูกยาง\n3. Calibrate\n4. แจ้ง IT",
+        "สมุด":"🔧 เครื่องพิมพ์: 1.Sensor 2.ลูกยาง 3.Calibrate",
+        "vpn":"🔒 VPN\n1. เช็คอินเทอร์เน็ต\n2. รีสตาร์ท Router\n3. เช็ค WAN IP",
+        "network":"🌐 เครือข่าย\n1. Ping Gateway\n2. เช็ค LAN\n3. รีสตาร์ท Modem",
+        "เครือข่าย":"🌐 เครือข่าย\n1. Ping Gateway\n2. เช็ค LAN\n3. รีสตาร์ท Modem",
+        "อินเทอร์เน็ต":"🌐 แก้: 1.Router 2.Ping 8.8.8.8 3.รีสตาร์ท",
+        "core":"⚠️ ระบบ Core Banking ล่ม\n1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"
+    }
     a="❓ ลองถาม: เครื่องพิมพ์, VPN, เครือข่าย, Core Banking"
     for kw,resp in R.items():
         if kw in q:a=resp;break

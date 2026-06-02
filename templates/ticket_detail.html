@@ -194,8 +194,8 @@ async function linkAsset(){
     else alert('ไม่พบ Asset: '+serial);
 }
 (function(){
-    const c=new Date('{{ ticket.created_at }}');
-    const r='{{ ticket.resolved_at }}'?new Date('{{ ticket.resolved_at }}'):new Date();
+    const c=new Date('{{ ticket.created_at }}Z');
+    const r='{{ ticket.resolved_at }}'?new Date('{{ ticket.resolved_at }}Z'):new Date();
     const h=Math.floor((r-c)/3600000);
     const d=Math.floor(h/24);
     document.getElementById('duration').innerText=d>0?d+' วัน '+h%24+' ชม.':h+' ชม.';

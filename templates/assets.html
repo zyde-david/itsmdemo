@@ -9,10 +9,10 @@
  </div>
 </div>
 <div class="row g-2 mb-3">
- <div class="col-md-3"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทั้งหมด</h6><h4 class="mb-0 fw-bold text-primary">{{ total }}</h4></div></div></div>
- <div class="col-md-3"><a href="#" onclick="filterAssetStatus('active');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Active</h6><h4 class="mb-0 fw-bold text-success">{{ active }}</h4></div></div></a></div>
- <div class="col-md-3"><a href="#" onclick="filterAssetStatus('maintenance');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Maintenance</h6><h4 class="mb-0 fw-bold text-warning">{{ maintenance }}</h4></div></div></a></div>
- <div class="col-md-3"><a href="#" onclick="filterAssetStatus('retired');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Retired</h6><h4 class="mb-0 fw-bold text-secondary">{{ retired }}</h4></div></div></a></div>
+ <div class="col-6 col-md-3"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทั้งหมด</h6><h4 class="mb-0 fw-bold text-primary">{{ total }}</h4></div></div></div>
+ <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('active');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Active</h6><h4 class="mb-0 fw-bold text-success">{{ active }}</h4></div></div></a></div>
+ <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('maintenance');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Maintenance</h6><h4 class="mb-0 fw-bold text-warning">{{ maintenance }}</h4></div></div></a></div>
+ <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('retired');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Retired</h6><h4 class="mb-0 fw-bold text-secondary">{{ retired }}</h4></div></div></a></div>
 </div>
 
 <!-- Filter Row -->
@@ -65,21 +65,21 @@
 <table id="assetsTable" class="table table-hover mb-0" style="width:100%">
  <thead class="table-light"><tr>
   <th><input type="checkbox" id="selectAllAssets" onclick="toggleAllAssets(this)"></th>
-  <th>ID</th><th>สาขา</th><th>จังหวัด</th><th>ประเภท</th><th>รุ่น</th><th>Serial</th><th>สถานะ</th><th>ตรวจล่าสุด</th><th>ครั้งต่อไป</th><th></th>
+  <th>ID</th><th>สาขา</th><th>จังหวัด</th><th>ประเภท</th><th>รุ่น</th><th>Serial</th><th>สถานะ</th><th class="d-none d-md-table-cell">ตรวจล่าสุด</th><th class="d-none d-md-table-cell">ครั้งต่อไป</th><th></th>
  </tr></thead>
  <tbody>
   {% for a in assets %}
-  <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}">
+  <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}" onclick="handleRowClick(event, '/asset/{{ a.id }}')">
    <td><input type="checkbox" class="asset-check" value="{{ a.id }}"></td>
-   <td><strong>#{{ a.id }}</strong></td>
+   <td><span class="id-badge">{{ a.id }}</span></td>
    <td><span class="branch-tag">{{ a.branch }}</span></td>
    <td><small>{{ a.province }}</small></td>
    <td>{{ a.asset_type }}</td>
    <td>{{ a.name }}</td>
    <td><small class="font-monospace text-muted">{{ a.serial }}</small></td>
    <td>{% if a.status=='active' %}<span class="badge bg-success">Active</span>{% elif a.status=='maintenance' %}<span class="badge bg-warning text-dark">Maintenance</span>{% else %}<span class="badge bg-secondary">Retired</span>{% endif %}</td>
-   <td><small>{{ a.last_check }}</small></td>
-   <td><small class="text-muted">{{ a.next_check }}</small></td>
+   <td class="d-none d-md-table-cell"><small>{{ a.last_check }}</small></td>
+   <td class="d-none d-md-table-cell"><small class="text-muted">{{ a.next_check }}</small></td>
    <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOneAsset({{ a.id }})"><i class="bi bi-trash"></i></button></td>
   </tr>
   {% endfor %}
@@ -157,6 +157,11 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('bulkDeleteAssetBtn').style.display=[...document.querySelectorAll('.asset-check:checked')].length?'inline-block':'none';
  }));
 });
+
+function handleRowClick(e, url){
+ if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
+ location.href=url;
+}
 
 function editAsset(id){
  const rows=document.querySelectorAll('#assetsTable tbody tr');

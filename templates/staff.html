@@ -9,8 +9,8 @@
  </div>
 </div>
 <div class="row g-2 mb-3">
- <div class="col-md-6"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">พนักงานทั้งหมด</h6><h4 class="mb-0 fw-bold text-primary">{{ total }}</h4></div></div></div>
- <div class="col-md-6"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทีม IT</h6><h4 class="mb-0 fw-bold text-success">{{ it_count }}</h4></div></div></div>
+ <div class="col-6 col-md-6"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">พนักงานทั้งหมด</h6><h4 class="mb-0 fw-bold text-primary">{{ total }}</h4></div></div></div>
+ <div class="col-6 col-md-6"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทีม IT</h6><h4 class="mb-0 fw-bold text-success">{{ it_count }}</h4></div></div></div>
 </div>
 
 <!-- Filter Row -->
@@ -57,25 +57,25 @@
 
 <div class="card"><div class="card-body p-2">
 <table id="staffTable" class="table table-hover mb-0" style="width:100%">
- <thead class="table-light"><tr>
-  <th><input type="checkbox" id="selectAllStaff" onclick="toggleAllStaff(this)"></th>
-  <th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>จังหวัด</th><th>IT</th><th></th>
- </tr></thead>
- <tbody>
-  {% for s in staff %}
-  <tr data-id="{{ s.id }}" data-branch="{{ s.branch }}" data-province="{{ s.province }}" data-role="{{ s.role }}" data-is-it="{{ s.is_it }}">
-   <td><input type="checkbox" class="staff-check" value="{{ s.id }}"></td>
-   <td>{{ loop.index }}</td>
-   <td><strong>{{ s.name }}</strong></td>
-   <td>{% if s.is_it %}<span class="badge bg-success">{{ s.role }}</span>{% elif 'ผู้จัดการ' in s.role %}<span class="badge bg-primary">{{ s.role }}</span>{% else %}<span class="badge bg-secondary">{{ s.role }}</span>{% endif %}</td>
-   <td><span class="branch-tag">{{ s.branch }}</span></td>
-   <td>{{ s.province }}</td>
-   <td>{% if s.is_it %}<i class="bi bi-check-circle text-success"></i>{% endif %}</td>
-   <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOneStaff({{ s.id }})"><i class="bi bi-trash"></i></button></td>
-  </tr>
-  {% endfor %}
- </tbody>
-</table>
+  <thead class="table-light"><tr>
+   <th><input type="checkbox" id="selectAllStaff" onclick="toggleAllStaff(this)"></th>
+   <th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th class="d-none d-md-table-cell">จังหวัด</th><th class="d-none d-md-table-cell">IT</th><th></th>
+  </tr></thead>
+  <tbody>
+   {% for s in staff %}
+   <tr data-id="{{ s.id }}" data-branch="{{ s.branch }}" data-province="{{ s.province }}" data-role="{{ s.role }}" data-is-it="{{ s.is_it }}" onclick="handleRowClick(event, null, {{ s.id }})">
+    <td><input type="checkbox" class="staff-check" value="{{ s.id }}"></td>
+    <td>{{ loop.index }}</td>
+    <td><strong>{{ s.name }}</strong></td>
+    <td>{% if s.is_it %}<span class="badge bg-success">{{ s.role }}</span>{% elif 'ผู้จัดการ' in s.role %}<span class="badge bg-primary">{{ s.role }}</span>{% else %}<span class="badge bg-secondary">{{ s.role }}</span>{% endif %}</td>
+    <td><span class="branch-tag">{{ s.branch }}</span></td>
+    <td class="d-none d-md-table-cell">{{ s.province }}</td>
+    <td class="d-none d-md-table-cell">{% if s.is_it %}<i class="bi bi-check-circle text-success"></i>{% endif %}</td>
+    <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOneStaff({{ s.id }})"><i class="bi bi-trash"></i></button></td>
+   </tr>
+   {% endfor %}
+  </tbody>
+ </table>
 </div></div>
 
 <!-- Staff Edit Modal -->
@@ -152,6 +152,12 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('bulkDeleteStaffBtn').style.display=[...document.querySelectorAll('.staff-check:checked')].length?'inline-block':'none';
  }));
 });
+
+function handleRowClick(e, url, staffId){
+ if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
+ if(url){location.href=url;}
+ else if(staffId){editStaff(staffId);}
+}
 
 function editStaff(id){
  const rows=document.querySelectorAll('#staffTable tbody tr');

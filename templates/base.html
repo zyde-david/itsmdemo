@@ -36,30 +36,65 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 .dataTables_filter input,.dataTables_length select{font-size:0.85rem;padding:4px 8px}
 .page-link{font-size:0.85rem}
 .small-stat{font-size:0.7rem;color:#888}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1040}
+.sidebar-overlay.show{display:block}
+
+/* Mobile nav link text */
+.sidebar .nav-link span.nav-text{display:inline}
+
+/* Responsive tables: card view on mobile */
+@media(max-width:767.98px){
+ .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:1050;transform:translateX(-100%);transition:transform .3s ease;overflow-y:auto;box-shadow:2px 0 12px rgba(0,0,0,.15)}
+ .sidebar.show{transform:translateX(0)}
+ .sidebar .py-2{padding-top:1rem!important}
+ .sidebar .nav-link{padding:12px 16px;font-size:0.95rem}
+ .chatbot-box{width:calc(100% - 20px);right:10px;bottom:10px}
+ .demo-banner{font-size:0.65rem;padding:3px 8px}
+ /* Make tables scroll horizontally on small screens */
+ .table-responsive-tight{overflow-x:auto;-webkit-overflow-scrolling:touch}
+ table{font-size:0.8rem}
+ /* stat cards: tighter */
+ .card-stat .stat-icon{font-size:1.4rem}
+ .card-stat h3,.card-stat h4{font-size:1.3rem!important}
+}
+
+@media(min-width:768px){
+ .sidebar{position:sticky;top:0;transform:none!important}
+}
+
+/* ID badge for clean numeric display */
+.id-badge{display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:6px;font-family:monospace}
 </style>
 </head>
 <body>
 <div class="demo-banner">🚀 DEMO — สร้างโดย Zyde สำหรับการสัมภาษณ์งาน | ข้อมูลเป็นข้อมูลจำลอง</div>
 <nav class="navbar navbar-dark">
  <div class="container-fluid px-3">
+  <button class="btn btn-sm btn-outline-light d-md-none me-2" type="button" id="sidebarToggle"><i class="bi bi-list"></i></button>
   <span class="navbar-brand mb-0 h5"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo</span>
   <div class="d-flex align-items-center gap-2">
-   <span class="ai-badge"><i class="bi bi-stars me-1"></i>AI-Powered</span>
+   <span class="ai-badge d-none d-sm-inline"><i class="bi bi-stars me-1"></i>AI-Powered</span>
    <a href="/logout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i></a>
   </div>
  </div>
 </nav>
+
+<!-- Sidebar overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="row g-0">
- <div class="col-md-2 sidebar">
+ <div class="col-md-2 sidebar" id="sidebar">
   <div class="py-2">
-   <a class="nav-link" href="/"><i class="bi bi-speedometer2"></i>Dashboard</a>
-   <a class="nav-link" href="/tickets"><i class="bi bi-ticket-detailed"></i>Tickets</a>
-   <a class="nav-link" href="/assets"><i class="bi bi-box-seam"></i>Assets</a>
-   <a class="nav-link" href="/staff"><i class="bi bi-people"></i>ทีมงาน</a>
-   <a class="nav-link" href="/knowledge"><i class="bi bi-book"></i>ความรู้</a>
+   <a class="nav-link" href="/"><i class="bi bi-speedometer2"></i><span class="nav-text">Dashboard</span></a>
+   <a class="nav-link" href="/tickets"><i class="bi bi-ticket-detailed"></i><span class="nav-text">Tickets</span></a>
+   <a class="nav-link" href="/assets"><i class="bi bi-box-seam"></i><span class="nav-text">Assets</span></a>
+   <a class="nav-link" href="/staff"><i class="bi bi-people"></i><span class="nav-text">ทีมงาน</span></a>
+   <a class="nav-link" href="/knowledge"><i class="bi bi-book"></i><span class="nav-text">ความรู้</span></a>
   </div>
  </div>
- <div class="col-md-10 p-3">
+ <div class="col-md-10 p-2 p-md-3">
   {% block content %}{% endblock %}
  </div>
 </div>
@@ -87,6 +122,17 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
 <script>
+// Mobile sidebar toggle
+const sidebarToggle=document.getElementById('sidebarToggle');
+const sidebar=document.getElementById('sidebar');
+const sidebarOverlay=document.getElementById('sidebarOverlay');
+function openSidebar(){sidebar.classList.add('show');sidebarOverlay.classList.add('show')}
+function closeSidebar(){sidebar.classList.remove('show');sidebarOverlay.classList.remove('show')}
+if(sidebarToggle) sidebarToggle.addEventListener('click',()=>{sidebar.classList.contains('show')?closeSidebar():openSidebar()});
+sidebarOverlay.addEventListener('click',closeSidebar);
+// Close sidebar on nav link click (mobile)
+sidebar.querySelectorAll('.nav-link').forEach(link=>{link.addEventListener('click',()=>{if(window.innerWidth<768)closeSidebar()})});
+
 function toggleChat(){const b=document.getElementById('chatBox');b.style.display=b.style.display==='block'?'none':'block'}
 async function sendChat(){
  const inp=document.getElementById('chatIn');const msg=inp.value.trim();if(!msg)return;

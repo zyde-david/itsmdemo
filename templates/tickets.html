@@ -73,12 +73,12 @@
     <tr>
      <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
      <th>Code</th><th>สาขา</th><th>จังหวัด</th><th>ปัญหา</th><th>หมวด</th>
-     <th>ความสำคัญ</th><th>สถานะ</th><th>ผู้แจ้ง</th><th>ผู้รับผิดชอบ</th><th>วันที่</th><th>AI</th><th></th>
+     <th>ความสำคัญ</th><th>สถานะ</th><th class="d-none d-md-table-cell">ผู้แจ้ง</th><th class="d-none d-md-table-cell">ผู้รับผิดชอบ</th><th>วันที่</th><th>AI</th><th></th>
     </tr>
    </thead>
    <tbody>
     {% for t in tickets %}
-    <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-category="{{ t.category }}" data-province="{{ t.province }}">
+    <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-category="{{ t.category }}" data-province="{{ t.province }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
      <td><input type="checkbox" class="row-check" value="{{ t.id }}"></td>
      <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
      <td><span class="branch-tag">{{ t.branch }}</span></td>
@@ -92,9 +92,9 @@
       {% elif t.status=='resolved' %}<span class="badge bg-success">เสร็จ</span>
       {% else %}<span class="badge bg-secondary">ปิด</span>{% endif %}
      </td>
-     <td><small>{{ t.reported_by }}</small></td>
-     <td><small>{{ t.assigned_to or '-' }}</small></td>
-     <td><small>{{ t.created_at[:10] }}</small></td>
+     <td class="d-none d-md-table-cell"><small>{{ t.reported_by }}</small></td>
+     <td class="d-none d-md-table-cell"><small>{{ t.assigned_to or '-' }}</small></td>
+     <td><small>{{ t.created_at[:10] if t.created_at else '-' }}</small></td>
      <td>{% if t.ai_suggestion %}<span class="ai-badge">AI</span>{% endif %}</td>
      <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOne({{ t.id }})"><i class="bi bi-trash"></i></button></td>
     </tr>
@@ -176,6 +176,12 @@ document.addEventListener('DOMContentLoaded', function(){
  applyFilters();
 });
 
+function handleRowClick(e, url, staffId){
+ if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
+ if(url){location.href=url;}
+ else if(staffId){editStaff(staffId);}
+}
+
 function applyFilters(){
  const status = document.getElementById('filterStatus').value;
  const priority = document.getElementById('filterPriority').value;
@@ -241,15 +247,15 @@ function editTicket(id){
   if(row.dataset.id==id.toString()){
    const cells = row.querySelectorAll('td');
    tdata = {
-    id: cells[1].innerText.trim(),
-    branch: cells[2].innerText.trim(),
-    title: cells[3].innerText.trim(),
-    category: cells[4].innerText.trim(),
-    priority: cells[5].innerText.trim(),
-    status: cells[6].innerText.trim(),
-    reporter: cells[7].innerText.trim(),
-    assignee: cells[8].innerText.trim(),
-    date: cells[9].innerText.trim()
+    id: id.toString(),
+    branch: cells[2].textContent.trim(),
+    title: cells[4].textContent.trim(),
+    category: cells[5].textContent.trim(),
+    priority: cells[6].textContent.trim(),
+    status: cells[7].textContent.trim(),
+    reporter: cells[8].textContent.trim(),
+    assignee: cells[9].textContent.trim(),
+    date: cells[10].textContent.trim()
    };
   }
  });

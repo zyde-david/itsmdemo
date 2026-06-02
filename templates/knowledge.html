@@ -10,12 +10,12 @@
  <thead class="table-light"><tr><th>ID</th><th>หัวข้อ</th><th>หมวดหมู่</th><th>ยอดเข้าชม</th><th>จัดการ</th></tr></thead>
  <tbody>
   {% for a in articles %}
-  <tr data-id="{{ a.id }}">
-   <td>#{{ a.id }}</td>
-   <td style="cursor:pointer" onclick="openEditKB({{ a.id }})"><strong>{{ a.title }}</strong></td>
+  <tr data-id="{{ a.id }}" onclick="handleRowClick(event, '/kb/{{ a.id }}')">
+   <td><span class="id-badge" style="display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:6px;font-family:monospace">{{ a.id }}</span></td>
+   <td style="cursor:pointer" onclick="event.stopPropagation(); openEditKB({{ a.id }})"><strong>{{ a.title }}</strong></td>
    <td><span class="badge bg-info text-dark">{{ a.category }}</span></td>
    <td><i class="bi bi-eye me-1"></i>{{ a.views }}</td>
-   <td><button class="btn btn-sm btn-outline-primary" onclick="openEditKB({{ a.id }})"><i class="bi bi-pencil"></i></button></td>
+   <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); openEditKB({{ a.id }})"><i class="bi bi-pencil"></i></button></td>
   </tr>
   {% endfor %}
  </tbody>
@@ -52,9 +52,12 @@
 <script>
 let kbTable;
 document.addEventListener('DOMContentLoaded',function(){kbTable=initTable('#kbTable',{order:[[3,'desc']]})});
+
+function handleRowClick(e, url){
+ if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
+ location.href=url;
+}
 function openEditKB(id){
- // Fetch article content via API or embed in data attribute
- // For now, load from page by clicking through
  window.location.href='/kb/'+id;
 }
 function openNewKB(){
