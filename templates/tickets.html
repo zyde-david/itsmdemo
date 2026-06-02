@@ -70,7 +70,7 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
-    <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="applyTicketFilters()">
+    <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="debounceTicketSearch()">
    </div>
   </div>
  </div>
@@ -175,35 +175,42 @@ function toggleTicketFilter(){
   const row = document.getElementById('tFilterRow');
   const chevron = document.getElementById('tFilterChevron');
   row.classList.toggle('show');
-  if(row.classList.contains('show')){
-    chevron.classList.remove('bi-chevron-right');
-    chevron.classList.add('bi-chevron-down');
-  } else {
-    chevron.classList.remove('bi-chevron-down');
-    chevron.classList.add('bi-chevron-right');
-  }
+  chevron.classList.toggle('bi-chevron-down');
+  chevron.classList.toggle('bi-chevron-right');
 }
 
-// Real-time filter using DataTables API (works correctly with pagination)
-function applyTicketFilters(){
-  if(!ticketsTable) return;
+// Persistent custom filter — registered once, reads current values on every draw
+// Uses data-* attributes on the <tr> (raw values) instead of rendered cell text (Thai labels)
+$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+  if(settings.nTable.id !== 'ticketsTable') return true;
+  const row = settings.aoData[dataIndex].nTr;
   const status = document.getElementById('filterStatus').value;
   const priority = document.getElementById('filterPriority').value;
   const branch = document.getElementById('filterBranch').value;
   const category = document.getElementById('filterCategory').value;
   const province = document.getElementById('filterProvince').value;
+  if(status && row.dataset.status !== status) return false;
+  if(priority && row.dataset.priority !== priority) return false;
+  if(branch && row.dataset.branch !== branch) return false;
+  if(category && row.dataset.category !== category) return false;
+  if(province && row.dataset.province !== province) return false;
+  return true;
+});
 
-  // Use DataTables custom search
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(status && data[7] != status) return false;
-    if(priority && data[6] != priority) return false;
-    if(branch && data[2] != branch) return false;
-    if(category && data[5] != category) return false;
-    if(province && data[3] != province) return false;
-    return true;
-  });
-  ticketsTable.draw();
-  $.fn.dataTable.ext.search.pop();
+// Just redraw — the persistent filter function handles everything
+function applyTicketFilters(){
+  if(ticketsTable) ticketsTable.draw();
+}
+
+// Debounce timer for search input
+let _ticketSearchTimer;
+function debounceTicketSearch(){
+  clearTimeout(_ticketSearchTimer);
+  _ticketSearchTimer = setTimeout(function(){
+    if(ticketsTable){
+      ticketsTable.search(document.getElementById('filterSearch').value).draw();
+    }
+  }, 300);
 }
 
 // Read URL params into filters on load

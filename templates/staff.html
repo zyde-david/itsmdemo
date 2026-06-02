@@ -53,7 +53,7 @@
    </div>
    <div class="col-md-3">
     <label class="form-label small mb-1">ค้นหา</label>
-    <input type="text" class="form-control form-control-sm" id="sFilterSearch" placeholder="ชื่อ..." oninput="applyStaffFilters()">
+    <input type="text" class="form-control form-control-sm" id="sFilterSearch" placeholder="ชื่อ..." oninput="debounceStaffSearch()">
    </div>
   </div>
  </div>
@@ -128,21 +128,33 @@ function toggleStaffFilter(){
   chevron.classList.toggle('bi-chevron-right');
 }
 
-function applyStaffFilters(){
-  if(!window.staffTable) return;
+// Persistent custom filter for staff — survives sorting and pagination
+$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+  if(settings.nTable.id !== 'staffTable') return true;
   const branch = document.getElementById('sFilterBranch').value;
   const province = document.getElementById('sFilterProvince').value;
   const role = document.getElementById('sFilterRole').value;
   const isIt = document.getElementById('sFilterIsIt').value;
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(branch && data[4] != branch) return false;
-    if(province && data[5] != province) return false;
-    if(role && data[3] != role) return false;
-    if(isIt && data[6] != isIt) return false;
-    return true;
-  });
-  window.staffTable.draw();
-  $.fn.dataTable.ext.search.pop();
+  if(branch && data[4] !== branch) return false;
+  if(province && data[5] !== province) return false;
+  if(role && data[3] !== role) return false;
+  if(isIt && data[6] !== isIt) return false;
+  return true;
+});
+
+function applyStaffFilters(){
+  if(window.staffTable) window.staffTable.draw();
+}
+
+// Debounce timer for staff search
+let _staffSearchTimer;
+function debounceStaffSearch(){
+  clearTimeout(_staffSearchTimer);
+  _staffSearchTimer = setTimeout(function(){
+    if(window.staffTable){
+      window.staffTable.search(document.getElementById('sFilterSearch').value).draw();
+    }
+  }, 300);
 }
 
 function toggleAllStaff(cb){document.querySelectorAll('.staff-check').forEach(c=>c.checked=cb.checked);}
