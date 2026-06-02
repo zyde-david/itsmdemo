@@ -41,11 +41,20 @@
      {% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}
     </select>
    </div>
-   <div class="col-md-3">
+   <div class="col-md-2">
+    <label class="form-label small mb-1">จังหวัด</label>
+    <select class="form-select form-select-sm" id="aFilterProvince" onchange="applyAssetFilters()">
+     <option value="">ทั้งหมด</option>
+     <option value="ปัตตานี">ปัตตานี</option>
+     <option value="ยะลา">ยะลา</option>
+     <option value="นราธิวาส">นราธิวาส</option>
+    </select>
+   </div>
+   <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
     <input type="text" class="form-control form-control-sm" id="aFilterSearch" placeholder="รุ่น, serial..." oninput="applyAssetFilters()">
    </div>
-   <div class="col-md-2">
+   <div class="col-md-1">
     <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearAssetFilters()"><i class="bi bi-x-circle me-1"></i>ล้าง</button>
    </div>
   </div>
@@ -56,14 +65,15 @@
 <table id="assetsTable" class="table table-hover mb-0" style="width:100%">
  <thead class="table-light"><tr>
   <th><input type="checkbox" id="selectAllAssets" onclick="toggleAllAssets(this)"></th>
-  <th>ID</th><th>สาขา</th><th>ประเภท</th><th>รุ่น</th><th>Serial</th><th>สถานะ</th><th>ตรวจล่าสุด</th><th>ครั้งต่อไป</th><th></th>
+  <th>ID</th><th>สาขา</th><th>จังหวัด</th><th>ประเภท</th><th>รุ่น</th><th>Serial</th><th>สถานะ</th><th>ตรวจล่าสุด</th><th>ครั้งต่อไป</th><th></th>
  </tr></thead>
  <tbody>
   {% for a in assets %}
-  <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}">
+  <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}">
    <td><input type="checkbox" class="asset-check" value="{{ a.id }}"></td>
    <td><strong>#{{ a.id }}</strong></td>
    <td><span class="branch-tag">{{ a.branch }}</span></td>
+   <td><small>{{ a.province }}</small></td>
    <td>{{ a.asset_type }}</td>
    <td>{{ a.name }}</td>
    <td><small class="font-monospace text-muted">{{ a.serial }}</small></td>
@@ -123,6 +133,8 @@ function applyAssetFilters(){
   if(status&&row.dataset.status!==status)show=false;
   if(type&&row.dataset.type!==type)show=false;
   if(branch&&row.dataset.branch!==branch)show=false;
+  const province=document.getElementById('aFilterProvince').value;
+  if(province&&row.dataset.province!==province)show=false;
   if(search&&!row.innerText.toLowerCase().includes(search))show=false;
   row.style.display=show?'':'none';
  });
@@ -131,6 +143,7 @@ function clearAssetFilters(){
  document.getElementById('aFilterStatus').value='';
  document.getElementById('aFilterType').value='';
  document.getElementById('aFilterBranch').value='';
+ document.getElementById('aFilterProvince').value='';
  document.getElementById('aFilterSearch').value='';
  applyAssetFilters();
 }

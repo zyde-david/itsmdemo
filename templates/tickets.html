@@ -47,6 +47,15 @@
     </select>
    </div>
    <div class="col-md-2">
+    <label class="form-label small mb-1">จังหวัด</label>
+    <select class="form-select form-select-sm" id="filterProvince" onchange="applyFilters()">
+     <option value="">ทั้งหมด</option>
+     <option value="ปัตตานี">ปัตตานี</option>
+     <option value="ยะลา">ยะลา</option>
+     <option value="นราธิวาส">นราธิวาส</option>
+    </select>
+   </div>
+   <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
     <input type="text" class="form-control form-control-sm" id="filterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="applyFilters()">
    </div>
@@ -63,16 +72,17 @@
    <thead class="table-light">
     <tr>
      <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
-     <th>ID</th><th>สาขา</th><th>ปัญหา</th><th>หมวด</th>
+     <th>ID</th><th>สาขา</th><th>จังหวัด</th><th>ปัญหา</th><th>หมวด</th>
      <th>ความสำคัญ</th><th>สถานะ</th><th>ผู้แจ้ง</th><th>ผู้รับผิดชอบ</th><th>วันที่</th><th>AI</th><th></th>
     </tr>
    </thead>
    <tbody>
     {% for t in tickets %}
-    <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-category="{{ t.category }}">
+    <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-category="{{ t.category }}" data-province="{{ t.province }}">
      <td><input type="checkbox" class="row-check" value="{{ t.id }}"></td>
      <td><strong>#{{ t.id }}</strong></td>
      <td><span class="branch-tag">{{ t.branch }}</span></td>
+     <td><small>{{ t.province }}</small></td>
      <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>
      <td><small>{{ t.category }}</small></td>
      <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
@@ -159,11 +169,7 @@ const params = new URLSearchParams(window.location.search);
 if(params.get('status')) document.getElementById('filterStatus').value = params.get('status');
 if(params.get('priority')) document.getElementById('filterPriority').value = params.get('priority');
 if(params.get('branch')) document.getElementById('filterBranch').value = params.get('branch');
-if(params.get('province')) {
- // province filter → find matching branch
- const brSel = document.getElementById('filterBranch');
- for(let i=0;i<brSel.options.length;i++){brSel.selectedIndex=0;}
-}
+if(params.get('province')) document.getElementById('filterProvince').value = params.get('province');
 
 document.addEventListener('DOMContentLoaded', function(){
  ticketsTable = initTable('#ticketsTable',{order:[[10,'desc']]});
@@ -174,6 +180,7 @@ function applyFilters(){
  const status = document.getElementById('filterStatus').value;
  const priority = document.getElementById('filterPriority').value;
  const branch = document.getElementById('filterBranch').value;
+ const province = document.getElementById('filterProvince').value;
  const category = document.getElementById('filterCategory').value;
  const search = document.getElementById('filterSearch').value.toLowerCase();
 
@@ -181,6 +188,7 @@ function applyFilters(){
    const rStatus = row.dataset.status;
    const rPriority = row.dataset.priority;
    const rBranch = row.dataset.branch;
+   const rProvince = row.dataset.province;
    const rCategory = row.dataset.category;
    const rText = row.innerText.toLowerCase();
 
@@ -188,6 +196,7 @@ function applyFilters(){
    if(status && rStatus !== status) show = false;
    if(priority && rPriority !== priority) show = false;
    if(branch && rBranch !== branch) show = false;
+   if(province && rProvince !== province) show = false;
    if(category && rCategory !== category) show = false;
    if(search && !rText.includes(search)) show = false;
 
