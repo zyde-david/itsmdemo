@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Ticket #{{ ticket.id }} — ITSM Demo{% endblock %}
+{% block title %}Ticket {{ ticket.ticket_code or '#' ~ ticket.id }} — ITSM Demo{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <!-- Ticket Header -->
         <div class="card mb-3">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>Ticket #{{ ticket.id }} — {{ ticket.title }}</h5>
+                <h5 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>
+                    {{ ticket.ticket_code or 'TK-' ~ '%06d' format(ticket.id) }} — {{ ticket.title }}
+                </h5>
                 <a href="/tickets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>กลับ</a>
             </div>
             <div class="card-body">
@@ -15,9 +16,9 @@
                     <div class="col-md-3"><strong>จังหวัด:</strong><br>{{ ticket.province }}</div>
                     <div class="col-md-3"><strong>หมวด:</strong><br>{{ ticket.category }}</div>
                     <div class="col-md-3"><strong>สถานะ:</strong><br>
-                        {% if ticket.status == 'resolved' %}<span class="badge bg-success">เสร็จแล้ว</span>
-                        {% elif ticket.status == 'in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนินการ</span>
-                        {% elif ticket.status == 'closed' %}<span class="badge bg-secondary">ปิด</span>
+                        {% if ticket.status=='resolved' %}<span class="badge bg-success">เสร็จแล้ว</span>
+                        {% elif ticket.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
+                        {% elif ticket.status=='closed' %}<span class="badge bg-secondary">ปิด</span>
                         {% else %}<span class="badge bg-primary">เปิด</span>{% endif %}
                     </div>
                 </div>
@@ -25,7 +26,7 @@
                     <div class="col-md-3"><strong>ความสำคัญ:</strong><br><span class="badge-priority priority-{{ ticket.priority }}">{{ ticket.priority }}</span></div>
                     <div class="col-md-3"><strong>ผู้แจ้ง:</strong><br>{{ ticket.reported_by }}</div>
                     <div class="col-md-3"><strong>มอบหมาย:</strong><br>{{ ticket.assigned_to or 'ยังไม่มอบหมาย' }}</div>
-                    <div class="col-md-3"><strong>Asset:</strong><br><span id="ticketAssetInfo">-</span></div>
+                    <div class="col-md-3"><strong>Asset ID:</strong><br>{{ ticket.asset_id or '-' }}</div>
                 </div>
                 <div class="mb-3"><strong>รายละเอียด:</strong><br><span class="text-muted">{{ ticket.description }}</span></div>
                 <div class="row">
@@ -36,243 +37,168 @@
             </div>
         </div>
 
-        <!-- AI Suggestion -->
         {% if ticket.ai_suggestion %}
         <div class="card border-primary mb-3">
             <div class="card-header bg-white">
                 <span class="ai-badge"><i class="bi bi-stars me-1"></i>AI แนะนำวิธีแก้</span>
-                <small class="text-muted ms-2">{{ "%.0f" format(ticket.ai_confidence * 100) }}% confident</small>
             </div>
             <div class="card-body"><div style="white-space: pre-line; font-size: 0.9rem;">{{ ticket.ai_suggestion }}</div></div>
         </div>
         {% endif %}
 
-        <!-- Work Notes / Timeline (Chat Style) -->
+        <!-- Work Notes / Timeline -->
         <div class="card mb-3">
             <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-chat-left-text me-2"></i>Work Notes / Timeline</span>
-                <small class="text-muted" id="noteCount">0 notes</small>
+                <small class="text-muted">{{ notes|length }} notes</small>
             </div>
             <div class="card-body">
-                <div id="timeline" style="max-height:500px;overflow-y:auto;">
-                    <!-- Milestone: Created -->
-                    <div class="d-flex mb-3">
-                        <div class="me-3 text-center" style="min-width:40px;">
-                            <div class="bg-primary text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-pencil"></i></div>
-                            <div style="width:2px;height:40px;background:#ddd;margin:4px auto 0;"></div>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="bg-light rounded p-2 px-3 small">
-                                <strong>{{ ticket.reported_by }}</strong> แจ้งปัญหา
-                                <br><small><span class="badge bg-primary">เปิด</span> <span class="badge bg-secondary">{{ ticket.priority }}</span></small>
-                            </div>
-                            <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ ticket.created_at }}</small>
-                        </div>
+                <!-- Created -->
+                <div class="d-flex mb-3">
+                    <div class="me-3 text-center" style="min-width:40px;">
+                        <div class="bg-primary text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-pencil"></i></div>
+                        <div style="width:2px;height:40px;background:#ddd;margin:4px auto 0;"></div>
                     </div>
-                    <!-- Work notes load here -->
-                    <div id="notesContainer"></div>
-                    <!-- Milestone: Active/Resolved -->
-                    {% if ticket.status == 'resolved' %}
-                    <div class="d-flex mb-3">
-                        <div class="me-3 text-center" style="min-width:40px;">
-                            <div class="bg-success text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-check-lg"></i></div>
+                    <div>
+                        <div class="bg-light rounded p-2 px-3 small">
+                            <strong>{{ ticket.reported_by }}</strong> แจ้งปัญหา
+                            <br><span class="badge bg-primary">เปิด</span> <span class="badge bg-secondary">{{ ticket.priority }}</span>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="bg-light rounded p-2 px-3 small"><strong>สำเร็จแล้ว</strong> — ปิด Ticket</div>
-                            <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ ticket.resolved_at }}</small>
-                        </div>
+                        <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ ticket.created_at }}</small>
                     </div>
-                    {% elif ticket.status == 'in_progress' %}
-                    <div class="d-flex mb-3">
-                        <div class="me-3 text-center" style="min-width:40px;">
-                            <div class="bg-warning text-dark rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-gear"></i></div>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="bg-light rounded p-2 px-3 small"><strong>{{ ticket.assigned_to or 'IT Team' }}</strong> กำลังดำเนินการ</div>
-                            <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>ปัจจุบัน</small>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
 
-                <!-- Add Note Input -->
-                <div class="mt-3">
+                {% for n in notes %}
+                <div class="d-flex mb-3">
+                    <div class="me-3 text-center" style="min-width:40px;">
+                        <div class="bg-light text-dark rounded-circle border" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-chat-dots"></i></div>
+                        {% if not loop.last %}<div style="width:2px;height:30px;background:#ddd;margin:4px auto 0;"></div>{% endif %}
+                    </div>
+                    <div>
+                        <div class="bg-light rounded p-2 px-3 small"><strong>{{ n.created_by }}</strong>: {{ n.note }}</div>
+                        <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ n.created_at }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if ticket.status=='resolved' %}
+                <div class="d-flex mb-3">
+                    <div class="me-3 text-center" style="min-width:40px;">
+                        <div class="bg-success text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-check-lg"></i></div>
+                    </div>
+                    <div>
+                        <div class="bg-light rounded p-2 px-3 small"><strong>สำเร็จแล้ว</strong> — ปิด Ticket</div>
+                        <small class="text-muted d-block mt-1">{{ ticket.resolved_at }}</small>
+                    </div>
+                </div>
+                {% elif ticket.status=='in_progress' %}
+                <div class="d-flex mb-3">
+                    <div class="me-3 text-center" style="min-width:40px;">
+                        <div class="bg-warning text-dark rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-gear"></i></div>
+                    </div>
+                    <div>
+                        <div class="bg-light rounded p-2 px-3 small"><strong>{{ ticket.assigned_to or 'IT' }}</strong> กำลังดำเนินการ</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Add Note -->
+                <div class="mt-3 pt-3 border-top">
                     <div class="d-flex gap-2 mb-2">
-                        <input type="text" class="form-control form-control-sm flex-grow-1" id="noteInput" placeholder="เพิ่ม work note... (Enter เพื่อส่ง)">
+                        <input type="text" class="form-control form-control-sm flex-grow-1" id="noteInput" placeholder="เพิ่ม work note..." onkeypress="if(event.key==='Enter')addNote()">
                         <input type="text" class="form-control form-control-sm" id="noteAuthor" placeholder="ชื่อ" style="max-width:150px;" value="IT Admin">
                         <button class="btn btn-sm btn-primary" onclick="addNote()"><i class="bi bi-send"></i></button>
                     </div>
                     <div class="d-flex gap-2">
-                        <select class="form-select form-select-sm" style="max-width:180px;" id="updateStatus">
-                            <option value="">🟡 เปลี่ยนสถานะ...</option>
-                            <option value="in_progress">🔧 กำลังดำเนินการ</option>
+                        <select class="form-select form-select-sm" style="max-width:180px;" id="updateStatus" onchange="if(this.value){quickStatus(this.value);this.value='';}">
+                            <option value="">เปลี่ยนสถานะ...</option>
+                            <option value="in_progress">🔧 กำลังดำเนิน</option>
                             <option value="resolved">✅ เสร็จแล้ว</option>
                             <option value="closed">🔒 ปิด</option>
                             <option value="open">🔄 เปิดใหม่</option>
                         </select>
-                        <input type="text" class="form-control form-control-sm" id="reassignInput" placeholder="มอบหมายให้ใคร..." style="max-width:200px;">
+                        <input type="text" class="form-control form-control-sm" id="reassignInput" placeholder="มอบหมายให้..." style="max-width:200px;" onkeypress="if(event.key==='Enter')reassign()">
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Sidebar -->
     <div class="col-md-4">
-        <!-- Actions -->
         <div class="card mb-3">
             <div class="card-header bg-white fw-bold">ดำเนินการ</div>
             <div class="card-body">
-                {% if ticket.status != 'resolved' and ticket.status != 'closed' %}
+                {% if ticket.status not in ('resolved','closed') %}
                 <button class="btn btn-sm btn-success w-100 mb-2" onclick="quickStatus('resolved')"><i class="bi bi-check-lg me-1"></i>ปิด Ticket</button>
                 <button class="btn btn-sm btn-warning w-100 mb-2" onclick="quickStatus('in_progress')"><i class="bi bi-gear me-1"></i>กำลังดำเนิน</button>
-                {% endif %}
-                {% if ticket.status == 'resolved' or ticket.status == 'closed' %}
+                {% else %}
                 <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="quickStatus('open')"><i class="bi bi-arrow-counterclockwise me-1"></i>เปิดใหม่</button>
                 {% endif %}
                 <hr>
-                <small class="text-muted d-block mb-1">มอบหมายให้:</small>
-                <input type="text" class="form-control form-control-sm mb-2" id="assignToInput" value="{{ ticket.assigned_to or '' }}" placeholder="ชื่อผู้รับผิดชอบ">
-                <button class="btn btn-sm btn-outline-primary w-100 mb-2" onclick="reassign()"><i class="bi bi-person-plus me-1"></i>มอบหมาย</button>
-                <small class="text-muted d-block mb-1">เชื่อม Asset:</small>
-                <input type="text" class="form-control form-control-sm mb-2" id="assetSerialInput" placeholder="Serial Number...">
-                <button class="btn btn-sm btn-outline-dark w-100 mb-2" onclick="linkAsset()"><i class="bi bi-box-seam me-1"></i>เชื่อม Asset</button>
-            </div>
-        </div>
-
-        <!-- Linked Assets -->
-        <div class="card mb-3">
-            <div class="card-header bg-white fw-bold"><i class="bi bi-box-seam me-2"></i>Assets ที่เกี่ยวข้อง</div>
-            <div class="card-body" id="linkedAssets">
-                <small class="text-muted">ไม่มี asset ที่เชื่อมโยง</small>
-            </div>
-        </div>
-
-        <!-- Takeover Info -->
-        <div class="card">
-            <div class="card-header bg-white fw-bold"><i class="bi bi-info-circle me-2"></i>ผู้รับผิดชอบ</div>
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-2">
-                    <div class="bg-primary text-white rounded-circle me-2" style="width:32px;height:32px;line-height:32px;text-align:center;">{{ (ticket.assigned_to or 'IT')[0] }}</div>
-                    <div><strong>{{ ticket.assigned_to or 'ยังไม่มอบหมาย' }}</strong><br><small class="text-muted">ผู้รับผิดชอบปัจจุบัน</small></div>
+                <small class="text-muted d-block mb-1">มอบหมาย:</small>
+                <div class="input-group input-group-sm mb-2">
+                    <input type="text" class="form-control" id="assignToInput" value="{{ ticket.assigned_to or '' }}">
+                    <button class="btn btn-outline-primary" onclick="reassign()"><i class="bi bi-person-plus"></i></button>
                 </div>
-                <small class="text-muted"><i class="bi bi-shield-check me-1"></i>หากผู้รับผิดชอบลา สามารถ Reassign ให้คนอื่นได้</small>
+                <small class="text-muted d-block mb-1">เชื่อม Asset (Serial):</small>
+                <div class="input-group input-group-sm mb-2">
+                    <input type="text" class="form-control" id="assetSerialInput" placeholder="Serial...">
+                    <button class="btn btn-outline-dark" onclick="linkAsset()"><i class="bi bi-box-seam"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header bg-white fw-bold"><i class="bi bi-person-circle me-2"></i>ผู้รับผิดชอบ</div>
+            <div class="card-body text-center">
+                <div class="bg-primary text-white rounded-circle mx-auto mb-2" style="width:48px;height:48px;line-height:48px;font-size:1.2rem;">{{ (ticket.assigned_to or 'IT')[0] }}</div>
+                <strong>{{ ticket.assigned_to or 'ยังไม่มอบหมาย' }}</strong>
+                <br><small class="text-muted">หากลา สามารถ Reassign ได้</small>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-const TICKET_ID = {{ ticket.id }};
-const INITIAL_STATUS = '{{ ticket.status }}';
-const INITIAL_ASSET_ID = {{ ticket.asset_id or 0 }};
-
-// Load work notes
-async function loadNotes(){
-    const r = await fetch('/api/ticket/'+TICKET_ID+'/notes');
-    const d = await r.json();
-    const container = document.getElementById('notesContainer');
-    container.innerHTML = '';
-    document.getElementById('noteCount').innerText = d.notes.length + ' notes';
-    d.notes.forEach(n => {
-        const statusBadge = n.note.match(/🔧|✅|🔒|🔄/);
-        container.innerHTML += `
-        <div class="d-flex mb-3">
-            <div class="me-3 text-center" style="min-width:40px;">
-                <div class="bg-light text-dark rounded-circle border" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-chat-dots"></i></div>
-                <div style="width:2px;height:30px;background:#ddd;margin:4px auto 0;"></div>
-            </div>
-            <div class="flex-grow-1">
-                <div class="bg-light rounded p-2 px-3 small">
-                    <strong>${n.created_by}</strong>: ${n.note}
-                </div>
-                <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>${n.created_at}</small>
-            </div>
-        </div>`;
-    });
-    if(d.notes.length > 0) document.getElementById('timeline').scrollTop = document.getElementById('timeline').scrollHeight;
-}
-
-// Load linked assets
-async function loadLinkedAsset(){
-    if(!INITIAL_ASSET_ID){
-        document.getElementById('ticketAssetInfo').innerText = '-';
-        return;
-    }
-    const r = await fetch('/api/asset/'+INITIAL_ASSET_ID);
-    const d = await r.json();
-    if(d.asset){
-        document.getElementById('ticketAssetInfo').innerHTML = `<a href="/assets">#${d.asset.id} ${d.asset.name}</a>`;
-        document.getElementById('linkedAssets').innerHTML = `
-            <div class="small"><strong>${d.asset.name}</strong> (${d.asset.asset_type})<br>
-            <small class="text-muted">Serial: ${d.asset.serial}</small>
-            <br><small class="text-muted"><i class="bi bi-ticket me-1"></i>${d.ticket_count} tickets linked</small></div>`;
-    }
-}
-
-document.getElementById('noteInput').addEventListener('keypress', e => { if(e.key==='Enter') addNote(); });
-
+const TICKET_ID={{ ticket.id }};
+document.getElementById('noteInput').addEventListener('keypress',e=>{if(e.key==='Enter')addNote()});
 async function addNote(){
-    const note = document.getElementById('noteInput').value.trim();
-    const author = document.getElementById('noteAuthor').value.trim() || 'IT Admin';
-    const statusChange = document.getElementById('updateStatus').value;
-    const reassignTo = document.getElementById('reassignInput').value.trim();
-    if(!note && !statusChange && !reassignTo) return;
-
-    let fullNote = note;
-    if(reassignTo) fullNote += (fullNote ? '\n' : '') + '🔄 มอบหมายให้: ' + reassignTo;
-
-    if(note){
-        await fetch('/api/ticket/'+TICKET_ID+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:fullNote,created_by:author})});
-    }
-    document.getElementById('noteInput').value = '';
-    document.getElementById('updateStatus').value = '';
-    document.getElementById('reassignInput').value = '';
-
-    if(statusChange) await quickStatus(statusChange);
-    if(reassignTo) await reassign(reassignTo);
-
-    loadNotes();
-}
-
-async function quickStatus(status){
-    const labels = { resolved: 'ปิด Ticket', in_progress: 'กำลังดำเนินการ', open: 'เปิดใหม่', closed: 'ปิด' };
-    if(!confirm('เปลี่ยนสถานะเป็น: ' + labels[status] + '?')) return;
-    await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:status})});
+    const note=document.getElementById('noteInput').value.trim();
+    const author=document.getElementById('noteAuthor').value.trim()||'IT Admin';
+    const reassignTo=document.getElementById('reassignInput').value.trim();
+    if(!note&&!reassignTo)return;
+    let fullNote=note;
+    if(reassignTo)fullNote+=(fullNote?'\n':'')+'🔄 มอบหมายให้: '+reassignTo;
+    if(note){await fetch('/api/ticket/'+TICKET_ID+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:fullNote,created_by:author})});}
+    document.getElementById('noteInput').value='';
+    document.getElementById('reassignInput').value='';
+    if(reassignTo)await reassign(reassignTo);
     location.reload();
 }
-
+async function quickStatus(st){
+    if(!confirm('เปลี่ยนสถานะ?'))return;
+    await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st})});
+    location.reload();
+}
 async function reassign(to){
-    const name = to || document.getElementById('assignToInput').value.trim();
-    if(!name) return;
+    const name=to||document.getElementById('assignToInput').value.trim();
+    if(!name)return;
     await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_to:name})});
     location.reload();
 }
-
 async function linkAsset(){
-    const serial = document.getElementById('assetSerialInput').value.trim();
-    if(!serial) return;
-    const r = await fetch('/api/asset/search?serial='+encodeURIComponent(serial));
-    const d = await r.json();
-    if(d.asset){
-        await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:d.asset.id})});
-        location.reload();
-    } else {
-        alert('ไม่พบ Asset ที่มี Serial: ' + serial);
-    }
+    const serial=document.getElementById('assetSerialInput').value.trim();
+    if(!serial)return;
+    const r=await fetch('/api/asset/search?serial='+encodeURIComponent(serial));
+    const d=await r.json();
+    if(d.asset){await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:d.asset.id})});location.reload();}
+    else alert('ไม่พบ Asset: '+serial);
 }
-
-// Duration calculation
 (function(){
-    const created = new Date('{{ ticket.created_at }}');
-    const resolved = '{{ ticket.resolved_at }}' ? new Date('{{ ticket.resolved_at }}') : new Date();
-    const diff = Math.floor((resolved - created) / (1000*60*60));
-    const days = Math.floor(diff / 24);
-    const hrs = diff % 24;
-    document.getElementById('duration').innerText = days > 0 ? days + ' วัน ' + hrs + ' ชม.' : hrs + ' ชม.';
+    const c=new Date('{{ ticket.created_at }}');
+    const r='{{ ticket.resolved_at }}'?new Date('{{ ticket.resolved_at }}'):new Date();
+    const h=Math.floor((r-c)/3600000);
+    const d=Math.floor(h/24);
+    document.getElementById('duration').innerText=d>0?d+' วัน '+h%24+' ชม.':h+' ชม.';
 })();
-
-loadNotes();
-loadLinkedAsset();
 </script>
 {% endblock %}

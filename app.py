@@ -170,17 +170,17 @@ def get_db():
 def init_db():
     c=get_db()
     c.execute('CREATE TABLE IF NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,role TEXT,branch TEXT,province TEXT,is_it INTEGER DEFAULT 0)')
-    c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,asset_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,reported_at TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL)')
+    c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_code TEXT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,asset_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,reported_at TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL)')
     c.execute('CREATE TABLE IF NOT EXISTS work_notes (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
-    c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,last_check DATE,next_check DATE,notes TEXT)')
+    c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_code TEXT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,brand TEXT,spec TEXT,assigned_to TEXT,last_check DATE,next_check DATE,notes TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
     if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
         c.close();return
     print('Seeding...')
     S=_staff();T=_tickets(S);A=_assets()
     for s in S:c.execute('INSERT INTO staff (name,role,branch,province,is_it) VALUES (?,?,?,?,?)',(s['name'],s['role'],s['branch'],s['province'],1 if s['is_it'] else 0))
-    for t in T:c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,created_at,resolved_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',(t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t['created_at'],t['resolved_at'],t['ai_suggestion'],t['ai_confidence']))
-    for a in A:c.execute('INSERT INTO assets (branch,asset_type,name,serial,status,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?)',(a['branch'],a['asset_type'],a['name'],a['serial'],a['status'],a['last_check'],a['next_check'],a['notes']))
+    for t in T:c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,resolved_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(t.get('ticket_code',''),t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t.get('asset_id',0),t['created_at'],t['resolved_at'],t['ai_suggestion'],t['ai_confidence']))
+    for a in A:c.execute('INSERT INTO assets (asset_code,branch,asset_type,name,serial,status,brand,spec,assigned_to,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',(a.get('asset_code',''),a['branch'],a['asset_type'],a['name'],a['serial'],a['status'],a.get('brand',''),a.get('spec',''),a.get('assigned_to',''),a['last_check'],a['next_check'],a['notes']))
     for k in KB:c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,?)',(k['title'],k['cat'],k['content'],k['v']))
     c.commit();c.close()
     print(f'Seeded: {len(S)} staff, {len(T)} tickets, {len(A)} assets')
@@ -206,7 +206,7 @@ def dashboard():
     total=c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
     op=c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0]
     res=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
-    crit=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical' AND status!='resolved'").fetchone()[0]
+    prog=c.execute("SELECT COUNT(*) FROM tickets WHERE status='in_progress'").fetchone()[0]
     recent=c.execute('SELECT * FROM tickets ORDER BY created_at DESC LIMIT 10').fetchall()
     bp=c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as oc FROM tickets GROUP BY province').fetchall()
     bc=c.execute('SELECT category,COUNT(*) as cnt FROM tickets GROUP BY category ORDER BY cnt DESC').fetchall()
@@ -218,7 +218,7 @@ def dashboard():
     c.close()
     cl=[r['category'] for r in bc];cc=[r['cnt'] for r in bc]
     tp=round(bc[0]['cnt']/total*100) if bc and total>0 else 0
-    return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,critical=crit,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
+    return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,in_progress=prog,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
 
 @app.route('/tickets')
 @login_required
@@ -231,7 +231,16 @@ def tickets_page():
 def ticket_detail(ticket_id):
     c=get_db();t=c.execute('SELECT * FROM tickets WHERE id=?',(ticket_id,)).fetchone();c.close()
     if not t:return 'Not found',404
-    return render_template('ticket_detail.html',ticket=t)
+    notes=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(ticket_id,)).fetchall();c.close()
+    return render_template('ticket_detail.html',ticket=t,notes=notes)
+
+@app.route('/asset/<int:asset_id>')
+@login_required
+def asset_detail(asset_id):
+    c=get_db();a=c.execute('SELECT * FROM assets WHERE id=?',(asset_id,)).fetchone()
+    if not a:return 'Not found',404
+    linked=c.execute('SELECT * FROM tickets WHERE asset_id=? ORDER BY created_at DESC',(asset_id,)).fetchall()
+    return render_template('asset_detail.html',asset=a,linked_tickets=linked)
 
 @app.route('/assets')
 @login_required

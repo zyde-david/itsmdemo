@@ -72,7 +72,7 @@
    <thead class="table-light">
     <tr>
      <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
-     <th>ID</th><th>สาขา</th><th>จังหวัด</th><th>ปัญหา</th><th>หมวด</th>
+     <th>Code</th><th>สาขา</th><th>จังหวัด</th><th>ปัญหา</th><th>หมวด</th>
      <th>ความสำคัญ</th><th>สถานะ</th><th>ผู้แจ้ง</th><th>ผู้รับผิดชอบ</th><th>วันที่</th><th>AI</th><th></th>
     </tr>
    </thead>
@@ -80,7 +80,7 @@
     {% for t in tickets %}
     <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-category="{{ t.category }}" data-province="{{ t.province }}">
      <td><input type="checkbox" class="row-check" value="{{ t.id }}"></td>
-     <td><strong>#{{ t.id }}</strong></td>
+     <td><strong>{{ t.ticket_code or 'TK-' ~ '%06d' format(t.id) }}</strong></td>
      <td><span class="branch-tag">{{ t.branch }}</span></td>
      <td><small>{{ t.province }}</small></td>
      <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>

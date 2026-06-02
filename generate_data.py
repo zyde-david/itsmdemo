@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """
 Data Generator for IT Ticket Demo
-Generates realistic ~190 staff, ~100 tickets, ~50 assets across 16 branches
+Generates realistic ~400 staff, ~150 tickets, ~100 assets across 33 branches
 """
 
 from datetime import datetime, timedelta
 import random
 import json
+
+ticket_counter = 0
+asset_counter = 0
+branch_asset_counter = {}  # per-branch counter
 
 # ─── Name Pools (Thai + Malay-Muslim names for Deep South context) ───
 THAI_MALE_FIRST = [
@@ -602,7 +606,7 @@ if __name__ == "__main__":
 
     # Tickets
     tickets = generate_tickets(all_staff)
-    print(f"Tickets generated: {len(tickets)}")
+    print(f"Tickets generated: {len(tickets)} (codes: TK-2026-0001 onward)")
 
     # Assets
     assets = generate_assets()
