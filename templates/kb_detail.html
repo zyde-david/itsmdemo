@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} — Knowledge Base{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-white">
+                <span class="badge bg-info text-dark mb-2">{{ article.category }}</span>
+                <h5 class="fw-bold mb-0">{{ article.title }}</h5>
+                <small class="text-muted"><i class="bi bi-eye me-1"></i>อ่านแล้ว {{ article.views }} ครั้ง</small>
+            </div>
+            <div class="card-body">
+                <div style="white-space: pre-line; line-height: 1.8;">{{ article.content }}</div>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="/knowledge" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>กลับ</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

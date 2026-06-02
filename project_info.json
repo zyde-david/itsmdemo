@@ -1,0 +1,18 @@
+{
+  "project": "IT Ticket System Demo",
+  "purpose": "Demo for interview - AI-powered IT ticket system for cooperative",
+  "target": "8am tomorrow (June 8, 2026 Ouroboros calendar = ~June 8 Gregorian)",
+  "stack": [
+    "Python",
+    "Flask",
+    "SQLite",
+    "HTML/CSS/JS",
+    "AI (rule-based + LLM-ready)"
+  ],
+  "branches": 14,
+  "provinces": [
+    "Pattani",
+    "Yala",
+    "Narathiwat"
+  ]
+}

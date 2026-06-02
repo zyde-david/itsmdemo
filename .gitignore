@@ -1,0 +1,16 @@
+# Generated data (regeneratable)
+tickets.db
+*.db
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

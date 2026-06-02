@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}ทีมงาน — ระบบตั๋ว IT{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+ <h4 class="mb-0"><i class="bi bi-people me-2"></i>ทีมงาน ทั้งหมด</h4>
+</div>
+<div class="row g-2 mb-3">
+ <div class="col-md-6"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">พนักงานทั้งหมด</h6><h4 class="mb-0 fw-bold text-primary">{{ total }}</h4></div></div></div>
+ <div class="col-md-6"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทีม IT</h6><h4 class="mb-0 fw-bold text-success">{{ it_count }}</h4></div></div></div>
+</div>
+<div class="card"><div class="card-body p-2">
+<table id="staffTable" class="table table-hover mb-0" style="width:100%">
+ <thead class="table-light"><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th>จังหวัด</th><th>IT</th></tr></thead>
+ <tbody>
+  {% for s in staff %}
+  <tr data-id="{{ s.id }}" onclick="editStaff({{ s.id }})" style="cursor:pointer">
+   <td>{{ loop.index }}</td>
+   <td><strong>{{ s.name }}</strong></td>
+   <td>{% if s.is_it %}<span class="badge bg-success">{{ s.role }}</span>{% elif 'ผู้จัดการ' in s.role %}<span class="badge bg-primary">{{ s.role }}</span>{% else %}<span class="badge bg-secondary">{{ s.role }}</span>{% endif %}</td>
+   <td><span class="branch-tag">{{ s.branch }}</span></td>
+   <td>{{ s.province }}</td>
+   <td>{% if s.is_it %}<i class="bi bi-check-circle text-success"></i>{% endif %}</td>
+  </tr>
+  {% endfor %}
+ </tbody>
+</table>
+</div></div>
+
+<!-- Staff Edit Modal -->
+<div class="modal fade" id="staffModal" tabindex="-1">
+ <div class="modal-dialog">
+  <div class="modal-content">
+   <div class="modal-header"><h6 class="modal-title"><i class="bi bi-person-gear me-2"></i>แก้ไขทีมงาน</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+   <div class="modal-body">
+    <input type="hidden" id="mStaffId">
+    <div class="row g-2 mb-2">
+     <div class="col-8"><label class="form-label small">ชื่อ-นามสกุล</label><input type="text" class="form-control form-control-sm" id="sName"></div>
+     <div class="col-4"><label class="form-label small">IT</label>
+      <select class="form-select form-select-sm" id="sIsIt"><option value="0">ไม่</option><option value="1">ใช่</option></select>
+     </div>
+    </div>
+    <div class="row g-2 mb-2">
+     <div class="col-6"><label class="form-label small">ตำแหน่ง</label>
+      <select class="form-select form-select-sm" id="sRole">
+       <option>ผู้จัดการสาขา</option><option>รองผู้จัดการสาขา</option>
+       <option>เจ้าหน้าที่บัญชี</option><option>เจ้าหน้าที่สินเชื่อ</option>
+       <option>เจ้าหน้าที่รับ-ส่งเงิน</option><option>เจ้าหน้าที่สมาชิก</option>
+       <option>เจ้าหน้าที่คอมพิวเตอร์</option><option>IT Support</option>
+       <option>พนักงานต้อนรับ</option><option>พนักงานรักษาความปลอดภัย</option>
+       <option>พนักงานทำความสะอาด</option>
+      </select>
+     </div>
+     <div class="col-6"><label class="form-label small">สาขา</label>
+      <select class="form-select form-select-sm" id="sBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.district }} ({{ b.province }})</option>{% endfor %}</select>
+     </div>
+    </div>
+   </div>
+   <div class="modal-footer d-flex justify-content-between">
+    <button class="btn btn-sm btn-outline-danger" onclick="deleteStaff()"><i class="bi bi-trash"></i> ลบ</button>
+    <div><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-sm btn-primary" onclick="saveStaff()"><i class="bi bi-check-lg"></i> บันทึก</button></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script>
+let staffTable;
+document.addEventListener('DOMContentLoaded',function(){staffTable=initTable('#staffTable',{order:[[5,'desc'],[4,'asc'],[1,'asc']]})});
+function editStaff(id){
+ const rows=document.querySelectorAll('#staffTable tbody tr');
+ rows.forEach(r=>{
+  if(r.dataset.id==id.toString()){
+   const c=r.querySelectorAll('td');
+   document.getElementById('mStaffId').value=id;
+   document.getElementById('sName').value=c[1].innerText.trim();
+   const isIt=c[5].innerHTML.includes('check-circle');
+   document.getElementById('sIsIt').value=isIt?'1':'0';
+   const roleSel=document.getElementById('sRole');
+   const roleText=c[2].innerText.trim();
+   for(let i=0;i<roleSel.options.length;i++){if(roleSel.options[i].text===roleText){roleSel.selectedIndex=i;break}}
+   const brSel=document.getElementById('sBranch');
+   const brText=c[3].innerText.trim().replace('สาขา','');
+   for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].text.includes(brText)){brSel.selectedIndex=i;break}}
+  }
+ });
+ new bootstrap.Modal(document.getElementById('staffModal')).show();
+}
+function saveStaff(){
+ const id=document.getElementById('mStaffId').value;
+ const role=document.getElementById('sRole').value;
+ const isIt=(role==='IT Support'||document.getElementById('sIsIt').value==='1')?1:0;
+ const data={name:document.getElementById('sName').value,role:role,is_it:isIt,
+  branch:document.getElementById('sBranch').value,province:document.getElementById('sBranch').selectedOptions[0].text.split('(')[1]?.replace(')','')||''};
+ fetch('/api/staff/'+id+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+ .then(r=>r.json()).then(d=>{if(d.success){bootstrap.Modal.getInstance(document.getElementById('staffModal')).hide();location.reload()}});
+}
+function deleteStaff(){
+ const id=document.getElementById('mStaffId').value;
+ if(!confirm('ลบพนักงาน?')) return;
+ fetch('/api/staff/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}})
+ .then(r=>r.json()).then(d=>{if(d.success)location.reload()});
+}
+</script>
+{% endblock %}

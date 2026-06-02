@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}IT Ticket System{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css" rel="stylesheet">
+<style>
+:root{--primary:#1a5276;--accent:#27ae60;--warning:#e67e22;--danger:#c0392b}
+body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
+.navbar{background:linear-gradient(135deg,var(--primary),#2c3e50)}
+.card{border:none;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.card-stat{transition:transform .2s}.card-stat:hover{transform:translateY(-3px)}
+.stat-icon{font-size:2rem;opacity:.8}
+.sidebar{background:#fff;min-height:calc(100vh - 90px);border-right:1px solid #e0e0e0}
+.nav-link{color:#555;padding:10px 16px;border-radius:8px;margin:2px 6px;font-size:0.9rem}
+.nav-link:hover,.nav-link.active{background:#e8f4fd;color:var(--primary)}
+.nav-link i{margin-right:8px}
+.badge-priority{font-size:0.7rem;padding:3px 8px;border-radius:10px}
+.priority-critical{background:#fee;color:var(--danger);border:1px solid #fcc}
+.priority-high{background:#fff3e0;color:var(--warning);border:1px solid #fcd}
+.priority-medium{background:#e8f5e9;color:var(--accent);border:1px solid #c8e6c9}
+.priority-low{background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb}
+.ai-badge{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:0.65rem;padding:2px 7px;border-radius:8px}
+.chatbot-box{position:fixed;bottom:20px;right:20px;width:340px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:999;overflow:hidden;display:none}
+.chatbot-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:12px 16px}
+.chatbot-body{height:280px;overflow-y:auto;padding:12px;background:#f8f9fa}
+.chatbot-input{padding:8px 12px;background:#fff;border-top:1px solid #e0e0e0}
+.branch-tag{background:#f0f0f0;color:#555;font-size:0.7rem;padding:2px 7px;border-radius:8px}
+.demo-banner{background:linear-gradient(135deg,#ffecd2,#fcb69f);color:#333;padding:5px 16px;font-size:0.75rem;text-align:center}
+.table-hover tbody tr:hover{background:#f8f9ff;cursor:pointer}
+.editable-cell:hover{background:#fffde7;cursor:pointer}
+.dt-buttons .btn{font-size:0.75rem;padding:4px 10px}
+.dataTables_filter input,.dataTables_length select{font-size:0.85rem;padding:4px 8px}
+.page-link{font-size:0.85rem}
+.small-stat{font-size:0.7rem;color:#888}
+</style>
+</head>
+<body>
+<div class="demo-banner">🚀 DEMO — สร้างโดย Zyde สำหรับการสัมภาษณ์งาน | ข้อมูลเป็นข้อมูลจำลอง</div>
+<nav class="navbar navbar-dark">
+ <div class="container-fluid px-3">
+  <span class="navbar-brand mb-0 h5"><i class="bi bi-bank2 me-2"></i>สหกรณ์อิสลาม อิบนูอัฟฟาน</span>
+  <div class="d-flex align-items-center gap-2">
+   <span class="ai-badge"><i class="bi bi-stars me-1"></i>AI-Powered</span>
+   <a href="/logout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i></a>
+  </div>
+ </div>
+</nav>
+<div class="row g-0">
+ <div class="col-md-2 sidebar">
+  <div class="py-2">
+   <a class="nav-link" href="/"><i class="bi bi-speedometer2"></i>Dashboard</a>
+   <a class="nav-link" href="/tickets"><i class="bi bi-ticket-detailed"></i>Tickets</a>
+   <a class="nav-link" href="/assets"><i class="bi bi-box-seam"></i>Assets</a>
+   <a class="nav-link" href="/staff"><i class="bi bi-people"></i>ทีมงาน</a>
+   <a class="nav-link" href="/knowledge"><i class="bi bi-book"></i>ความรู้</a>
+  </div>
+ </div>
+ <div class="col-md-10 p-3">
+  {% block content %}{% endblock %}
+ </div>
+</div>
+
+<!-- Chatbot -->
+<div class="chatbot-box" id="chatBox">
+ <div class="chatbot-header d-flex justify-content-between align-items-center">
+  <span><i class="bi bi-robot me-2"></i>IT HelpBot</span>
+  <button class="btn btn-sm btn-light" onclick="toggleChat()"><i class="bi bi-chevron-down"></i></button>
+ </div>
+ <div class="chatbot-body" id="chatBody">
+  <div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">สวัสดีครับ 👋 ผม AI HelpBot ลองถามเรื่อง: <strong>เครื่องพิมพ์, VPN, เครือข่าย, Core Banking</strong></div></div>
+ </div>
+ <div class="chatbot-input d-flex gap-1">
+  <input type="text" class="form-control form-control-sm" id="chatIn" placeholder="ถามปัญหา IT..." onkeypress="if(event.key==='Enter')sendChat()">
+  <button class="btn btn-sm btn-primary" onclick="sendChat()"><i class="bi bi-send"></i></button>
+ </div>
+</div>
+<button class="btn btn-primary btn-sm position-fixed" style="bottom:20px;right:20px;border-radius:50%;width:48px;height:48px;z-index:998" onclick="toggleChat()"><i class="bi bi-chat-dots-fill"></i></button>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+<script>
+function toggleChat(){const b=document.getElementById('chatBox');b.style.display=b.style.display==='block'?'none':'block'}
+async function sendChat(){
+ const inp=document.getElementById('chatIn');const msg=inp.value.trim();if(!msg)return;
+ inp.value='';const body=document.getElementById('chatBody');
+ body.innerHTML+=`<div class="d-flex justify-content-end mb-2"><div class="bg-primary text-white p-2 rounded" style="max-width:80%;font-size:0.8rem;">${msg}</div></div>`;
+ body.scrollTop=body.scrollHeight;
+ const r=await fetch('/api/chatbot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg})});
+ const d=await r.json();const ans=d.answer.replace(/\n/g,'<br>');
+ body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">${ans}</div></div>`;
+ body.scrollTop=body.scrollHeight;
+}
+// Generic DataTable init with server-like features via client-side
+function initTable(selector,opts={}){
+ return $(selector).DataTable({
+  pageLength:25,lengthMenu:[[10,25,50,100,-1],[10,25,50,100,'All']],
+  language:{search:'ค้นหา:',lengthMenu:'แสดง _MENU_ แถว',info:'แสดง _START_ - _END_ จาก _TOTAL_',paginate:{previous:'«',next:'»'}},
+  order:[[0,'desc']],scrollX:true,fixedHeader:true,
+  ...opts
+ });
+}
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

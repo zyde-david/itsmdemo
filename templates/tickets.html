@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Tickets — IT Ticket System{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+ <h4 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>IT Tickets</h4>
+ <button class="btn btn-sm btn-primary" onclick="openNewTicket()"><i class="bi bi-plus-lg me-1"></i>New Ticket</button>
+</div>
+<div class="card">
+ <div class="card-body p-2">
+  <table id="ticketsTable" class="table table-hover mb-0" style="width:100%">
+   <thead class="table-light">
+    <tr>
+     <th>ID</th><th>สาขา</th><th>ปัญหา</th><th>หมวด</th>
+     <th>ความสำคัญ</th><th>สถานะ</th><th>ผู้แจ้ง</th><th>ผู้รับผิดชอบ</th><th>วันที่</th><th>AI</th>
+    </tr>
+   </thead>
+   <tbody>
+    {% for t in tickets %}
+    <tr data-id="{{ t.id }}" onclick="editTicket({{ t.id }})" style="cursor:pointer">
+     <td><strong>#{{ t.id }}</strong></td>
+     <td><span class="branch-tag">{{ t.branch }}</span></td>
+     <td>{{ t.title }}</td>
+     <td><small>{{ t.category }}</small></td>
+     <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
+     <td>
+      {% if t.status=='open' %}<span class="badge bg-primary">เปิด</span>
+      {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
+      {% elif t.status=='resolved' %}<span class="badge bg-success">เสร็จ</span>
+      {% else %}<span class="badge bg-secondary">ปิด</span>{% endif %}
+     </td>
+     <td><small>{{ t.reported_by }}</small></td>
+     <td><small>{{ t.assigned_to or '-' }}</small></td>
+     <td><small>{{ t.created_at[:10] }}</small></td>
+     <td>{% if t.ai_suggestion %}<span class="ai-badge">AI</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+   </tbody>
+  </table>
+ </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+ <div class="modal-dialog modal-lg">
+  <div class="modal-content">
+   <div class="modal-header">
+    <h6 class="modal-title"><i class="bi bi-pencil me-2"></i>แก้ไข Ticket #<span id="mId"></span></h6>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+   </div>
+   <div class="modal-body">
+    <input type="hidden" id="mTicketId">
+    <div class="row g-2 mb-2">
+     <div class="col-md-6"><label class="form-label small">ปัญหา</label><input type="text" class="form-control form-control-sm" id="mTitle"></div>
+     <div class="col-md-3"><label class="form-label small">หมวด</label>
+      <select class="form-select form-select-sm" id="mCategory">
+       <option>ระบบ Core Banking</option><option>เครือข่าย/อินเทอร์เน็ต</option><option>VPN/ระบบเสีย</option>
+       <option>เครื่องพิมพ์/สมุด</option><option>คอมพิวเตอร์เสีย</option><option>ไฟฟ้า/สาธารณูปโภค</option>
+      </select>
+     </div>
+     <div class="col-md-3"><label class="form-label small">ความสำคัญ</label>
+      <select class="form-select form-select-sm" id="mPriority">
+       <option value="critical">Critical</option><option value="high">High</option>
+       <option value="medium">Medium</option><option value="low">Low</option>
+      </select>
+     </div>
+    </div>
+    <div class="row g-2 mb-2">
+     <div class="col-md-3"><label class="form-label small">สถานะ</label>
+      <select class="form-select form-select-sm" id="mStatus">
+       <option value="open">เปิด</option><option value="in_progress">กำลังดำเนิน</option>
+       <option value="resolved">เสร็จ</option><option value="closed">ปิด</option>
+      </select>
+     </div>
+     <div class="col-md-3"><label class="form-label small">สาขา</label>
+      <select class="form-select form-select-sm" id="mBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}</select>
+     </div>
+     <div class="col-md-3"><label class="form-label small">ผู้แจ้ง</label><input type="text" class="form-control form-control-sm" id="mReporter"></div>
+     <div class="col-md-3"><label class="form-label small">มอบหมาย</label><input type="text" class="form-control form-control-sm" id="mAssignee"></div>
+    </div>
+    <div class="mb-2"><label class="form-label small">รายละเอียด</label><textarea class="form-control form-control-sm" id="mDesc" rows="2"></textarea></div>
+   </div>
+   <div class="modal-footer d-flex justify-content-between">
+    <button class="btn btn-sm btn-outline-danger" onclick="deleteTicket()"><i class="bi bi-trash me-1"></i>ลบ</button>
+    <div>
+     <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+     <button class="btn btn-sm btn-primary" onclick="saveTicket()"><i class="bi bi-check-lg me-1"></i>บันทึก</button>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script>
+let ticketsTable;
+document.addEventListener('DOMContentLoaded', function(){
+ ticketsTable = initTable('#ticketsTable',{order:[[9,'desc']]});
+});
+function editTicket(id){
+ fetch('/ticket/'+id).then(r=>r.text()).then(html=>{
+  // Parse ticket data from the page or use embedded data
+  const rows = document.querySelectorAll('#ticketsTable tbody tr');
+  let tdata = null;
+  rows.forEach(row=>{
+   if(row.dataset.id==id.toString()){
+    const cells = row.querySelectorAll('td');
+    tdata = {
+     id: cells[0].innerText.trim(),
+     branch: cells[1].innerText.trim(),
+     title: cells[2].innerText.trim(),
+     category: cells[3].innerText.trim(),
+     priority: cells[4].innerText.trim(),
+     status: cells[5].innerText.trim(),
+     reporter: cells[6].innerText.trim(),
+     assignee: cells[7].innerText.trim(),
+     date: cells[8].innerText.trim()
+    };
+   }
+  });
+  if(!tdata) return;
+  document.getElementById('mTicketId').value = id;
+  document.getElementById('mId').innerText = id;
+  document.getElementById('mTitle').value = tdata.title;
+  document.getElementById('mReporter').value = tdata.reporter;
+  document.getElementById('mAssignee').value = tdata.assignee;
+  document.getElementById('mDesc').value = '';
+  // Set selects
+  const catSel = document.getElementById('mCategory');
+  for(let i=0;i<catSel.options.length;i++){if(catSel.options[i].text.includes(tdata.category.substring(0,6))){catSel.selectedIndex=i;break}}
+  const priSel = document.getElementById('mPriority');
+  for(let i=0;i<priSel.options.length;i++){if(priSel.options[i].value===tdata.priority.toLowerCase()){priSel.selectedIndex=i;break}}
+  const stMap = {'เปิด':'open','กำลังดำเนิน':'in_progress','เสร็จ':'resolved','ปิด':'closed'};
+  const stSel = document.getElementById('mStatus');
+  const stVal = stMap[tdata.status]||'open';
+  for(let i=0;i<stSel.options.length;i++){if(stSel.options[i].value===stVal){stSel.selectedIndex=i;break}}
+  const brSel = document.getElementById('mBranch');
+  for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].text.includes(tdata.branch.replace('สาขา',''))){brSel.selectedIndex=i;break}}
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+ });
+}
+function saveTicket(){
+ const id = document.getElementById('mTicketId').value;
+ const data = {
+  title: document.getElementById('mTitle').value,
+  description: document.getElementById('mDesc').value,
+  category: document.getElementById('mCategory').value,
+  priority: document.getElementById('mPriority').value,
+  status: document.getElementById('mStatus').value,
+  branch: document.getElementById('mBranch').value,
+  reported_by: document.getElementById('mReporter').value,
+  assigned_to: document.getElementById('mAssignee').value
+ };
+ fetch('/api/ticket/'+id+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+ .then(r=>r.json()).then(d=>{
+  if(d.success){bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();location.reload()}
+  else alert('Error: '+(d.error||'ไม่สามารถบันทึกได้'));
+ });
+}
+function deleteTicket(){
+ const id = document.getElementById('mTicketId').value;
+ if(!confirm('ยืนยันลบ Ticket #'+id+'?')) return;
+ fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}})
+ .then(r=>r.json()).then(d=>{if(d.success)location.reload();});
+}
+function openNewTicket(){
+ document.getElementById('mTicketId').value = '';
+ document.getElementById('mId').innerText = 'NEW';
+ document.getElementById('mTitle').value = '';
+ document.getElementById('mDesc').value = '';
+ document.getElementById('mReporter').value = '';
+ document.getElementById('mAssignee').value = '';
+ new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+</script>
+{% endblock %}

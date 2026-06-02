@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.id }} — ระบบจัดการ IT{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Ticket #{{ ticket.id }} — {{ ticket.title }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4"><strong>สาขา:</strong> {{ ticket.branch }}</div>
+                    <div class="col-md-4"><strong>จังหวัด:</strong> {{ ticket.province }}</div>
+                    <div class="col-md-4"><strong>หมวด:</strong> {{ ticket.category }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4"><strong>ความสำคัญ:</strong>
+                        <span class="badge-priority priority-{{ ticket.priority }}">{{ ticket.priority }}</span>
+                    </div>
+                    <div class="col-md-4"><strong>สถานะ:</strong>
+                        {% if ticket.status == 'resolved' %}
+                        <span class="badge bg-success">เสร็จแล้ว</span>
+                        {% elif ticket.status == 'in_progress' %}
+                        <span class="badge bg-warning text-dark">กำลังดำเนินการ</span>
+                        {% elif ticket.status == 'closed' %}
+                        <span class="badge bg-secondary">ปิด</span>
+                        {% else %}
+                        <span class="badge bg-primary">เปิด</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4"><strong>ผู้แจ้ง:</strong> {{ ticket.reported_by }}</div>
+                </div>
+                <div class="mb-3"><strong>รายละเอียด:</strong><br><span class="text-muted">{{ ticket.description }}</span></div>
+                <div class="row mb-3">
+                    <div class="col-md-6"><strong>วันที่แจ้ง:</strong> {{ ticket.created_at }}</div>
+                    <div class="col-md-6"><strong>มอบหมายให้:</strong> {{ ticket.assigned_to or 'ยังไม่มอบหมาย' }}</div>
+                </div>
+                {% if ticket.resolved_at %}
+                <div class="mb-3"><strong>วันที่แก้ไข:</strong> {{ ticket.resolved_at }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <!-- AI Suggestion -->
+        {% if ticket.ai_suggestion %}
+        <div class="card border-primary mb-3">
+            <div class="card-header bg-white">
+                <span class="ai-badge"><i class="bi bi-stars me-1"></i>AI แนะนำวิธีแก้</span>
+                <small class="text-muted ms-2">ความมั่นใจ {{ "%.0f"|format(ticket.ai_confidence * 100) }}%</small>
+            </div>
+            <div class="card-body">
+                <div style="white-space: pre-line; font-size: 0.9rem;">{{ ticket.ai_suggestion }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-bold">ดำเนินการ</div>
+            <div class="card-body">
+                {% if ticket.status != 'resolved' and ticket.status != 'closed' %}
+                <button class="btn btn-success w-100 mb-2" onclick="updateStatus('resolved')">
+                    <i class="bi bi-check-lg me-1"></i>ปิด Ticket (เสร็จแล้ว)
+                </button>
+                <button class="btn btn-warning w-100 mb-2" onclick="updateStatus('in_progress')">
+                    <i class="bi bi-gear me-1"></i>กำลังดำเนินการ
+                </button>
+                {% endif %}
+                {% if ticket.status == 'resolved' %}
+                <button class="btn btn-outline-primary w-100 mb-2" onclick="updateStatus('open')">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>เปิดใหม่
+                </button>
+                {% endif %}
+                <a href="/tickets" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-left me-1"></i>กลับไป Tickets
+                </a>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+            <div class="card-header bg-white fw-bold">Timeline</div>
+            <div class="card-body">
+                <div class="mb-2"><span class="badge bg-primary">📝 แจ้งปัญหา</span><br><small>{{ ticket.created_at }}</small></div>
+                {% if ticket.status == 'resolved' %}
+                <div class="mb-2"><span class="badge bg-success">✅ เสร็จสิ้น</span><br><small>{{ ticket.resolved_at or 'เมื่อผ่านมา' }}</small></div>
+                {% elif ticket.status == 'in_progress' %}
+                <div class="mb-2"><span class="badge bg-warning text-dark">🔧 กำลังดำเนินการ</span><br><small>อัปเดตล่าสุด: วันนี้</small></div>
+                {% else %}
+                <div class="mb-2"><span class="badge bg-secondary">⏳ รอดำเนินการ</span></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function updateStatus(status) {
+    const labels = { resolved: 'ปิด Ticket', in_progress: 'กำลังดำเนินการ', open: 'เปิดใหม่' };
+    if (!confirm('ยืนยันเปลี่ยนสถานะเป็น: ' + labels[status] + '?')) return;
+    const resp = await fetch('/api/ticket/{{ ticket.id }}/status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: status})
+    });
+    const data = await resp.json();
+    if (data.success) location.reload();
+    else alert('Error: ' + (data.error || 'ไม่สามารถอัปเดตได้'));
+}
+</script>
+{% endblock %}

@@ -1,0 +1,355 @@
+#!/usr/bin/env python3
+import hashlib
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+import sqlite3, random, os
+from datetime import datetime, timedelta
+from functools import wraps
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'demo-2026-secret'
+DB_PATH = os.path.join(os.path.dirname(__file__), 'tickets.db')
+
+ADMIN_HASH = hashlib.sha256(b'demo2026').hexdigest()
+
+def check_pw(pw):
+    return hashlib.sha256(pw.encode()).hexdigest() == ADMIN_HASH
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*a, **kw):
+        if not session.get('logged_in'):
+            return redirect('/login')
+        return f(*a, **kw)
+    return decorated
+
+ALL_BRANCHES = [
+ {"branch":"สาขาเมืองปัตตานี","district":"เมืองปัตตานี","province":"ปัตตานี","type":"main"},
+ {"branch":"สาขาโคกโพธิ์","district":"โคกโพธิ์","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขาหนองจิก","district":"หนองจิก","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขาปะนาเระ","district":"ปะนาเระ","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขามายอ","district":"มายอ","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขายะหริ่ง","district":"ยะหริ่ง","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขาทุ่งยางแดง","district":"ทุ่งยางแดง","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขาไม้แก่น","district":"ไม้แก่น","province":"ปัตตานี","type":"branch"},
+ {"branch":"สาขาเมืองยะลา","district":"เมืองยะลา","province":"ยะลา","type":"main"},
+ {"branch":"สาขาบันนังสตา","district":"บันนังสตา","province":"ยะลา","type":"branch"},
+ {"branch":"สาขาเบตง","district":"เบตง","province":"ยะลา","type":"branch"},
+ {"branch":"สาขายะหา","district":"ยะหา","province":"ยะลา","type":"branch"},
+ {"branch":"สาขารามัน","district":"รามัน","province":"ยะลา","type":"branch"},
+ {"branch":"สาขาเมืองนราธิวาส","district":"เมืองนราธิวาส","province":"นราธิวาส","type":"main"},
+ {"branch":"สาขาตากใบ","district":"ตากใบ","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาบาเจาะ","district":"บาเจาะ","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาระแงะ","district":"ระแงะ","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาศรีสาคร","district":"ศรีสาคร","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาสุไหงปาดี","district":"สุไหงปาดี","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาสุไหงโก-ลก","district":"สุไหงโก-ลก","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาจะแนะ","district":"จะแนะ","province":"นราธิวาส","type":"branch"},
+ {"branch":"สาขาแว้ง","district":"แว้ง","province":"นราธิวาส","type":"branch"},
+]
+NUM_BRANCHES = len(ALL_BRANCHES)
+
+TICKET_CATS = {
+ "ระบบ Core Banking":{"titles":["Core Banking ล่ม","เข้า Core ไม่ได้","บันทึกรายการไม่ได้","ถอนเงินผิดพลาด","ปิดรอบวันไม่ได้","พิมพ์ใบเสร็จไม่ได้","สินเชื่อดอกเบี้ยผิดปกติ","ระบบสมาชิก Error"],"priority":"critical","ai":"1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"},
+ "เครือข่าย/อินเทอร์เน็ต":{"titles":["อินเทอร์เน็ตไม่ได้","อินเทอร์เน็ตช้า","WiFi ดรอป","WAN IP เปลี่ยน","DNS ไม่ resolve","Firewall Block","IP Camera ภาพไม่ขึ้น"],"priority":"high","ai":"1. เช็ค Router/Switch\n2. Ping Gateway\n3. เช็ค LAN\n4. รีสตาร์ท Modem"},
+ "VPN/ระบบเสีย":{"titles":["VPN Tunnel หลุด","เชื่อมต่อ HO ไม่ได้","VPN ช้า","Site-to-Site VPN Down"],"priority":"high","ai":"1. เช็ค WAN IP\n2. Tunnel Status\n3. Firewall Rules\n4. ติดต่อ IT"},
+ "เครื่องพิมพ์/สมุด":{"titles":["ปริ้นเตอร์คายกระดาษ","พิมพ์ทับ","หมึกหมด","เครื่องพิมพ์ค้าง","Sensor เลอะ","ลายไม่ชัด","เครื่องพิมพ์ขาว"],"priority":"medium","ai":"1. เช็ค Sensor\n2. ลูกยางดึงสมุด\n3. Calibrate\n4. เปลี่ยนผ้าคราบ"},
+ "คอมพิวเตอร์เสีย":{"titles":["PC เปิดไม่ติด","จอฟ้า","คีย์บอร์ดเสีย","เมาส์เสีย","ฮาร์ดดิสเต็ม","RAM ไม่พอ","ลำโพงไม่ดัง","USB ไม่ทำงาน","ไวรัส"],"priority":"low","ai":"1. เช็คสาย\n2. รีสตาร์ท\n3. เช็ค RAM/HDD\n4. เช็ค VGA"},
+ "ไฟฟ้า/สาธารณูปโภค":{"titles":["ไฟดับ","แอร์ไม่ทำงาน","UPS แบตหมด","ไฟกระพริบ","UPS Alarm ดัง","แบต UPS บวม"],"priority":"high","ai":"1. เช็คสวิตช์\n2. เช็ค UPS\n3. Circuit Breaker\n4. แจ้งผู้ดูแลอาคาร"},
+}
+
+TM = ["สมชาย","สมศักดิ์","สมหมาย","สมบูรณ์","ประเสริฐ","วิชัย","ศุภชัย","ธนากร","รัตนชัย","ชัยวัฒน์","ธีรวัฒน์","นเรศ","พีรพัฒน์","สุรศักดิ์"]
+TF = ["ปราณี","ประไพ","วิไล","ศิริพร","กนกพร","ชลิดา","ธนพร","นงลักษณ์","บุญสม","พรทิพย์","รัตนา","สุนิสา","อรพรรณ"]
+MM = ["มูฮัมมัด","อาหมัด","อับดุลเลาะห์","ฮาซัน","ฮุสซัยน์","อิบรอฮีม์","ซูไลมาน","รอสลี","นาซรี","ยูโซฟ","ซัลมาน"]
+MF = ["ฟาติมะห์","นาฟีสะห์","นูรุลฮูดา","นาอีมะห์","มะรียัม","มุนีระห์","อามีนะห์","ซอรายา","ฮาวา","รอกายัฮ์"]
+LN = ["ทิพย์โชคชัย","จันทร์เพ็ญ","แก้วมณี","ศรีสุข","บัวทอง","ทองคำ","พูนผล","ใจดี","ยูโซฟ","มะแม","ลายเพชร","เจะอาแซ","มะนู","สาและ","ดือราแม","เปาะซี","กาเซ็ม","ลาฮี","วารีซัน","นูรูลลอฮ์","ฟารีฮีน","กอมาลี","รักษาศักดิ์","รุ่งเรือง"]
+
+def _name():
+    m = random.random()<0.4
+    male = random.random()<0.55
+    f = random.choice(MM if m and male else MF if m and not male else TM if not m and male else TF)
+    l = random.choice(LN)
+    p = ("นาย" if male else random.choice(["นาง","นางสาว"]))
+    return f"{p} {f} {l}"
+
+def _staff():
+    S = []
+    for b in ALL_BRANCHES:
+        n = random.randint(11,15) if b["type"]=="main" else random.randint(6,9) if b["type"]=="service_point" else random.randint(9,13)
+        u = set()
+        pool = ["ผู้จัดการสาขา","รองผู้จัดการสาขา","เจ้าหน้าที่บัญชี","เจ้าหน้าที่บัญชี","เจ้าหน้าที่สินเชื่อ","เจ้าหน้าที่รับ-ส่งเงิน","เจ้าหน้าที่รับ-ส่งเงิน","เจ้าหน้าที่สมาชิก","เจ้าหน้าที่คอมพิวเตอร์","IT Support","พนักงานต้อนรับ","พนักงานรักษาความปลอดภัย","พนักงานทำความสะอาด"] if b["type"]=="main" else ["ผู้จัดการสาขา","เจ้าหน้าที่บัญชี","เจ้าหน้าที่สินเชื่อ","เจ้าหน้าที่รับ-ส่งเงิน","เจ้าหน้าที่สมาชิก","เจ้าหน้าที่คอมพิวเตอร์","พนักงานต้อนรับ","พนักงานรักษาความปลอดภัย","พนักงานทำความสะอาด"]
+        while len(pool)<n: pool.append(random.choice(["เจ้าหน้าที่บัญชี","เจ้าหน้าที่สินเชื่อ","เจ้าหน้าที่สมาชิก","พนักงานต้อนรับ","เจ้าหน้าที่สนับสนุน"]))
+        for i in range(n):
+            for _ in range(20):
+                nm = _name()
+                if nm not in u: u.add(nm); break
+            role = pool[i] if i<len(pool) else random.choice(["เจ้าหน้าที่บัญชี","เจ้าหน้าที่สมาชิก"])
+            S.append({"name":nm,"role":role,"branch":b["branch"],"province":b["province"],"is_it":role=="IT Support"})
+    return S
+
+def _tickets(S):
+    EU = [s for s in S if not s["is_it"]]
+    IT = [s for s in S if s["is_it"]]
+    if not IT: IT = [{"name":"นายซุลธาน เทค","branch":"สาขาเมืองปัตตานี","province":"ปัตตานี"},{"name":"นายอารีฟ","branch":"สาขาเมืองนราธิวาส","province":"นราธิวาส"}]
+    T = []
+    for _ in range(random.randint(85,105)):
+        cat = random.choice(list(TICKET_CATS.keys()))
+        cd = TICKET_CATS[cat]
+        rep = random.choice(EU)
+        ast = random.choice(IT)
+        st = random.choice({"critical":["open","in_progress","resolved"],"high":["open","in_progress","in_progress","resolved","resolved"],"medium":["open","in_progress","resolved","resolved","resolved"],"low":["resolved","resolved","resolved","in_progress"]}[cd["priority"]])
+        da = random.randint(0,60)
+        cd2 = datetime.now()-timedelta(days=da,hours=random.randint(6,18))
+        rs = None
+        if st in ("resolved","closed"):
+            rd = cd2+timedelta(hours=random.randint(1,72))
+            if rd<datetime.now(): rs=rd.strftime("%Y-%m-%d %H:%M:%S")
+        T.append({"branch":rep["branch"],"province":rep["province"],"category":cat,"title":random.choice(cd["titles"]),"description":f"แจ้ง: {random.choice(cd['titles'])} ที่{rep['branch']} โดย{rep['name']}","priority":cd["priority"],"status":st,"reported_by":rep["name"],"assigned_to":ast["name"],"created_at":cd2.strftime("%Y-%m-%d %H:%M:%S"),"resolved_at":rs,"ai_suggestion":cd["ai"],"ai_confidence":round(random.uniform(0.65,0.98),2)})
+    return T
+
+def _assets():
+    A = []
+    sc = {}
+    AC = {"คอมพิวเตอร์":{"m":["Dell OptiPlex 3090","HP ProDesk 400 G7","Lenovo M70q"],"p":"PC"},"เครื่องพิมพ์":{"m":["HP LaserJet M404dn","Epson L3250","Brother HL-L2350DW","Canon G3010"],"p":"PRT"},"Scanner":{"m":["Fujitsu fi-7160","Epson DS-1640","Brother DS-640"],"p":"SCN"},"Router":{"m":["Cisco ISR 1111","MikroTik hEX","TP-Link ER7206"],"p":"RT"},"Switch":{"m":["Cisco SG250-26","TP-Link TL-SG1024","MikroTik CRS326"],"p":"SW"},"UPS":{"m":["APC 1500VA","Eaton 5S 1500VA","CyberPower OL2000"],"p":"UPS"},"เครื่องนับเงิน":{"m":["GLORY GFR-S60ITF","Cassida 8800"],"p":"CNT"},"Notebook":{"m":["Dell Latitude 3420","HP EliteBook 840","ThinkPad E14"],"p":"NB"}}
+    for b in ALL_BRANCHES:
+        n = random.randint(4,6) if b["type"]=="main" else random.randint(1,3) if b["type"]=="service_point" else random.randint(2,4)
+        ch = random.sample(list(AC.keys()),k=min(n,len(AC)))
+        if n>=2: ch[0]="คอมพิวเตอร์"
+        if n>=3: ch[1]="เครื่องพิมพ์"
+        for at in ch[:n]:
+            c2 = AC[at]; mdl=random.choice(c2["m"]); p=c2["p"]
+            sc[p]=sc.get(p,100)+1
+            sn=f"{p}-{b['province'][:3].upper()}-{sc[p]:04d}"
+            st=random.choices(["active","active","active","active","maintenance","retired"],weights=[65,12,8,5,5,5],k=1)[0]
+            lc=datetime.now()-timedelta(days=random.randint(3,60))
+            nx=lc+timedelta(days=90)
+            nm2={"active":random.choice(["สถานะปกติ","ใช้งานปกติ"]),"maintenance":random.choice(["รออะไล่","ส่งซ่อน"]),"retired":random.choice(["เกษียณแล้ว","รอจำหน่าย"])}
+            A.append({"branch":b["branch"],"asset_type":at,"name":mdl,"serial":sn,"status":st,"last_check":lc.strftime("%Y-%m-%d"),"next_check":nx.strftime("%Y-%m-%d"),"notes":nm2.get(st,"")})
+    return A
+
+KB = [
+    {"title":"แก้เครื่องพิมพ์คายกระดาษ","cat":"เครื่องพิมพ์","content":"1. ปิดเครื่อง ถอดปั๊ก\n2. เปิดฝา\n3. ดึงกระดาษคาย\n4. เช็คลูกยาง\n5. เปิดใหม่","v":156},
+    {"title":"แก้อินเทอร์เน็ตไม่ได้","cat":"เครือข่าย","content":"1. เช็คสาย LAN\n2. รีสตาร์ท Router\n3. Ping 8.8.8.8\n4. แจ้ง IT","v":287},
+    {"title":"VPN Tunnel หลุด","cat":"VPN","content":"1. เช็คอินเทอร์เน็ต\n2. รีสตาร์ท Router\n3. เช็ค WAN IP\n4. แจ้ง IT","v":93},
+    {"title":"Reset Password Core Banking","cat":"Core Banking","content":"1. Forgot Password\n2. รอ OTP\n3. ตั้งรหัสใหม่\n4. แจ้ง Admin","v":174},
+    {"title":"เช็คระบบก่อนเปิดสาขา","cat":"Core Banking","content":"1. เปิด PC\n2. เช็ค VPN\n3. เปิด Core\n4. เช็คยอด\n5. เปิดพิมพ์","v":67},
+    {"title":"แจ้งปัญหา IT","cat":"ทั่วไป","content":"1. เข้า Tickets\n2. New Ticket\n3. เลือกหมวด\n4. ระบุรายละเอียด\n5. Submit","v":342},
+    {"title":"แก้จอฟ้า BSOD","cat":"คอมพิวเตอร์","content":"1. ปิดเครื่อง 10 วิ\n2. F8 Safe Mode\n3. รีเซ็ต Driver\n4. แจ้ง IT","v":78},
+    {"title":"ใช้เครื่องนับเงิน","cat":"ทั่วไป","content":"1. เปิดเครื่อง\n2. วางธนบัตร\n3. กดนับ\n4. เช็คยอด\n5. Confirm","v":124},
+]
+
+def get_db():
+    c=sqlite3.connect(DB_PATH);c.row_factory=sqlite3.Row;return c
+
+def init_db():
+    c=get_db()
+    c.execute('CREATE TABLE IF NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,role TEXT,branch TEXT,province TEXT,is_it INTEGER DEFAULT 0)')
+    c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL)')
+    c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,last_check DATE,next_check DATE,notes TEXT)')
+    c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
+    if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
+        c.close();return
+    print('Seeding...')
+    S=_staff();T=_tickets(S);A=_assets()
+    for s in S:c.execute('INSERT INTO staff (name,role,branch,province,is_it) VALUES (?,?,?,?,?)',(s['name'],s['role'],s['branch'],s['province'],1 if s['is_it'] else 0))
+    for t in T:c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,created_at,resolved_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',(t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t['created_at'],t['resolved_at'],t['ai_suggestion'],t['ai_confidence']))
+    for a in A:c.execute('INSERT INTO assets (branch,asset_type,name,serial,status,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?)',(a['branch'],a['asset_type'],a['name'],a['serial'],a['status'],a['last_check'],a['next_check'],a['notes']))
+    for k in KB:c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,?)',(k['title'],k['cat'],k['content'],k['v']))
+    c.commit();c.close()
+    print(f'Seeded: {len(S)} staff, {len(T)} tickets, {len(A)} assets')
+
+@app.route('/login',methods=['GET','POST'])
+def login():
+    if request.method=='POST':
+        if check_pw(request.form.get('password','')):
+            session['logged_in']=True
+            return redirect('/')
+        return render_template('login.html',error='รหัสผ่านไม่ถูกต้อง')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in',None)
+    return redirect('/login')
+
+@app.route('/')
+@login_required
+def dashboard():
+    c=get_db()
+    total=c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
+    op=c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0]
+    res=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
+    crit=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical' AND status!='resolved'").fetchone()[0]
+    recent=c.execute('SELECT * FROM tickets ORDER BY created_at DESC LIMIT 10').fetchall()
+    bp=c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as oc FROM tickets GROUP BY province').fetchall()
+    bc=c.execute('SELECT category,COUNT(*) as cnt FROM tickets GROUP BY category ORDER BY cnt DESC').fetchall()
+    ns=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
+    na=c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
+    aa=c.execute("SELECT COUNT(*) FROM assets WHERE status='active'").fetchone()[0]
+    itc=c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0]
+    nk=c.execute('SELECT COUNT(*) FROM knowledge_base').fetchone()[0]
+    c.close()
+    cl=[r['category'] for r in bc];cc=[r['cnt'] for r in bc]
+    tp=round(bc[0]['cnt']/total*100) if bc and total>0 else 0
+    return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,critical=crit,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
+
+@app.route('/tickets')
+@login_required
+def tickets_page():
+    c=get_db();rows=c.execute('SELECT * FROM tickets ORDER BY created_at DESC').fetchall();c.close()
+    return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES)
+
+@app.route('/ticket/<int:ticket_id>')
+@login_required
+def ticket_detail(ticket_id):
+    c=get_db();t=c.execute('SELECT * FROM tickets WHERE id=?',(ticket_id,)).fetchone();c.close()
+    if not t:return 'Not found',404
+    return render_template('ticket_detail.html',ticket=t)
+
+@app.route('/assets')
+@login_required
+def assets_page():
+    c=get_db()
+    rows=c.execute('SELECT * FROM assets ORDER BY branch,asset_type').fetchall()
+    total=c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
+    active=c.execute("SELECT COUNT(*) FROM assets WHERE status='active'").fetchone()[0]
+    maint=c.execute("SELECT COUNT(*) FROM assets WHERE status='maintenance'").fetchone()[0]
+    retired=c.execute("SELECT COUNT(*) FROM assets WHERE status='retired'").fetchone()[0]
+    c.close()
+    return render_template('assets.html',assets=rows,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES)
+
+@app.route('/staff')
+@login_required
+def staff_page():
+    c=get_db();rows=c.execute('SELECT * FROM staff ORDER BY province,branch,name').fetchall()
+    total=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
+    itc=c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0]
+    c.close()
+    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES)
+
+@app.route('/knowledge')
+@login_required
+def kb_page():
+    c=get_db();rows=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall();c.close()
+    return render_template('knowledge.html',articles=rows)
+
+@app.route('/kb/<int:kb_id>')
+@login_required
+def kb_detail(kb_id):
+    c=get_db()
+    a=c.execute('SELECT * FROM knowledge_base WHERE id=?',(kb_id,)).fetchone()
+    if a:c.execute('UPDATE knowledge_base SET views=views+1 WHERE id=?',(kb_id,));c.commit()
+    c.close()
+    if not a:return 'Not found',404
+    return render_template('kb_detail.html',article=a)
+
+# ── API ──
+@app.route('/api/ticket',methods=['POST'])
+@login_required
+def api_create():
+    d=request.json;cat=d.get('category','');ai='';pri='medium'
+    for k,v in TICKET_CATS.items():
+        if k==cat:ai=v['ai'];pri=v['priority'];break
+    c=get_db()
+    c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?)',(d.get('branch',''),d.get('province',''),cat,d.get('title',''),d.get('description',''),pri,'open',d.get('reported_by',''),'',ai,round(random.uniform(0.7,0.98),2)))
+    c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    return jsonify(success=True,ticket_id=tid)
+
+@app.route('/api/ticket/<int:tid>/status',methods=['POST'])
+@login_required
+def api_status(tid):
+    st=request.json.get('status','')
+    if st not in ('open','in_progress','resolved','closed'):return jsonify(success=False,error='Invalid'),400
+    c=get_db()
+    if st=='resolved':c.execute('UPDATE tickets SET status=?,resolved_at=CURRENT_TIMESTAMP WHERE id=?',(st,tid))
+    else:c.execute('UPDATE tickets SET status=?,resolved_at=NULL WHERE id=?',(st,tid))
+    c.commit();c.close()
+    return jsonify(success=True)
+
+@app.route('/api/ticket/<int:tid>/edit',methods=['POST'])
+@login_required
+def api_edit(tid):
+    d=request.json;c=get_db()
+    c.execute('UPDATE tickets SET title=?,description=?,priority=?,status=?,assigned_to=? WHERE id=?',(d.get('title',''),d.get('description',''),d.get('priority','medium'),d.get('status','open'),d.get('assigned_to',''),tid))
+    c.commit();c.close()
+    return jsonify(success=True)
+
+@app.route('/api/ticket/<int:tid>/delete',methods=['POST'])
+@login_required
+def api_delete(tid):
+    c=get_db();c.execute('DELETE FROM tickets WHERE id=?',(tid,));c.commit();c.close()
+    return jsonify(success=True)
+
+@app.route('/api/chatbot',methods=['POST'])
+@login_required
+def chatbot():
+    q=request.json.get('question','').lower()
+    R={"printer":"🔧 เครื่องพิมพ์\n1. เช็ค Sensor\n2. ลูกยาง\n3. Calibrate\n4. แจ้ง IT","vpn":"🔒 VPN\n1. เช็คอินเทอร์เน็ต\n2. รีสตาร์ท Router\n3. เช็ค WAN IP","network":"🌐 เครือข่าย\n1. Ping Gateway\n2. เช็ค LAN\n3. รีสตาร์ท Modem","core":"⚠️ Core Banking\nแจ้ง IT ทันที!","สมุด":"🔧 เครื่องพิมพ์: 1.Sensor 2.ลูกยาง 3.Calibrate","อินเทอร์เน็ต":"🌐 แก้: 1.Router 2.Ping 8.8.8.8 3.รีสตาร์ท"}
+    a="❓ ลองถาม: เครื่องพิมพ์, VPN, เครือข่าย, Core Banking"
+    for kw,resp in R.items():
+        if kw in q:a=resp;break
+    return jsonify(answer=a)
+
+# ── Asset API ──
+@app.route('/api/asset/<int:aid>/edit',methods=['POST'])
+@login_required
+def api_asset_edit(aid):
+    d=request.json;c=get_db()
+    c.execute('UPDATE assets SET name=?,serial=?,asset_type=?,status=?,branch=?,next_check=?,notes=? WHERE id=?',
+              (d.get('name',''),d.get('serial',''),d.get('asset_type',''),d.get('status','active'),d.get('branch',''),d.get('next_check',''),d.get('notes',''),aid))
+    c.commit();c.close()
+    return jsonify(success=True)
+
+@app.route('/api/asset/<int:aid>/delete',methods=['POST'])
+@login_required
+def api_asset_delete(aid):
+    c=get_db();c.execute('DELETE FROM assets WHERE id=?',(aid,));c.commit();c.close()
+    return jsonify(success=True)
+
+# ── Staff API ──
+@app.route('/api/staff/<int:sid>/edit',methods=['POST'])
+@login_required
+def api_staff_edit(sid):
+    d=request.json;c=get_db()
+    c.execute('UPDATE staff SET name=?,role=?,is_it=?,branch=?,province=? WHERE id=?',
+              (d.get('name',''),d.get('role',''),d.get('is_it',0),d.get('branch',''),d.get('province',''),sid))
+    c.commit();c.close()
+    return jsonify(success=True)
+
+@app.route('/api/staff/<int:sid>/delete',methods=['POST'])
+@login_required
+def api_staff_delete(sid):
+    c=get_db();c.execute('DELETE FROM staff WHERE id=?',(sid,));c.commit();c.close()
+    return jsonify(success=True)
+
+# ── KB API ──
+@app.route('/api/kb',methods=['POST'])
+@login_required
+def api_kb_create():
+    d=request.json;c=get_db()
+    c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,?)',
+              (d.get('title',''),d.get('category',''),d.get('content',''),d.get('views',0)))
+    c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    return jsonify(success=True,id=tid)
+
+@app.route('/api/kb/<int:kid>/edit',methods=['POST'])
+@login_required
+def api_kb_edit(kid):
+    d=request.json;c=get_db()
+    c.execute('UPDATE knowledge_base SET title=?,category=?,content=?,views=? WHERE id=?',
+              (d.get('title',''),d.get('category',''),d.get('content',''),d.get('views',0),kid))
+    c.commit();c.close()
+    return jsonify(success=True)
+
+@app.route('/api/kb/<int:kid>/delete',methods=['POST'])
+@login_required
+def api_kb_delete(kid):
+    c=get_db();c.execute('DELETE FROM knowledge_base WHERE id=?',(kid,));c.commit();c.close()
+    return jsonify(success=True)
+
+
+if __name__=='__main__':
+    import hashlib as _h
+    init_db()
+    c=get_db();ns=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0];nt=c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0];na=c.execute('SELECT COUNT(*) FROM assets').fetchone()[0];c.close()
+    print('='*60);print(f'  IT Ticket Demo');print(f'  {ns} staff | {nt} tickets | {na} assets | {NUM_BRANCHES} branches');print(f'  http://localhost:5000');print(f'  Password: demo2026');print('='*60)
+    app.run(host='0.0.0.0',port=5000,debug=False)

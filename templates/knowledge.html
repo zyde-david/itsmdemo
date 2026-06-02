@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Base — IT Ticket System{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+ <h4 class="mb-0"><i class="bi bi-book me-2"></i>Knowledge Base (ฐานความรู้ IT)</h4>
+ <button class="btn btn-sm btn-primary" onclick="openNewKB()"><i class="bi bi-plus-lg me-1"></i>เพิ่มบทความ</button>
+</div>
+<div class="card"><div class="card-body p-2">
+<table id="kbTable" class="table table-hover mb-0" style="width:100%">
+ <thead class="table-light"><tr><th>ID</th><th>หัวข้อ</th><th>หมวดหมู่</th><th>ยอดเข้าชม</th><th>จัดการ</th></tr></thead>
+ <tbody>
+  {% for a in articles %}
+  <tr data-id="{{ a.id }}">
+   <td>#{{ a.id }}</td>
+   <td style="cursor:pointer" onclick="openEditKB({{ a.id }})"><strong>{{ a.title }}</strong></td>
+   <td><span class="badge bg-info text-dark">{{ a.category }}</span></td>
+   <td><i class="bi bi-eye me-1"></i>{{ a.views }}</td>
+   <td><button class="btn btn-sm btn-outline-primary" onclick="openEditKB({{ a.id }})"><i class="bi bi-pencil"></i></button></td>
+  </tr>
+  {% endfor %}
+ </tbody>
+</table>
+</div></div>
+
+<!-- KB Edit Modal -->
+<div class="modal fade" id="kbModal" tabindex="-1">
+ <div class="modal-dialog">
+  <div class="modal-content">
+   <div class="modal-header"><h6 class="modal-title"><i class="bi bi-pencil me-2"></i><span id="kbModalTitle">แก้ไขบทความ</span></h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+   <div class="modal-body">
+    <input type="hidden" id="mKbId">
+    <div class="mb-2"><label class="form-label small">หัวข้อ</label><input type="text" class="form-control form-control-sm" id="kbTitle"></div>
+    <div class="row g-2 mb-2">
+     <div class="col-6"><label class="form-label small">หมวดหมู่</label>
+      <select class="form-select form-select-sm" id="kbCat">
+       <option>เครื่องพิมพ์</option><option>เครือข่าย</option><option>VPN</option>
+       <option>Core Banking</option><option>คอมพิวเตอร์</option><option>ทั่วไป</option>
+      </select>
+     </div>
+     <div class="col-6"><label class="form-label small">ยอดเข้าชม</label><input type="number" class="form-control form-control-sm" id="kbViews" value="0"></div>
+    </div>
+    <div class="mb-2"><label class="form-label small">เนื้อหา</label><textarea class="form-control form-control-sm" id="kbContent" rows="6"></textarea></div>
+   </div>
+   <div class="modal-footer d-flex justify-content-between">
+    <button class="btn btn-sm btn-outline-danger" onclick="deleteKB()"><i class="bi bi-trash"></i> ลบ</button>
+    <div><button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button class="btn btn-sm btn-primary" onclick="saveKB()"><i class="bi bi-check-lg"></i> บันทึก</button></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script>
+let kbTable;
+document.addEventListener('DOMContentLoaded',function(){kbTable=initTable('#kbTable',{order:[[3,'desc']]})});
+function openEditKB(id){
+ // Fetch article content via API or embed in data attribute
+ // For now, load from page by clicking through
+ window.location.href='/kb/'+id;
+}
+function openNewKB(){
+ document.getElementById('mKbId').value='';
+ document.getElementById('kbModalTitle').innerText='เพิ่มบทความใหม่';
+ document.getElementById('kbTitle').value='';
+ document.getElementById('kbContent').value='';
+ document.getElementById('kbViews').value='0';
+ new bootstrap.Modal(document.getElementById('kbModal')).show();
+}
+function saveKB(){
+ const id=document.getElementById('mKbId').value;
+ const data={title:document.getElementById('kbTitle').value,category:document.getElementById('kbCat').value,
+  content:document.getElementById('kbContent').value,views:parseInt(document.getElementById('kbViews').value)||0};
+ if(!id){
+  fetch('/api/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+  .then(r=>r.json()).then(d=>{if(d.success)location.reload()});
+ } else {
+  fetch('/api/kb/'+id+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+  .then(r=>r.json()).then(d=>{if(d.success)location.reload()});
+ }
+}
+function deleteKB(){
+ const id=document.getElementById('mKbId').value;
+ if(!id||!confirm('ลบบทความ?')) return;
+ fetch('/api/kb/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}})
+ .then(r=>r.json()).then(d=>{if(d.success)location.reload()});
+}
+</script>
+{% endblock %}

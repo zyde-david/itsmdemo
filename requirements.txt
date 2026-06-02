@@ -1,0 +1,5 @@
+# Flask dependency
+Flask>=3.0
+
+# Optional: production server
+gunicorn>=21.2
