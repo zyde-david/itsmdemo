@@ -184,16 +184,19 @@ function applyTicketFilters(){
   const category = document.getElementById('tFilterCategory').value;
   const province = document.getElementById('tFilterProvince').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(status && data[8] != status) return false;
-    if(priority && data[7] != priority) return false;
-    if(branch && data[3] != branch) return false;
-    if(category && data[4] != category) return false;
-    if(province && data[2] != province) return false;
+    if(status && data[7] != status) return false;
+    if(priority && data[6] != priority) return false;
+    if(branch && data[2] != branch) return false;
+    if(category && data[5] != category) return false;
+    if(province && data[3] != province) return false;
     return true;
   });
   ticketsTable.draw();
   $.fn.dataTable.ext.search.pop();
 }
+
+document.addEventListener('DOMContentLoaded',function(){
+  ticketsTable = initTable('#ticketsTable',{order:[[11,'desc']]});
   document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
     document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
   }));
