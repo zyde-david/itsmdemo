@@ -96,7 +96,7 @@
      <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>
      <td><small>{{ t.category }}</small></td>
      <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
-     <td>
+     <td data-order="{{ t.status }}" data-filter="{{ t.status }}">
       {% if t.status=='open' %}<span class="badge bg-primary">เปิด</span>
       {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
       {% elif t.status=='pending' %}<span class="badge bg-secondary">รอดำเนิน</span>
@@ -179,7 +179,6 @@ function toggleTicketFilter(){
   chevron.classList.toggle('bi-chevron-right');
 }
 
-// Push filter, draw, then pop — same pattern as assets page
 function applyTicketFilters(){
   if(!ticketsTable) return;
   const status = document.getElementById('filterStatus').value;
@@ -188,16 +187,15 @@ function applyTicketFilters(){
   const category = document.getElementById('filterCategory').value;
   const province = document.getElementById('filterProvince').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(settings.nTable.id !== 'ticketsTable') return true;
-    // Status: data[7] has Thai label, use data-* attribute on the row instead
     if(status){
-      const rowNode = ticketsTable.row(dataIndex).node();
-      if(!rowNode || rowNode.dataset.status !== status) return false;
+      const cell = settings.aoData[dataIndex].anCells[7];
+      const raw = cell ? cell.getAttribute('data-filter') : null;
+      if(raw !== status) return false;
     }
-    if(priority && data[6] !== priority) return false;
-    if(branch && data[2] !== branch) return false;
-    if(category && data[5] !== category) return false;
-    if(province && data[3] !== province) return false;
+    if(priority && data[6] != priority) return false;
+    if(branch && data[2] != branch) return false;
+    if(category && data[5] != category) return false;
+    if(province && data[3] != province) return false;
     return true;
   });
   ticketsTable.draw();
