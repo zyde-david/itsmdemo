@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
  <h4 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>IT Tickets</h4>
  <div class="d-flex gap-2">
-  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteBtn" onclick="bulkDelete()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก <span id="bulkDeleteCount">(0/0)</span></button>
+  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteTicketBtn" onclick="bulkDeleteTickets()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก</button>
   <button class="btn btn-sm btn-primary" onclick="openNewTicket()"><i class="bi bi-plus-lg me-1"></i>New Ticket</button>
  </div>
 </div>
@@ -13,20 +13,20 @@
 <div class="card mb-3">
  <div class="card-body py-2">
   <div class="d-md-none mb-2">
-   <button type="button" class="btn btn-sm btn-outline-secondary w-100" data-bs-toggle="collapse" data-bs-target="#tFilterRow" aria-expanded="false">
-    <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down"></i>
+   <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="toggleTicketFilter()">
+    <i class="bi bi-funnel me-1"></i>ตัวกรอง <i class="bi bi-chevron-down" id="tFilterChevron"></i>
    </button>
   </div>
-  <div class="collapse d-md-block row g-2 align-items-end" id="tFilterRow">
+  <div class="row g-2 align-items-end mobile-filter-row" id="tFilterRow">
    <div class="col-md-2">
     <label class="form-label small mb-1">สถานะ</label>
     <select class="form-select form-select-sm" id="tFilterStatus" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     <option value="เปิด">เปิด</option>
-     <option value="กำลังดำเนิน">กำลังดำเนิน</option>
-     <option value="รอดำเนิน">รอดำเนิน</option>
-     <option value="เสร็จ">เสร็จ</option>
-     <option value="ปิด">ปิด</option>
+     <option value="open">เปิด</option>
+     <option value="in_progress">กำลังดำเนิน</option>
+     <option value="pending">รอดำเนิน</option>
+     <option value="resolved">เสร็จแล้ว</option>
+     <option value="closed">ปิด</option>
     </select>
    </div>
    <div class="col-md-2">
@@ -67,51 +67,44 @@
      <option value="นราธิวาส">นราธิวาส</option>
     </select>
    </div>
-   <div class="col-md-2">
-    <label class="form-label small mb-1">ค้นหา</label>
-    <input type="text" class="form-control form-control-sm" id="tFilterSearch" placeholder="พิมพ์เพื่อค้นหา..." oninput="applyTicketFilters()">
-   </div>
   </div>
  </div>
 </div>
 
-<div class="card">
- <div class="card-body p-2">
-  <table id="ticketsTable" class="table table-hover mb-0" style="width:100%">
-   <thead class="table-light">
-    <tr>
-     <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
-     <th>Code</th><th>สาขา</th><th>จังหวัด</th><th>ปัญหา</th><th>หมวด</th>
-     <th>ความสำคัญ</th><th>สถานะ</th><th class="d-none d-md-table-cell">ผู้แจ้ง</th><th class="d-none d-md-table-cell">ผู้รับผิดชอบ</th><th>วันที่</th><th>AI</th><th></th>
-    </tr>
-   </thead>
-   <tbody>
-    {% for t in tickets %}
-    <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-category="{{ t.category }}" data-province="{{ t.province }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
-     <td><input type="checkbox" class="row-check" value="{{ t.id }}"></td>
-     <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
-     <td><span class="branch-tag">{{ t.branch }}</span></td>
-     <td><small>{{ t.province }}</small></td>
-     <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>
-     <td><small>{{ t.category }}</small></td>
-     <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
-     <td><span class="badge badge-status status-{{ t.status }}">
-      {% if t.status=='open' %}เปิด
-      {% elif t.status=='in_progress' %}กำลังดำเนิน
-      {% elif t.status=='pending' %}รอดำเนิน
-      {% elif t.status=='resolved' %}เสร็จ
-      {% else %}ปิด{% endif %}</span></td>
-     <td class="d-none d-md-table-cell"><small>{{ t.reported_by }}</small></td>
-     <td class="d-none d-md-table-cell"><small>{{ t.assigned_to or '-' }}</small></td>
-     <td><small>{{ t.created_at[:10] if t.created_at else '-' }}</small></td>
-     <td>{% if t.ai_suggestion %}<span class="ai-badge">AI</span>{% endif %}</td>
-     <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOne({{ t.id }})"><i class="bi bi-trash"></i></button></td>
-    </tr>
-    {% endfor %}
-   </tbody>
-  </table>
- </div>
-</div>
+<div class="card"><div class="card-body p-2">
+<table id="ticketsTable" class="table table-hover mb-0" style="width:100%">
+ <thead class="table-light"><tr>
+  <th><input type="checkbox" id="selectAllTickets" onclick="toggleAllTickets(this)"></th>
+  <th>Code</th><th>สาขา</th><th>จังหวัด</th><th>ปัญหา</th><th>หมวด</th>
+  <th>ความสำคัญ</th><th>สถานะ</th><th class="d-none d-md-table-cell">ผู้แจ้ง</th><th class="d-none d-md-table-cell">ผู้รับผิดชอบ</th><th>วันที่</th><th>AI</th><th></th>
+ </tr></thead>
+ <tbody>
+  {% for t in tickets %}
+  <tr data-id="{{ t.id }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
+   <td><input type="checkbox" class="ticket-check" value="{{ t.id }}"></td>
+   <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
+   <td><span class="branch-tag">{{ t.branch }}</span></td>
+   <td><small>{{ t.province }}</small></td>
+   <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>
+   <td><small>{{ t.category }}</small></td>
+   <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
+   <td>
+    {% if t.status=='open' %}<span class="badge bg-primary">เปิด</span>
+    {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
+    {% elif t.status=='pending' %}<span class="badge bg-secondary">รอดำเนิน</span>
+    {% elif t.status=='resolved' %}<span class="badge bg-success">เสร็จ</span>
+    {% else %}<span class="badge bg-dark">ปิด</span>{% endif %}
+   </td>
+   <td class="d-none d-md-table-cell"><small>{{ t.reported_by }}</small></td>
+   <td class="d-none d-md-table-cell"><small>{{ t.assigned_to or '-' }}</small></td>
+   <td><small>{{ t.created_at[:10] if t.created_at else '-' }}</small></td>
+   <td>{% if t.ai_suggestion %}<span class="ai-badge">AI</span>{% endif %}</td>
+   <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOneTicket({{ t.id }})"><i class="bi bi-trash"></i></button></td>
+  </tr>
+  {% endfor %}
+ </tbody>
+</table>
+</div></div>
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
@@ -142,8 +135,7 @@
      <div class="col-md-3"><label class="form-label small">สถานะ</label>
       <select class="form-select form-select-sm" id="mStatus">
        <option value="open">เปิด</option><option value="in_progress">กำลังดำเนิน</option>
-       <option value="pending">รอดำเนิน</option>
-       <option value="resolved">เสร็จ</option><option value="closed">ปิด</option>
+       <option value="pending">รอดำเนิน</option><option value="resolved">เสร็จ</option><option value="closed">ปิด</option>
       </select>
      </div>
      <div class="col-md-3"><label class="form-label small">สาขา</label>
@@ -166,7 +158,13 @@
 </div>
 
 <script>
-let ticketsTable;
+function toggleTicketFilter(){
+  const row = document.getElementById('tFilterRow');
+  const chevron = document.getElementById('tFilterChevron');
+  row.classList.toggle('show');
+  chevron.classList.toggle('bi-chevron-down');
+  chevron.classList.toggle('bi-chevron-right');
+}
 
 function applyTicketFilters(){
   if(!ticketsTable) return;
@@ -175,36 +173,93 @@ function applyTicketFilters(){
   const branch = document.getElementById('tFilterBranch').value;
   const category = document.getElementById('tFilterCategory').value;
   const province = document.getElementById('tFilterProvince').value;
-  const search = document.getElementById('tFilterSearch').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(status && data[7] != status) return false;
-    if(priority && data[6] != priority) return false;
-    if(branch && data[2] != branch) return false;
-    if(category && data[5] != category) return false;
-    if(province && data[3] != province) return false;
-    if(search){
-      const rowStr = data.join(' ').toLowerCase();
-      if(rowStr.indexOf(search.toLowerCase()) === -1) return false;
-    }
+    if(status && data[8] != status) return false;
+    if(priority && data[7] != priority) return false;
+    if(branch && data[3] != branch) return false;
+    if(category && data[4] != category) return false;
+    if(province && data[2] != province) return false;
     return true;
   });
   ticketsTable.draw();
   $.fn.dataTable.ext.search.pop();
 }
 
-function filterTicketStatus(s){document.getElementById('tFilterStatus').value=s;applyTicketFilters();}
+function toggleAllTickets(cb){document.querySelectorAll('.ticket-check').forEach(c=>c.checked=cb.checked);}
+function deleteOneTicket(id){if(!confirm('ลบ Ticket?'))return;fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
+function bulkDeleteTickets(){const ids=[...document.querySelectorAll('.ticket-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' Ticket?'))return;Promise.all(ids.map(id=>fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
 
-document.addEventListener('DOMContentLoaded', function(){
-  ticketsTable = initTable('#ticketsTable',{order:[[10,'desc']]});
-  document.querySelectorAll('.row-check').forEach(cb=>cb.addEventListener('change',()=>{
-    updateBulkCount();
+document.addEventListener('DOMContentLoaded',function(){
+  ticketsTable = initTable('#ticketsTable',{order:[[11,'desc']]});
+  document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
+    document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
   }));
 });
 
-function handleRowClick(e, url, staffId){
+function handleRowClick(e, url){
   if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
-  if(url){location.href=url;}
-  else if(staffId){editStaff(staffId);}
+  location.href=url;
 }
 
+function editTicket(id){
+  const rows=document.querySelectorAll('#ticketsTable tbody tr');
+  rows.forEach(r=>{
+    if(r.dataset.id==id.toString()){
+      const c=r.querySelectorAll('td');
+      document.getElementById('mTicketId').value=id;
+      document.getElementById('mId').innerText=id;
+      document.getElementById('mTitle').value=c[4].innerText.trim();
+      document.getElementById('mReporter').value=c[9].innerText.trim();
+      document.getElementById('mAssignee').value=c[10].innerText.trim();
+      const statusMap={'เปิด':'open','กำลังดำเนิน':'in_progress','รอดำเนิน':'pending','เสร็จ':'resolved','ปิด':'closed'};
+      document.getElementById('mStatus').value=statusMap[c[8].innerText.trim()]||'open';
+      const cat=c[5].innerText.trim();const catSel=document.getElementById('mCategory');
+      for(let i=0;i<catSel.options.length;i++){if(catSel.options[i].text===cat){catSel.selectedIndex=i;break}}
+      const brSel=document.getElementById('mBranch');
+      const branch=c[3].innerText.trim();
+      for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].text.includes(branch)){brSel.selectedIndex=i;break}}
+      document.getElementById('mDesc').value='';
+      const pMap={'Critical':'critical','High':'high','Medium':'medium','Low':'low'};
+      document.getElementById('mPriority').value=pMap[c[6].innerText.trim()]||'medium';
+    }
+  });
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function openNewTicket(){
+  document.getElementById('mTicketId').value='';
+  document.getElementById('mId').innerText='NEW';
+  document.getElementById('mTitle').value='';
+  document.getElementById('mReporter').value='';
+  document.getElementById('mAssignee').value='';
+  document.getElementById('mDesc').value='';
+  document.getElementById('mStatus').value='open';
+  document.getElementById('mPriority').value='medium';
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function saveTicket(){
+  const id=document.getElementById('mTicketId').value;
+  const data={
+    title:document.getElementById('mTitle').value,
+    category:document.getElementById('mCategory').value,
+    priority:document.getElementById('mPriority').value,
+    status:document.getElementById('mStatus').value,
+    branch:document.getElementById('mBranch').value,
+    reported_by:document.getElementById('mReporter').value,
+    assigned_to:document.getElementById('mAssignee').value,
+    description:document.getElementById('mDesc').value
+  };
+  const url=id?'/api/ticket/'+id+'/edit':'/api/ticket';
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+  .then(r=>r.json()).then(d=>{if(d.success){bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();location.reload()}});
+}
+
+function deleteTicket(){
+  const id=document.getElementById('mTicketId').value;
+  if(!confirm('ลบ Ticket?')) return;
+  fetch('/api/ticket/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}})
+  .then(r=>r.json()).then(d=>{if(d.success)location.reload()});
+}
+</script>
 {% endblock %}
