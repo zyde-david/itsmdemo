@@ -218,6 +218,7 @@ def dashboard():
     res=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
     prog=c.execute("SELECT COUNT(*) FROM tickets WHERE status='in_progress'").fetchone()[0]
     pend=c.execute("SELECT COUNT(*) FROM tickets WHERE status='pending'").fetchone()[0]
+    critical=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     recent=c.execute('SELECT * FROM tickets ORDER BY created_at DESC LIMIT 10').fetchall()
     bp=c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as oc FROM tickets GROUP BY province').fetchall()
     bc=c.execute('SELECT category,COUNT(*) as cnt FROM tickets GROUP BY category ORDER BY cnt DESC').fetchall()
@@ -229,13 +230,48 @@ def dashboard():
     c.close()
     cl=[r['category'] for r in bc];cc=[r['cnt'] for r in bc]
     tp=round(bc[0]['cnt']/total*100) if bc and total>0 else 0
-    return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,in_progress=prog,pending=pend,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
+    return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,in_progress=prog,pending=pend,critical=critical,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
 
 @app.route('/tickets')
 @login_required
 def tickets_page():
-    c=get_db();rows=c.execute('SELECT * FROM tickets ORDER BY created_at DESC').fetchall();c.close()
-    return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES)
+    c=get_db()
+    # Build query from filter params
+    where = []
+    params = []
+    status = request.args.get('status', '')
+    priority = request.args.get('priority', '')
+    branch = request.args.get('branch', '')
+    province = request.args.get('province', '')
+    category = request.args.get('category', '')
+    search = request.args.get('search', '')
+    if status:
+        where.append('status=?')
+        params.append(status)
+    if priority:
+        where.append('priority=?')
+        params.append(priority)
+    if branch:
+        where.append('branch=?')
+        params.append(branch)
+    if province:
+        where.append('province=?')
+        params.append(province)
+    if category:
+        where.append('category=?')
+        params.append(category)
+    if search:
+        where.append('(title LIKE ? OR ticket_code LIKE ? OR branch LIKE ? OR reported_by LIKE ?)')
+        params.extend(['%'+search+'%']*4)
+    q = 'SELECT * FROM tickets'
+    if where:
+        q += ' WHERE ' + ' AND '.join(where)
+    q += ' ORDER BY created_at DESC'
+    rows=c.execute(q, params).fetchall()
+    c.close()
+    return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES,
+        filter_status=status, filter_priority=priority, filter_branch=branch,
+        filter_province=province, filter_category=category, filter_search=search)
 
 @app.route('/ticket/<int:ticket_id>')
 @login_required
