@@ -12,6 +12,7 @@
 <!-- Status Stat Cards -->
 <div class="row g-2 mb-3">
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทั้งหมด</h6><h5 class="mb-0 fw-bold text-primary">{{ total|default(0) }}</h5></div></div></a></div>
+ <div class="col-4 col-md-2"><a href="#" onclick="filterTicketPriority('critical');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">วิกฤติ</h6><h5 class="mb-0 fw-bold text-danger">{{ critical_tickets|default(0) }}</h5></div></div></a></div>
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('open');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">เปิด</h6><h5 class="mb-0 fw-bold text-primary">{{ open_tickets|default(0) }}</h5></div></div></a></div>
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('in_progress');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">กำลังดำเนิน</h6><h5 class="mb-0 fw-bold text-warning">{{ in_progress|default(0) }}</h5></div></div></a></div>
  <div class="col-8 col-md-2"><a href="#" onclick="filterTicketStatus('pending');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">รอดำเนิน</h6><h5 class="mb-0 fw-bold text-secondary">{{ pending|default(0) }}</h5></div></div></a></div>
@@ -184,15 +185,20 @@ function applyTicketFilters(){
   const category = document.getElementById('tFilterCategory').value;
   const province = document.getElementById('tFilterProvince').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(status && data[7] != status) return false;
-    if(priority && data[6] != priority) return false;
-    if(branch && data[2] != branch) return false;
-    if(category && data[5] != category) return false;
-    if(province && data[3] != province) return false;
+    if(status && String(data[7]).trim() !== status) return false;
+    if(priority && String(data[6]).trim() !== priority) return false;
+    if(branch && String(data[2]).trim() !== branch) return false;
+    if(category && String(data[5]).trim() !== category) return false;
+    if(province && String(data[3]).trim() !== province) return false;
     return true;
   });
   ticketsTable.draw();
   $.fn.dataTable.ext.search.pop();
+}
+function filterTicketPriority(p) {
+  document.getElementById('tFilterPriority').value = p;
+  applyTicketFilters();
+  return false;
 }
 
 document.addEventListener('DOMContentLoaded',function(){
