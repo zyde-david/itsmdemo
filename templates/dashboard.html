@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — ระบบจัดการ IT{% endblock %}
+{% block title %}Dashboard — ITSM Demo{% endblock %}
 {% block content %}
-<!-- Stat Cards -->
+<!-- Stat Cards — clickable -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card card-stat p-3">
+        <a href="/tickets" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">Tickets ทั้งหมด</h6>
@@ -12,10 +13,11 @@
                 </div>
                 <i class="bi bi-ticket-perforated stat-icon text-primary"></i>
             </div>
-        </div>
+        </div></a>
     </div>
     <div class="col-md-3">
-        <div class="card card-stat p-3">
+        <a href="/tickets?status=open" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">รอดำเนินการ</h6>
@@ -23,10 +25,11 @@
                 </div>
                 <i class="bi bi-hourglass-split stat-icon text-warning"></i>
             </div>
-        </div>
+        </div></a>
     </div>
     <div class="col-md-3">
-        <div class="card card-stat p-3">
+        <a href="/tickets?status=resolved" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">เสร็จแล้ว</h6>
@@ -34,10 +37,11 @@
                 </div>
                 <i class="bi bi-check-circle stat-icon text-success"></i>
             </div>
-        </div>
+        </div></a>
     </div>
     <div class="col-md-3">
-        <div class="card card-stat p-3">
+        <a href="/tickets?priority=critical" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">Critical ⚠️</h6>
@@ -45,7 +49,7 @@
                 </div>
                 <i class="bi bi-exclamation-triangle stat-icon text-danger"></i>
             </div>
-        </div>
+        </div></a>
     </div>
 </div>
 
@@ -56,13 +60,14 @@
             <div class="card-header bg-white fw-bold"><i class="bi bi-geo-alt me-2"></i>สรุปตามจังหวัด</div>
             <div class="card-body">
                 {% for pv in by_province %}
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="/tickets?province={{ pv.province }}" class="text-decoration-none text-dark">
+                <div class="d-flex justify-content-between align-items-center mb-3" style="cursor:pointer">
                     <div>
                         <span class="fw-bold">{{ pv.province }}</span>
                         <br><small class="text-muted">{{ pv.open_cnt }} รอดำเนิน</small>
                     </div>
                     <span class="badge bg-primary rounded-pill">{{ pv.cnt }}</span>
-                </div>
+                </div></a>
                 {% endfor %}
                 <hr>
                 <small class="text-muted"><i class="bi bi-lightbulb me-1"></i>สาขา {{ branch_count }} แห่ง | 3 จังหวัด</small>
@@ -117,10 +122,10 @@
             </thead>
             <tbody>
                 {% for t in recent %}
-                <tr>
+                <tr onclick="location.href='/ticket/{{ t.id }}'" style="cursor:pointer">
                     <td><strong>#{{ t.id }}</strong></td>
                     <td><span class="branch-tag">{{ t.branch }}</span></td>
-                    <td><a href="/ticket/{{ t.id }}">{{ t.title }}</a></td>
+                    <td>{{ t.title }}</td>
                     <td><small>{{ t.category }}</small></td>
                     <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
                     <td>
@@ -141,25 +146,6 @@
 </div>
 </div>
 
-<!-- AI Chatbot Floating -->
-<div class="chatbot-box" id="chatbotBox">
-    <div class="chatbot-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-robot me-2"></i>IT HelpBot (AI)</span>
-        <button class="btn btn-sm btn-light" onclick="toggleChat()"><i class="bi bi-chevron-down"></i></button>
-    </div>
-    <div class="chatbot-body" id="chatBody">
-        <div class="d-flex mb-2">
-            <div class="bg-white p-2 rounded shadow-sm" style="max-width:80%; font-size:0.85rem;">
-                สวัสดีครับ 👋 ผม AI HelpBot ช่วยแนะนำวิธีแก้ปัญหา IT เบื้องต้น ลองถามเรื่อง: <strong>เครื่องพิมพ์, VPN, เครือข่าย</strong> หรือ <strong>Core Banking</strong>
-            </div>
-        </div>
-    </div>
-    <div class="chatbot-input d-flex gap-2">
-        <input type="text" class="form-control form-control-sm" id="chatInput" placeholder="ถามปัญหา IT..." onkeypress="if(event.key==='Enter')sendChat()">
-        <button class="btn btn-sm btn-primary" onclick="sendChat()">ส่ง</button>
-    </div>
-</div>
-
 <script>
     // Category Chart
     const chartLabels = {{ cat_labels | tojson }};
@@ -175,32 +161,5 @@
         },
         options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } } }
     });
-
-    let chatOpen = true;
-    function toggleChat() {
-        const body = document.getElementById('chatBody');
-        const input = document.querySelector('.chatbot-input');
-        chatOpen = !chatOpen;
-        body.style.display = chatOpen ? 'block' : 'none';
-        input.style.display = chatOpen ? 'flex' : 'none';
-    }
-    async function sendChat() {
-        const input = document.getElementById('chatInput');
-        const msg = input.value.trim();
-        if (!msg) return;
-        input.value = '';
-        const body = document.getElementById('chatBody');
-        body.innerHTML += `<div class="d-flex justify-content-end mb-2"><div class="bg-primary text-white p-2 rounded" style="max-width:80%; font-size:0.85rem;">${msg}</div></div>`;
-        body.scrollTop = body.scrollHeight;
-        const resp = await fetch('/api/chatbot', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({question: msg})
-        });
-        const data = await resp.json();
-        const answer = data.answer.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        body.innerHTML += `<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%; font-size:0.85rem;">${answer}</div></div>`;
-        body.scrollTop = body.scrollHeight;
-    }
 </script>
 {% endblock %}

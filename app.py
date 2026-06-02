@@ -294,6 +294,15 @@ def chatbot():
     return jsonify(answer=a)
 
 # ── Asset API ──
+@app.route('/api/asset',methods=['POST'])
+@login_required
+def api_asset_create():
+    d=request.json;c=get_db()
+    c.execute('INSERT INTO assets (branch,asset_type,name,serial,status,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?)',
+              (d.get('branch',''),d.get('asset_type',''),d.get('name',''),d.get('serial',''),d.get('status','active'),d.get('last_check',''),d.get('next_check',''),d.get('notes','')))
+    c.commit();aid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    return jsonify(success=True,id=aid)
+
 @app.route('/api/asset/<int:aid>/edit',methods=['POST'])
 @login_required
 def api_asset_edit(aid):
@@ -310,6 +319,15 @@ def api_asset_delete(aid):
     return jsonify(success=True)
 
 # ── Staff API ──
+@app.route('/api/staff',methods=['POST'])
+@login_required
+def api_staff_create():
+    d=request.json;c=get_db()
+    c.execute('INSERT INTO staff (name,role,branch,province,is_it) VALUES (?,?,?,?,?)',
+              (d.get('name',''),d.get('role',''),d.get('branch',''),d.get('province',''),d.get('is_it',0)))
+    c.commit();sid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    return jsonify(success=True,id=sid)
+
 @app.route('/api/staff/<int:sid>/edit',methods=['POST'])
 @login_required
 def api_staff_edit(sid):
