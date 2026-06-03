@@ -1,6 +1,58 @@
 {% extends "base.html" %}
 {% block title %}How To — ITSM Demo{% endblock %}
 {% block content %}
+<style>
+/* ── ITSM Roadmap Professional Styles ── */
+.roadmap-wrap{--r-primary:#1a5276;--r-primary-light:#2980b9;--r-primary-dark:#0d2f4a;--r-accent:#27ae60;--r-warn:#e67e22;--r-danger:#c0392b;--r-bg:#f0f4f8;--r-card:#fff;--r-border:#dce1e8;--r-text:#2c3e50;--r-text-sub:#6c7a89;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.1);--radius:12px;--radius-sm:8px}
+.roadmap-hero{background:linear-gradient(135deg,var(--r-primary-dark),var(--r-primary),var(--r-primary-light));color:#fff;padding:28px 32px;border-radius:var(--radius);margin-bottom:24px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.roadmap-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;background:rgba(255,255,255,.05);border-radius:50%}
+.roadmap-hero::after{content:'';position:absolute;bottom:-60%;left:-10%;width:200px;height:200px;background:rgba(255,255,255,.03);border-radius:50%}
+.roadmap-hero h4{font-weight:700;font-size:1.3rem;margin-bottom:6px;position:relative;z-index:1}
+.roadmap-hero p{color:rgba(255,255,255,.7);margin:0;font-size:.85rem;position:relative;z-index:1}
+.roadmap-stats{display:flex;gap:16px;margin-top:16px;position:relative;z-index:1}
+.roadmap-stat{background:rgba(255,255,255,.12);border-radius:var(--radius-sm);padding:10px 16px;text-align:center;flex:1;backdrop-filter:blur(4px)}
+.roadmap-stat .num{font-size:1.4rem;font-weight:700;display:block}
+.roadmap-stat .label{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;opacity:.7}
+
+/* Phase Timeline */
+.phase-section{margin-bottom:24px}
+.phase-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.phase-badge{background:linear-gradient(135deg,var(--r-primary),var(--r-primary-light));color:#fff;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.phase-badge.done{background:linear-gradient(135deg,#27ae60,#2ecc71)}
+.phase-badge.future{background:linear-gradient(135deg,#95a5a6,#bdc3c7)}
+.phase-title{font-weight:600;font-size:.95rem;color:var(--r-text);margin:0}
+.phase-sub{font-size:.75rem;color:var(--r-text-sub)}
+
+/* Feature Cards */
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.feature-card{background:var(--r-card);border:1px solid var(--r-border);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden}
+.feature-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.feature-card.done{border-left:4px solid var(--r-accent)}
+.feature-card.future{border-left:4px solid var(--r-border)}
+.feature-card-icon{font-size:1.5rem;margin-bottom:8px;line-height:1}
+.feature-card h6{font-size:.85rem;font-weight:600;color:var(--r-text);margin:0 0 4px}
+.feature-card p{font-size:.72rem;color:var(--r-text-sub);margin:0 0 10px;line-height:1.5}
+.feature-tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:.62rem;padding:2px 8px;border-radius:10px;font-weight:50}
+.tag.itil{background:#e8f4fd;color:var(--r-primary)}
+.tag.security{background:#fdecea;color:var(--r-danger)}
+.tag.ux{background:#e8f8f0;color:var(--r-accent)}
+.tag.future-tag{background:#f0f0f0;color:var(--r-text-sub)}
+.status-badge{position:absolute;top:12px;right:12px;font-size:.6rem;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.status-badge.done{background:#e8f8f0;color:var(--r-accent)}
+.status-badge.future{background:#f5f5f5;color:var(--r-text-sub)}
+
+/* Real System Notes */
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,fr));gap:12px}
+.note-card{background:var(--r-card);border:1px solid var(--r-border);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow-sm)}
+.note-card strong{font-size:.8rem;color:var(--r-text);display:block;margin-bottom:6px}
+.note-card ul{margin:0;padding-left:16px}
+.note-card li{font-size:.72rem;color:var(--r-text-sub);line-height:1.6}
+
+/* Work Badge for clean numeric display */
+.id-badge{display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:.75rem;padding:2px 8px;border-radius:6px;font-family:monospace}
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4 class="mb-0"><i class="bi bi-question-circle me-2"></i>How To & Development Log</h4>
 </div>
@@ -22,7 +74,7 @@
     <ul class="small text-muted mb-0">
       <li><strong>Asset Tag 1B-PC001</strong> — รหัสที่อ่านเข้าใจได้ทันที: จังหวัด+สาขา+ประเภท+ลำดับ ทำให้รู้สถานที่และประเภทโดยไม่ต้องค้นหา</li>
       <li><strong>Cascade Dropdowns</strong> — เลือกสาขาแล้วจังหวัดเติมอัตโนมัติ และเลือกจังหวัดแล้วสาขากรองให้ ลดขั้นตอนการทำงาน</li>
-      <li><strong>DataTables + node.dataset</strong> — filter อ่านค่าจาก data attribute ของ HTML แทน cell text แก้ปัญหาภาษาไทย/อังกฤษ mismatch</li>
+      <li><strong>DataTables + data[N]</strong> — filter อ่านค่าจาก data attribute ของ HTML แทน cell text แก้ปัญหาภาษาไทย/อังกฤษ mismatch</li>
       <li><strong>Choropleth Map</strong> — แสงสีแผนที่ให้เห็นว่าสาขาไหนมีปัญหามาก ช่วยวางแผนเส้นทางเยี่ยม</li>
       <li><strong>IT-only Assign</strong> — dropdown มอบหมายแสดงเฉพาะทีม IT ป้องกันมอบหมายผิดคน</li>
     </ul>
@@ -32,8 +84,6 @@
 <!-- How To -->
 <h5 class="mb-3"><i class="bi bi-list-ol me-2"></i>How To Use</h5>
 <div class="accordion mb-4" id="howtoAccordion">
-
-  <!-- Tickets -->
   <div class="accordion-item">
     <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ht-tickets"><i class="bi bi-ticket-perforated me-2 text-danger"></i>Tickets</button></h2>
     <div id="ht-tickets" class="accordion-collapse collapse show" data-bs-parent="#howtoAccordion">
@@ -44,7 +94,7 @@
           <li><strong>สาขา ↔ จังหวัด</strong> — เลือกสาขาแล้วจังหวัดเติมอัตโนมัติ หรือเลือกจังหวัดแล้วสาขาจะแสดงเฉพาะในจังหวัดนั้น</li>
           <li><strong>ค้นหา</strong> — พิมพ์ในช่องค้นหา DataTables เพื่อหาจาก ticket code, หัวข้อ, สาขา, ผู้แจ้ง</li>
           <li><strong>สร้าง</strong> — กดปุ่ม "สร้าง Ticket" เลือกหมวด ระบุรายละเอียด</li>
-          <li><strong>ดูรายละเอียด</strong> — คลิกแถว จะเห้ง status, work notes, มอบหมาย, เชื่อม asset, แนบ KB</li>
+          <li><strong>ดูรายละเอียด</strong> — คลิกแถว จะเห็น status, work notes, มอบหมาย, เชื่อม asset, แนบ KB</li>
           <li><strong>มอบหมาย</strong> — เลือกจาก dropdown ที่แสดงเฉพาะทีม IT</li>
           <li><strong>แนบ KB</strong> — ค้นหาบทความ KB จาก search box หรือสร้างใหม่ถ้าไม่พบ</li>
           <li><strong>สถานะ</strong> — เปลี่ยนผ่าน dropdown หรือปุ่มลัด (กำลังดำเนิน/เสร็จ/ปิด)</li>
@@ -52,14 +102,12 @@
       </div>
     </div>
   </div>
-
-  <!-- Assets -->
   <div class="accordion-item">
     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-assets"><i class="bi bi-box-seam me-2 text-success"></i>Assets</button></h2>
     <div id="ht-assets" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
       <div class="accordion-body small">
         <ol>
-          <li><strong>ดูรายการ</strong> — ตารางแสดง asset_tag (เช่น 1B-PC001), ชือ, serial, สถานะ</li>
+          <li><strong>ดูรายการ</strong> — ตารางแสดง asset_tag (เช่น 1B-PC001), ชื่อ, serial, สถานะ</li>
           <li><strong>Asset Tag</strong> — รูปแบบ: <code class="bg-light px-1 rounded">[จังหวัด][สาขา]-[ประเภท][ลำดับ]</code> เช่น <code class="bg-light px-1 rounded">1B-PC001</code> = ปัตตานี สาขาที่ 2 PC เครื่องที่ 1</li>
           <li><strong>กรอง</strong> — สถานะ / ประเภท / สาขา / จังหวัด (เหมือน tickets)</li>
           <li><strong>สร้าง</strong> — กด "เพิ่ม Asset" เลือกสาขา ประเภท กรอกรายละเอียด</li>
@@ -69,8 +117,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Staff -->
   <div class="accordion-item">
     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-staff"><i class="bi bi-people me-2 text-info"></i>Staff</button></h2>
     <div id="ht-staff" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
@@ -79,13 +125,11 @@
           <li><strong>ดูรายการ</strong> — ตารางแสดงชื่อ ตำแหน่ง สาขา จังหวัด ไอคอน IT</li>
           <li><strong>Province Cards</strong> — ด้านบนแสดงสรุปจำนวนพนักงานและทีม IT แต่ละจังหวัด</li>
           <li><strong>กรอง</strong> — สาขา / จังหวัด / ตำแหน่ง / IT หรือไม่ IT</li>
-          <li><strong>สร้าม</strong> — กด "เพิ่มพนักงาน" เลือกสาขา ตำแหน่ง ระบุว่าเป็น IT หรือไม่</li>
+          <li><strong>สร้าง</strong> — กด "เพิ่มพนักงาน" เลือกสาขา ตำแหน่ง ระบุว่าเป็น IT หรือไม่</li>
         </ol>
       </div>
     </div>
   </div>
-
-  <!-- KB -->
   <div class="accordion-item">
     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-kb"><i class="bi bi-book me-2 text-secondary"></i>Knowledge Base</button></h2>
     <div id="ht-kb" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
@@ -99,8 +143,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Route Planner -->
   <div class="accordion-item">
     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-route"><i class="bi bi-map me-2 text-warning"></i>Route Planner</button></h2>
     <div id="ht-route" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
@@ -111,6 +153,20 @@
           <li><strong>ดูรายละเอียด</strong> — Hover หรือคลิกอำเภอเพื่อดูชื่อและค่า</li>
           <li><strong>ลำดับเยี่ยม</strong> — ด้านขวาแสดงรายการเรียงตามค่ามาก→น้อย (ไปอันดับแรกก่อน)</li>
           <li><strong>เส้นทาง</strong> — แสดงเส้นเชื่อมตาม nearest-neighbor (ลดการวนกลับ)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <!-- Settings / User Management -->
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-settings"><i class="bi bi-gear me-2 text-primary"></i>Settings &amp; User Management</button></h2>
+    <div id="ht-settings" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>เข้าสู่ระบบ</strong> — ใช้ username + password (ไม่ใช่แค่รหัสผ่านเดิม)</li>
+          <li><strong>บทบาท</strong> — Admin (เข้าถึงทั้งหมด), Manager (ดู/อนุมัติ), User (สร้าง/ดู ticket ของตัวเอง), HR (สำหรับ leave module ในอนาคต)</li>
+          <li><strong>ตั้งค่า</strong> — คลิก "ตั้งค่า" ใน sidebar: เปลี่ยนรหัสผ่าน, จัดการผู้ใช้ (admin), สลับธีม</li>
+          <li><strong>เพิ่มผู้ใช้</strong> — Admin กด "เพิ่มผู้ใช้" กรอก username/password เลือก role</li>
         </ol>
       </div>
     </div>
@@ -129,7 +185,7 @@
           <tr><td>Week 1</td><td>Ticket Module — CRUD, server-side filter</td><td>ผู้ใช้แจ้งปัญหา IT จากสาขา กรองตามสถานะ/สาขา/จังหวัด</td></tr>
           <tr><td>Week 1</td><td>Asset Module — numeric asset code</td><td>เก็บข้อมูลคอมพิวเตอร์/อุปกรณ์ เชื่อมกับ ticket</td></tr>
           <tr><td>Week 1</td><td>Staff Module + Dashboard</td><td>จัดการทีมงาน ดูสรุปภาพรวม</td></tr>
-          <tr><td>Week 2</td><td>DataTables filter bug fix</td><td>Filter อ่าน cell text (ไทย) แต่ dropdown เป็น English → แก้ด้วย node.dataset</td></tr>
+          <tr><td>Week 2</td><td>DataTables filter bug fix</td><td>Filter อ่าน cell text (ไทย) แต่ dropdown เป็น English → แก้ด้วย node.dataset → data[N]</td></tr>
           <tr><td>Week 2</td><td>Cascade dropdowns: สาขา ↔ จังหวัด</td><td>เลือกสาขาแล้วจังหวัดเติม, เลือกจังหวัดแล้วสาขากรอง</td></tr>
           <tr><td>Week 2</td><td>Asset smart tag: 1B-PC001</td><td>เปลี่ยนจากรหัสตัวเงินเป็นรหัสที่อ่านเข้าใจได้: จังหวัด+สาขา+ประเภท+ลำดับ</td></tr>
           <tr><td>Week 2</td><td>Ticket yearly code: TK-YY-NNNN</td><td>เปลี่ยนจาก TK-26-0001 เป็น dynamic year — reset ทุกปีใหม่</td></tr>
@@ -138,14 +194,246 @@
           <tr><td>Week 3</td><td>Dashboard fix + stat cards</td><td>แก้ province query alias, เพิ่ม asset/staff/KB cards</td></tr>
           <tr><td>Week 3</td><td>Route Planner (Leaflet map)</td><td>Choropleth 33 อำเภอ, 3 จังหวัด, priority ranking</td></tr>
           <tr><td>Week 3</td><td>Site Map + How To</td><td>หน้าสรุประบบ + วิธีใช้ + dev log</td></tr>
+          <tr><td>Week 4</td><td>Multi-User Authentication</td><td>users table, username+password login, role-based sessions (admin/manager/user/hr)</td></tr>
+          <tr><td>Week 4</td><td>Settings Page + User Management</td><td>Admin: เพิ่ม/ลบผู้ใช้, เปลี่ยน role; ทุกคน: เปลี่ยนรหัสผ่าน, สลับธีม</td></tr>
+          <tr><td>Week 4</td><td>ITSM Roadmap + Production Plan</td><td>วางแผน Phase 1-5 พร้อม production readiness notes</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ITSM ROADMAP — Professional Blue Theme -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="roadmap-wrap">
+  <div class="roadmap-hero">
+    <h4><i class="bi bi-signpost-split me-2"></i>ITSM Roadmap — แผนการพัฒนาระบบ</h4>
+    <p>แผนการพัฒนาแบบเป็นขั้นตอน เริ่มจาก foundation → ITIL modules → advanced features → production readiness</p>
+    <div class="roadmap-stats">
+      <div class="roadmap-stat"><span class="num">2</span><span class="label">Phase เสร็จแล้ว</span></div>
+      <div class="roadmap-stat"><span class="num">4</span><span class="label">Phase กำลังดำเนินการ</span></div>
+      <div class="roadmap-stat"><span class="num">9</span><span class="label">Features ทั้งหมด</span></div>
+      <div class="roadmap-stat"><span class="num">~8</span><span class="label">วันที่คาดว่าจะเสร็จ</span></div>
+    </div>
+  </div>
+
+  <!-- Phase 1 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge done">Phase 1 — Done</span>
+      <div>
+        <p class="phase-title">🔐 Foundation — Multi-User &amp; Settings</p>
+        <p class="phase-sub">Authentication, Authorization, User Management, Theme</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🔐</div>
+        <h6>Multi-User Authentication</h6>
+        <p>users table, username+password login, role-based sessions — admin / manager / user / hr</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag itil">Foundation</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">⚙️</div>
+        <h6>Settings Page + Theme Switcher</h6>
+        <p>User management (admin), change password (all users), light/dark theme toggle</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Foundation</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 2 — Planned</span>
+      <div>
+        <p class="phase-title">📋 ITIL Core — Change &amp; Problem Management</p>
+        <p class="phase-sub">ITIL aligned processes for tracking changes and root cause analysis</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📋</div>
+        <h6>Change Management</h6>
+        <p>คำร้องเปลี่ยนแปลงระบบ, approval workflow (request → review → approve → implement), change log</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">🔍</div>
+        <h6>Problem Management</h6>
+        <p>ตาม root cause, known error database, link multiple tickets → one problem, workaround tracking</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 3 — Planned</span>
+      <div>
+        <p class="phase-title">⏱️ SLA &amp; Service Catalog</p>
+        <p class="phase-sub">Service level agreements and self-service request portal</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">⏱️</div>
+        <h6>SLA Tracking + Auto-Escalation</h6>
+        <p>ติดตามเวลาตอบสนอง/แก้ไข, แจ้งเตือนเมื่อเกิน SLA, auto-bump priority — Critical=1hr, High=4hr, Medium=8hr, Low=24hr</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span><span class="tag security">Alert</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📦</div>
+        <h6>Service Catalog</h6>
+        <p>บริการที่ขอได้, self-service request form — ผู้ใช้เลือกบริการแทนพิมพ์ free-text</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">ITIL</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 4 — Planned</span>
+      <div>
+        <p class="phase-title">👥 HR &amp; CMDB Expansion</p>
+        <p class="phase-sub">Beyond ITSM — HR leave module and configuration management</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">👥</div>
+        <h6>HR Leave Module</h6>
+        <p>ลางาน, อนุมัติ/ปฏิเสธ, ปฏิทินวันลา, leave balance tracking — ขยาย scope จาก ITSM → HRM</p>
+        <div class="feature-tags"><span class="tag future-tag">Future</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">🗄️</div>
+        <h6>CMDB</h6>
+        <p>Configuration Management Database — asset relationship mapping, parent/child, service dependency</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span><span class="tag future-tag">Future</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 5 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 5 — Research</span>
+      <div>
+        <p class="phase-title">📍 Geo-Auth &amp; Mobile Banking Unit</p>
+        <p class="phase-sub">Location-based authentication and mobile infrastructure support</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Research</span>
+        <div class="feature-card-icon">📍</div>
+        <h6>Geo-Tagging Login</h6>
+        <p>ตำแหน่งโทรศัพท์ + SIM tower ภายในรัศมีสาขา = login อัตโนมัติ — ไม่ต้อง fingerprint, device GPS + schedule match</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag ux">UX</span><span class="tag future-tag">Research</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Research</span>
+        <div class="feature-card-icon">🔴</div>
+        <h6>Auto-Logout on Location Leave</h6>
+        <p>ออกนอกรัศมีสาขา = logout อัตโนมัติ — ความปลอดภัย ป้องกันคนอื่นใช้เครื่องทิ้งไว้</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag future-tag">Research</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Research</span>
+        <div class="feature-card-icon">🚐</div>
+        <h6>Mobile Banking Unit (MBU)</h6>
+        <p>รถบริการเคลื่อนที่ — จัดการเป็น "node เคลื่อนที่" ไม่ใช่สาขา fixed: route/schedule, GPS tracking, MBU-tagged tickets, adjusted SLA</p>
+        <div class="feature-tags"><span class="tag future-tag">Research</span><span class="tag itil">Operations</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Production Readiness -->
+  <div class="phase-section" style="margin-top:32px">
+    <div class="phase-header">
+      <span class="phase-badge future" style="background:linear-gradient(135deg,#2c3e50,#34495e)">Production Readiness</span>
+      <div>
+        <p class="phase-title">🏗️ สิ่งที่ควรทำเพิ่มสำหรับ Production System</p>
+        <p class="phase-sub">Infrastructure, Security, ITIL Full Process, UX/Mobile</p>
+      </div>
+    </div>
+    <div class="notes-grid">
+      <div class="note-card">
+        <strong>🏗️ Infrastructure</strong>
+        <ul>
+          <li>SQLite → PostgreSQL (concurrent writes, backup)</li>
+          <li>Dockerize + CI/CD pipeline</li>
+          <li>Redis cache — session + dashboard stats</li>
+          <li>S3/MinIO — file attachment storage</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <strong>🔐 Security</strong>
+        <ul>
+          <li>bcrypt/scrypt แทน SHA256</li>
+          <li>CSRF protection (Flask-WTF)</li>
+          <li>Rate limiting on login API</li>
+          <li>Audit log — บันทึกทุก action</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <strong>📊 ITIL Full Process</strong>
+        <ul>
+          <li>Incident → Problem → Change → Release pipeline</li>
+          <li>SLA per priority: Critical=1hr, High=4hr, Medium=8hr, Low=24hr</li>
+          <li>Auto-assign round-robin ในทีม IT</li>
+          <li>Email/SMS notification</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <strong>📱 UX / Mobile</strong>
+        <ul>
+          <li>PWA — install บนมือถือได้</li>
+          <li>Push notification — ticket ใหม่/assign/update</li>
+          <li>Offline mode — บันทึกได้แม้ไม่มีเน็ต</li>
+          <li>Barcode/QR scan สำหรับ asset tag</li>
+          <li>Geo-fencing login + auto-logout</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MBU Deep Dive -->
+  <div style="margin-top:20px">
+    <div class="note-card" style="border-left:4px solid #e67e22">
+      <strong>🚐 Mobile Banking Unit (MBU) — แนวคิดเชิงลึก</strong>
+      <p style="font-size:.72rem;color:#6c7a89;margin:6px 0;line-height:1.6">สหกรณ์มีรถบริการเคลื่อนที่ (เหมือน food truck) ออกต่างอำเภอให้บริการลูกค้า ไม่มีสาขาคงที่ → ต้องจัดการเป็น "node เคลื่อนที่" ในระบบ:</p>
+      <ul style="font-size:.72rem;color:#6c7a89">
+        <li><strong>Data model</strong>: mobile_units table + route_schedule — ไม่ใช่ fixed branch</li>
+        <li><strong>Auth</strong>: device GPS + MBU schedule match — ถ้า tablet อยู่ Yala แต่ MBU ต้องอยู่ Narathiwat → flag anomaly</li>
+        <li><strong>Ticket</strong>: location-tagged (GPS coords), adjusted SLA (รถเคลื่อนที่ ≠ สาขาปกติ), remote IT support</li>
+        <li><strong>Route planning</strong>: dynamic routing, service gap detection, overlap detection</li>
+        <li><strong>Win-win</strong>: สหกรณ์ลดต้นทุน (ไม่ต้องสร้างสาขา) + ลูกค้าเข้าถึงบริการ (ไม่ต้องเดินทาง)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Interview Talking Points -->
+  <div style="margin-top:16px;padding:16px;background:linear-gradient(135deg,#e8f4fd,#d4e6f1);border-radius:8px;border-left:4px solid #1a5276">
+    <strong style="font-size:.8rem;color:#1a5276">💡 Interview Talking Points</strong>
+    <p style="font-size:.72rem;color:#2c3e50;margin:6px 0 0;line-height:1.6">ระบบนี้แสดงให้เห็นว่าเข้าใจ ITIL framework, สามารถออกแบบระบบตั้งแต่ zero ได้, และมีแผนการพัฒนาที่ชัดเจน — ไม่ใช่แค่ทำ feature ที่ส่งมา แต่คิดถึง production readiness ด้วย รวมถึง edge cases เช่น mobile banking units, geo-auth สำหรับพื้นที่ห่างไกล</p>
+  </div>
+</div>
+
 <!-- Tech Stack -->
-<h5 class="mb-3"><i class="bi bi-tools me-2"></i>Tech Stack</h5>
+<h5 class="mb-3" style="margin-top:32px"><i class="bi bi-tools me-2"></i>Tech Stack</h5>
 <div class="card">
   <div class="card-body">
     <div class="row g-3 text-center">
@@ -157,7 +445,7 @@
       <div class="col-4 col-md-2"><div class="p-2 border rounded"><img src="https://leafletjs.com/docs/images/favicon.ico" width="20" class="d-block mx-auto mb-1"><small>Leaflet</small></div></div>
       <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-bootstrap fs-4 d-block mb-1"></i><small>Bootstrap 5</small></div></div>
       <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-cloud-fill fs-4 d-block mb-1 text-primary"></i><small>Render</small></div></div>
-      <div class="col-4 col-md-2"><a href="https://github.com/zyde-david/itsmdemo" target="_blank" class="text-decoration-none text-dark"><div class="p-2 border rounded"><i class="bi bi-github fs-4 d-block mb-1"></i><small>GitHub</small><br><small class="text-primary" style="font-size:0.65rem;">zyde-david/itsmdemo</small></div></a></div>
+      <div class="col-4 col-md-2"><a href="https://github.com/zyde-david/itsmdemo" target="_blank" class="text-decoration-none text-dark"><div class="p-2 border rounded"><i class="bi bi-github fs-4 d-block mb-1"></i><small>GitHub</small><br><small class="text-primary" style="font-size:0.65rem">zyde-david/itsmdemo</small></div></a></div>
       <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-py fs-4 d-block mb-1 text-success"></i><small>Flask</small></div></div>
       <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-json fs-4 d-block mb-1"></i><small>GeoJSON</small></div></div>
       <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-js fs-4 d-block mb-1 text-warning"></i><small>jQuery</small></div></div>

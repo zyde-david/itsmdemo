@@ -77,6 +77,19 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
  .sidebar{position:sticky;top:0;transform:none!important}
 }
 
+/* Dark Mode */
+body[data-theme="dark"]{--primary:#2980b9;--accent:#2ecc71;--warning:#f39c12;--danger:#e74c3c;background:#1a1a2e;color:#e0e0e0}
+body[data-theme="dark"] .card,body[data-theme="dark"] .accordion-item,body[data-theme="dark"] .modal-content{background:#16213e;border-color:#0f3460;color:#e0e0e0}
+body[data-theme="dark"] .card-header{background:#0f3460;color:#e0e0e0}
+body[data-theme="dark"] .table{color:#e0e0e0}
+body[data-theme="dark"] .table-hover tbody tr:hover{background:#1a1a4e}
+body[data-theme="dark"] .form-control,body[data-theme="dark"] .form-select{background:#16213e;border-color:#0f3460;color:#e0e0e0}
+body[data-theme="dark"] .sidebar{background:#16213e;border-color:#0f3460}
+body[data-theme="dark"] .nav-link{color:#b0b0b0}
+body[data-theme="dark"] .nav-link:hover,body[data-theme="dark"] .nav-link.active{background:#1a1a4e;color:#2980b9}
+body[data-theme="dark"] .demo-banner{background:linear-gradient(135deg,#2c3e50,#34495e);color:#e0e0e0}
+body[data-theme="dark"] .bg-light{background:#16213e!important;color:#e0e0e0}
+
 /* ID badge for clean numeric display */
 .id-badge{display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:6px;font-family:monospace}
 </style>
@@ -88,6 +101,7 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
   <button class="btn btn-sm btn-outline-light d-md-none me-2" type="button" id="sidebarToggle"><i class="bi bi-list"></i></button>
   <a href="/" class="navbar-brand mb-0 h5 text-white text-decoration-none"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo</a>
   <div class="d-flex align-items-center gap-2">
+   <span class="text-white small d-none d-lg-inline"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</span>
    <span class="ai-badge d-none d-sm-inline"><i class="bi bi-stars me-1"></i>AI-Powered</span>
    <a href="/logout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i></a>
   </div>
@@ -108,6 +122,7 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
    <a class="nav-link" href="/route-planner"><i class="bi bi-map"></i><span class="nav-text">Route Planner</span></a>
    <a class="nav-link" href="/sitemap"><i class="bi bi-diagram-3"></i><span class="nav-text">Site Map</span></a>
    <a class="nav-link" href="/howto"><i class="bi bi-question-circle"></i><span class="nav-text">How To</span></a>
+   <a class="nav-link" href="/settings"><i class="bi bi-gear"></i><span class="nav-text">ตั้งค่า</span></a>
   </div>
  </div>
  <div class="col-md-10 p-2 p-md-3">

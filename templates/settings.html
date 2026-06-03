@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}ตั้งค่า — IT Ticket System{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <h4 class="mb-4"><i class="bi bi-gear me-2"></i>ตั้งค่าระบบ</h4>
+
+    <!-- Current User Card -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="flex-shrink-0">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:50px;height:50px;font-size:1.2rem">
+              <i class="bi bi-person"></i>
+            </div>
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <h6 class="mb-0">{{ session.get('username','') }}</h6>
+            <small class="text-muted">
+              Role: <span class="badge bg-{% if session.get('role')=='admin' %}danger{% elif session.get('role')=='manager' %}warning{% else %}info{% endif %}">{{ session.get('role','') }}</span>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="card mb-4">
+      <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-key me-2"></i>เปลี่ยนรหัสผ่าน</h6></div>
+      <div class="card-body">
+        <form id="pwForm" class="row g-2">
+          <div class="col-md-4"><input type="password" class="form-control form-control-sm" id="pwCurrent" placeholder="รหัสผ่านปัจจุบัน" required></div>
+          <div class="col-md-4"><input type="password" class="form-control form-control-sm" id="pwNew" placeholder="รหัสผ่านใหม่" required></div>
+          <div class="col-md-4"><button type="submit" class="btn btn-sm btn-primary w-100">เปลี่ยนรหัสผ่าน</button></div>
+        </form>
+        <div id="pwMsg" class="mt-2 small"></div>
+      </div>
+    </div>
+
+    <!-- User Management (Admin Only) -->
+    {% if session.get('role') == 'admin' %}
+    <div class="card mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-people me-2"></i>จัดการผู้ใช้</h6>
+        <button class="btn btn-sm btn-success" onclick="var f=document.getElementById('addUserForm');f.style.display=f.style.display==='none'?'flex':'none'">
+          <i class="bi bi-plus"></i> เพิ่มผู้ใช้
+        </button>
+      </div>
+      <div class="card-body">
+        <!-- Add User Form -->
+        <form id="addUserForm" class="row g-2 mb-3" onsubmit="return addUser(this)" style="display:none">
+          <div class="col-md-3"><input type="text" class="form-control form-control-sm" id="nuUsername" placeholder="ชื่อผู้ใช้" required></div>
+          <div class="col-md-3"><input type="password" class="form-control form-control-sm" id="nuPassword" placeholder="รหัสผ่าน" required></div>
+          <div class="col-md-3">
+            <select class="form-select form-select-sm" id="nuRole">
+              <option value="user">User</option>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+              <option value="hr">HR</option>
+            </select>
+          </div>
+          <div class="col-md-3"><button type="submit" class="btn btn-sm btn-success w-100">เพิ่ม</button></div>
+        </form>
+
+        <!-- Users Table -->
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead><tr><th>ชื่อผู้ใช้</th><th>บทบาท</th><th>วันที่สร้าง</th><th></th></tr></thead>
+            <tbody>
+              {% for u in users %}
+              <tr>
+                <td><strong>{{ u['username'] }}</strong></td>
+                <td>
+                  <select class="form-select form-select-sm" style="width:auto" onchange="changeRole({{ u['id'] }}, this.value)">
+                    <option value="user" {% if u['role']=='user' %}selected{% endif %}>User</option>
+                    <option value="manager" {% if u['role']=='manager' %}selected{% endif %}>Manager</option>
+                    <option value="admin" {% if u['role']=='admin' %}selected{% endif %}>Admin</option>
+                    <option value="hr" {% if u['role']=='hr' %}selected{% endif %}>HR</option>
+                  </select>
+                </td>
+                <td class="text-muted small">{{ u['created_at'] }}</td>
+                <td>
+                  {% if u['id'] != session.get('user_id') %}
+                  <button class="btn btn-sm btn-outline-danger" onclick="deleteUser({{ u['id'] }}, '{{ u['username'] }}')">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Theme Toggle -->
+    <div class="card mb-4">
+      <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-palette me-2"></i>ธีม</h6></div>
+      <div class="card-body">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="themeToggle" onchange="toggleTheme(this.checked)">
+          <label class="form-check-label" for="themeToggle">โหมดกลางคืน (Dark Mode)</label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Password change
+document.getElementById('pwForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const r = await fetch('/api/user/password', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({current: pwCurrent.value, new: pwNew.value})
+  });
+  const d = await r.json();
+  pwMsg.textContent = d.success ? '✅ เปลี่ยนรหัสผ่านสำเร็จ' : '❌ ' + d.error;
+  pwMsg.className = 'mt-2 small ' + (d.success ? 'text-success' : 'text-danger');
+  if(d.success) pwForm.reset();
+};
+
+// Add user
+async function addUser(form) {
+  const r = await fetch('/api/user', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({username: nuUsername.value, password: nuPassword.value, role: nuRole.value})
+  });
+  const d = await r.json();
+  if(d.success) location.reload();
+  else alert(d.error);
+  return false;
+}
+
+// Change role
+async function changeRole(uid, role) {
+  await fetch('/api/user/' + uid + '/role', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({role})
+  });
+}
+
+// Delete user
+async function deleteUser(uid, username) {
+  if(!confirm('ลบผู้ใช้ "' + username + '" ?')) return;
+  const r = await fetch('/api/user/' + uid + '/delete', {method:'POST'});
+  const d = await r.json();
+  if(d.success) location.reload();
+  else alert(d.error);
+}
+
+// Theme toggle
+function toggleTheme(dark) {
+  document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('themeToggle').checked = dark;
+}
+(function(){ // restore saved theme
+  if(localStorage.getItem('theme')==='dark'){document.body.setAttribute('data-theme','dark');document.getElementById('themeToggle').checked=true;}
+})();
+</script>
+{% endblock %}

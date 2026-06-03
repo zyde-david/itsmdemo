@@ -13,18 +13,36 @@ DB_PATH = os.environ.get('DB_PATH', os.path.join(_BASE_DIR, 'tickets.db'))
 
 app.logger.setLevel(logging.ERROR)
 
-ADMIN_HASH = hashlib.sha256(b'demo2026').hexdigest()
-
-def check_pw(pw):
-    return hashlib.sha256(pw.encode()).hexdigest() == ADMIN_HASH
+def check_pw(pw, pw_hash):
+    return hashlib.sha256(pw.encode()).hexdigest() == pw_hash
 
 def login_required(f):
     @wraps(f)
     def decorated(*a, **kw):
-        if not session.get('logged_in'):
+        if not session.get('user_id'):
             return redirect('/login')
         return f(*a, **kw)
     return decorated
+
+def role_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated(*a, **kw):
+            if not session.get('user_id'):
+                return redirect('/login')
+            if session.get('role') not in roles:
+                return jsonify(success=False, error='ไม่มีสิทธิ์เข้าถึง'), 403
+            return f(*a, **kw)
+        return decorated
+    return decorator
+
+def get_current_user():
+    if not session.get('user_id'):
+        return None
+    c = get_db()
+    u = c.execute('SELECT * FROM users WHERE id=?', (session['user_id'],)).fetchone()
+    c.close()
+    return dict(u) if u else None
 
 ALL_BRANCHES = [
  {"branch":"สาขาเมืองปัตตานี","district":"เมืองปัตตานี","province":"ปัตตานี","type":"main"},
@@ -206,6 +224,7 @@ def get_db():
 
 def init_db():
     c=get_db()
+    c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,role TEXT DEFAULT \'user\',staff_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     c.execute('CREATE TABLE IF NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,role TEXT,branch TEXT,province TEXT,is_it INTEGER DEFAULT 0)')
     c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_code TEXT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,asset_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,reported_at TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL)')
     c.execute('CREATE TABLE IF NOT EXISTS work_notes (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
@@ -219,6 +238,11 @@ def init_db():
     if 'asset_tag' not in cols_assets:
         c.execute('ALTER TABLE assets ADD COLUMN asset_tag TEXT DEFAULT \'\'')
     if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
+        # Seed admin user if no users exist
+        if c.execute('SELECT COUNT(*) FROM users').fetchone()[0] == 0:
+            admin_hash = hashlib.sha256(b'demo2026').hexdigest()
+            c.execute('INSERT INTO users (username,password_hash,role) VALUES (?,?,?)', ('admin', admin_hash, 'admin'))
+            c.commit()
         c.close();return
     print('Seeding...')
     S=_staff();T=_tickets(S);A=_assets()
@@ -232,15 +256,22 @@ def init_db():
 @app.route('/login',methods=['GET','POST'])
 def login():
     if request.method=='POST':
-        if check_pw(request.form.get('password','')):
-            session['logged_in']=True
+        username = request.form.get('username','').strip()
+        password = request.form.get('password','')
+        c = get_db()
+        u = c.execute('SELECT * FROM users WHERE username=?', (username,)).fetchone()
+        c.close()
+        if u and check_pw(password, u['password_hash']):
+            session['user_id'] = u['id']
+            session['username'] = u['username']
+            session['role'] = u['role']
             return redirect('/')
-        return render_template('login.html',error='รหัสผ่านไม่ถูกต้อง')
+        return render_template('login.html',error='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in',None)
+    session.clear()
     return redirect('/login')
 
 @app.route('/')
@@ -542,6 +573,70 @@ def api_asset_edit(aid):
 def api_asset_delete(aid):
     c=get_db();c.execute('DELETE FROM assets WHERE id=?',(aid,));c.commit();c.close()
     return jsonify(success=True)
+
+# ── Settings & User Management ──
+@app.route('/settings')
+@login_required
+def settings_page():
+    user = get_current_user()
+    c = get_db()
+    users = c.execute('SELECT id, username, role, created_at FROM users ORDER BY id').fetchall()
+    c.close()
+    return render_template('settings.html', user=user, users=users)
+
+@app.route('/api/user', methods=['POST'])
+@role_required('admin')
+def api_user_create():
+    d = request.json
+    c = get_db()
+    pw_hash = hashlib.sha256(d.get('password', 'demo2026').encode()).hexdigest()
+    try:
+        c.execute('INSERT INTO users (username, password_hash, role) VALUES (?,?,?)',
+                  (d['username'], pw_hash, d.get('role', 'user')))
+        c.commit()
+        uid = c.execute('SELECT last_insert_rowid()').fetchone()[0]
+        c.close()
+        return jsonify(success=True, id=uid)
+    except Exception as e:
+        c.close()
+        return jsonify(success=False, error=str(e)), 400
+
+@app.route('/api/user/<int:uid>/role', methods=['POST'])
+@role_required('admin')
+def api_user_role(uid):
+    d = request.json
+    c = get_db()
+    c.execute('UPDATE users SET role=? WHERE id=?', (d['role'], uid))
+    c.commit()
+    c.close()
+    return jsonify(success=True)
+
+@app.route('/api/user/<int:uid>/delete', methods=['POST'])
+@role_required('admin')
+def api_user_delete(uid):
+    if uid == session.get('user_id'):
+        return jsonify(success=False, error='ไม่สามารถลบตัวเองได้'), 400
+    c = get_db()
+    c.execute('DELETE FROM users WHERE id=?', (uid,))
+    c.commit()
+    c.close()
+    return jsonify(success=True)
+
+@app.route('/api/user/password', methods=['POST'])
+@login_required
+def api_change_password():
+    d = request.json
+    c = get_db()
+    u = c.execute('SELECT * FROM users WHERE id=?', (session['user_id'],)).fetchone()
+    if not check_pw(d.get('current', ''), u['password_hash']):
+        c.close()
+        return jsonify(success=False, error='รหัสผ่านปัจจุบันไม่ถูกต้อง'), 400
+    new_hash = hashlib.sha256(d['new'].encode()).hexdigest()
+    c.execute('UPDATE users SET password_hash=? WHERE id=?', (new_hash, session['user_id']))
+    c.commit()
+    c.close()
+    return jsonify(success=True)
+
 
 # ── Staff API ──
 @app.route('/api/staff',methods=['POST'])
