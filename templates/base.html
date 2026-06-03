@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <title>{% block title %}IT Ticket System{% endblock %}</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -31,6 +34,10 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 .branch-tag{background:#f0f0f0;color:#555;font-size:0.7rem;padding:2px 7px;border-radius:8px}
 .demo-banner{background:linear-gradient(135deg,#ffecd2,#fcb69f);color:#333;padding:5px 16px;font-size:0.75rem;text-align:center}
 .table-hover tbody tr:hover{background:#f8f9ff;cursor:pointer}
+.card{transition:box-shadow .15s,transform .15s}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.card-stat{border-left:3px solid #e2e8f0}
+.card-stat:hover{border-left-color:#2563eb}
 .editable-cell:hover{background:#fffde7;cursor:pointer}
 .dt-buttons .btn{font-size:0.75rem;padding:4px 10px}
 .dataTables_filter input,.dataTables_length select{font-size:0.85rem;padding:4px 8px}

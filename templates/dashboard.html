@@ -4,8 +4,8 @@
 <!-- Stat Cards — clickable -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <a href="/tickets" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <a href="/tickets" class="text-decoration-none text-dark">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">Tickets ทั้งหมด</h6>
@@ -17,7 +17,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/tickets?status=open" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">รอดำเนินการ</h6>
@@ -29,7 +29,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/tickets?status=resolved" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">เสร็จแล้ว</h6>
@@ -41,7 +41,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/tickets?status=in_progress" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">🔧 กำลังดำเนินการ</h6>
@@ -53,7 +53,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/tickets?status=pending" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">⏳ รอดำเนินการ</h6>
@@ -65,7 +65,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/tickets?priority=critical" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">🚨 Critical</h6>
@@ -80,7 +80,7 @@
 <div class="row g-3 mt-2">
     <div class="col-6 col-md-3">
         <a href="/assets" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">Assets ทั้งหมด</h6>
@@ -92,7 +92,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/assets?status=active" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">Active</h6>
@@ -104,7 +104,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/staff" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">พนักงานทั้งหมด</h6>
@@ -116,7 +116,7 @@
     </div>
     <div class="col-6 col-md-3">
         <a href="/knowledge" class="text-decoration-none">
-        <div class="card card-stat p-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-muted mb-1">KB Articles</h6>
@@ -136,7 +136,7 @@
             <div class="card-body">
                 {% for pv in by_province %}
                 <a href="/tickets?province={{ pv.province }}" class="text-decoration-none text-dark">
-                <div class="d-flex justify-content-between align-items-center mb-3" style="cursor:pointer">
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#f0f0ff'" onmouseout="this.style.background=''">
                     <div>
                         <span class="fw-bold">{{ pv.province }}</span>
                         <br><small class="text-muted">{{ pv.open_cnt }} รอดำเนิน</small>
