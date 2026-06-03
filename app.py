@@ -253,6 +253,10 @@ def init_db():
     c.commit();c.close()
     print(f'Seeded: {len(S)} staff, {len(T)} tickets, {len(A)} assets')
 
+@app.route('/howto-public')
+def howto_public():
+    return render_template('howto-public.html')
+
 @app.route('/login',methods=['GET','POST'])
 def login():
     if request.method=='POST':

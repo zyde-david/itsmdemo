@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ITSM Demo — ระบบจัดการ IT สำหรับสหกรณ์</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+:root{--primary:#1a5276;--accent:#27ae60}
+body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5;color:#2c3e50}
+.hero{background:linear-gradient(135deg,#0d2f4a,#1a5276,#2980b9);color:#fff;padding:48px 32px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40%;right:-15%;width:250px;height:250px;background:rgba(255,255,255,.04);border-radius:50%}
+.hero::after{content:'';position:absolute;bottom:-50%;left:-10%;width:200px;height:200px;background:rgba(255,255,255,.03);border-radius:50%}
+.hero h1{font-weight:700;font-size:1.6rem;margin-bottom:8px;position:relative;z-index:1}
+.hero p{color:rgba(255,255,255,.7);font-size:.9rem;max-width:600px;margin:0 auto;position:relative;z-index:1}
+.feature-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 12px}
+.feature-card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:24px 16px;text-align:center;transition:box-shadow .2s,transform .2s;height:100%}
+.feature-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px)}
+.feature-card h6{font-weight:600;font-size:.85rem;margin-bottom:6px}
+.feature-card p{font-size:.72rem;color:#6c7a89;line-height:1.5;margin:0}
+.section-title{font-weight:700;font-size:1.1rem;color:var(--primary);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--primary),transparent);border-radius:1px}
+.cta-box{background:linear-gradient(135deg,#e8f4fd,#d4e6f1);border-radius:12px;padding:24px;text-align:center;border-left:4px solid var(--primary)}
+.cta-box h5{font-weight:600;color:var(--primary);margin-bottom:8px}
+.cta-box p{font-size:.8rem;color:#2c3e50;margin-bottom:12px}
+.btn-demo{background:linear-gradient(135deg,var(--primary),#2980b9);color:#fff;border:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:.85rem;text-decoration:none;display:inline-block;transition:opacity .2s}
+.btn-demo:hover{opacity:.9;color:#fff}
+.btn-outline-demo{background:transparent;color:var(--primary);border:2px solid var(--primary);padding:8px 20px;border-radius:8px;font-weight:600;font-size:.8rem;text-decoration:none;display:inline-block;transition:background .2s}
+.btn-outline-demo:hover{background:var(--primary);color:#fff}
+.footer{text-align:center;padding:24px;color:#95a5a6;font-size:.7rem}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <h1><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo</h1>
+  <p>ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์<br>ครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner</p>
+</div>
+
+<div class="container py-4">
+
+  <!-- What is this -->
+  <div class="cta-box mb-4">
+    <h5><i class="bi bi-lightbulb me-2"></i>ระบบนี้ทำอะไรได้?</h5>
+    <p class="mb-2">ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา</p>
+    <a href="/login" class="btn-demo me-2"><i class="bi bi-box-arrow-in-right me-1"></i>เข้าสู่ระบบ</a>
+    <a href="https://github.com/zyde-david" target="_blank" class="btn-outline-demo"><i class="bi bi-github me-1"></i>GitHub</a>
+  </div>
+
+  <!-- Features Grid -->
+  <div class="section-title"><i class="bi bi-grid-3x3-gap"></i>ฟีเจอร์หลัก</div>
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fdecea;color:#c0392b"><i class="bi bi-ticket-perforated"></i></div>
+        <h6>Tickets</h6>
+        <p>รับแจ้งปัญหา IT กรองตามสถานะ/สาขา/จังหวัด มอบหมายทีม IT ติดตามสถานะแบบ real-time</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e8f8f0;color:#27ae60"><i class="bi bi-box-seam"></i></div>
+        <h6>Assets</h6>
+        <p>ติดตามอุปกรณ์ IT ทุกสาขา รหัสอ่านง่าย (1B-PC001) เชื่อมโยงกับ ticket ประเมินว่าควรเปลี่ยนหรือยัง</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e8f4fd;color:#1a5276"><i class="bi bi-people"></i></div>
+        <h6>Staff</h6>
+        <p>จัดการทีมงาน แยกทีม IT สรุปจำนวนพนักงานแต่ละจังหวัด กรองตามตำแหน่ง/สาขา</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fff3e0;color:#e67e22"><i class="bi bi-book"></i></div>
+        <h6>Knowledge Base</h6>
+        <p>เก็บวิธีแก้ปัญหาที่เจอซ้ำ ค้นหาจาก ticket detail แนบ KB กับ ticket ได้</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fdecea;color:#e74c3c"><i class="bi bi-speedometer2"></i></div>
+        <h6>Dashboard</h6>
+        <p>สรุปภาพรวม: จำนวน ticket แต่ละสถานะ แยกตามจังหวัด หมวดปัญหา ทีม IT อุปกรณ์ ความรู้</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e8f8f0;color:#27ae60"><i class="bi bi-map"></i></div>
+        <h6>Route Planner</h6>
+        <p>แผนที่ 3 จังหวัด 33 อำเภอ สีเข้ม = ปัญหามาก เรียงลำดับเส้นทางเยี่ยมอัตโนมัติ</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e8f4fd;color:#2980b9"><i class="bi bi-shield-check"></i></div>
+        <h6>Multi-User & Roles</h6>
+        <p>Admin / Manager / User / HR — แต่ละคนเห็นข้อมูลตามบทบาท จัดการผู้ใช้ได้</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#f3e5f5;color:#8e44ad"><i class="bi bi-palette"></i></div>
+        <h6>Dark Mode</h6>
+        <p>สลับธีมสว่าง/มืด เหมาะกับการใช้งานทั้งกลางวันและกลางคืน</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paperless Section -->
+  <div class="section-title"><i class="bi bi-file-earmark-arrow-up"></i>นำเข้าข้อมูลเดิม — ระบบรองรับ Paperless</div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <p class="small text-muted mb-3">ไม่ต้องพิมพ์ข้อมูลเดิมซ้ำทั้งหมด ระบบรองรับการนำเข้าข้อมูลจาก Excel/CSV ได้:</p>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 border rounded bg-light text-center">
+            <i class="bi bi-filetype-csv fs-3 d-block mb-2 text-success"></i>
+            <strong class="d-block small mb-1">CSV Import</strong>
+            <p class="small text-muted mb-0">ดาวน์โหลด template กรอกข้อมูลใน Excel แล้วอัพโหลด — ระบบ map คอลัมน์ให้อัตโนมัติ</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 border rounded bg-light text-center">
+            <i class="bi bi-file-earmark-scan fs-3 d-block mb-2 text-primary"></i>
+            <strong class="d-block small mb-1">Scan & Archive</strong>
+            <p class="small text-muted mb-0">สแกนเอกสารกระดาษ แนบกับ ticket/asset — เอกสารเก่ากลายเป็นดิจิทัล ค้นหาได้</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 border rounded bg-light text-center">
+            <i class="bi bi-database-fill-up fs-3 d-block mb-2 text-warning"></i>
+            <strong class="d-block small mb-1">DB Migration</strong>
+            <p class="small text-muted mb-0">มีฐานข้อมูลเดิม (Access/SQLite)? — เขียน migration script ย้ายข้อมูลทั้งหมด</p>
+          </div>
+        </div>
+      </div>
+      <div class="alert alert-success mt-3 mb-0 small">
+        <strong>✅ ประโยชน์:</strong> ลดเวลากรอกข้อมูล 80% · เอกสารเก่าไม่หาย · ค้นหาได้ทันที · สำรองข้อมูลบนคลาวด์
+      </div>
+    </div>
+  </div>
+
+  <!-- Roadmap Preview -->
+  <div class="section-title"><i class="bi bi-signpost-split"></i>แผนการพัฒนา</div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-2 text-center small">
+        <div class="col"><div class="p-2 rounded" style="background:#e8f8f0"><strong class="d-block text-success">Phase 1 ✓</strong><span class="text-muted">Auth + Settings</span></div></div>
+        <div class="col"><i class="bi bi-arrow-right text-muted align-self-center"></i></div>
+        <div class="col"><div class="p-2 rounded" style="background:#fff3e0"><strong class="d-block text-warning">Phase 2</strong><span class="text-muted">Change + Problem</span></div></div>
+        <div class="col"><i class="bi bi-arrow-right text-muted align-self-center"></i></div>
+        <div class="col"><div class="p-2 rounded" style="background:#fff3e0"><strong class="d-block text-warning">Phase 3</strong><span class="text-muted">SLA + Catalog</span></div></div>
+        <div class="col"><i class="bi bi-arrow-right text-muted align-self-center"></i></div>
+        <div class="col"><div class="p-2 rounded" style="background:#f0f0f0"><strong class="d-block text-muted">Phase 4-5</strong><span class="text-muted">HR + Geo + MBU</span></div></div>
+      </div>
+      <p class="small text-muted mt-2 mb-0 text-center">ดูรายละเอียดแผนการพัฒนาแบบเต็มหลังเข้าสู่ระบบ</p>
+    </div>
+  </div>
+
+  <!-- Contact / CTA -->
+  <div class="cta-box mb-4">
+    <h5><i class="bi bi-chat-dots me-2"></i>สนใจทดลองใช้งาน?</h5>
+    <p class="mb-3">ระบบนี้เป็น demo สำหรับการสัมภาษณ์งาน — สามารถติดต่อผู้พัฒนาเพื่อขอทดลองใช้งานเพิ่มเติมได้ทาง GitHub</p>
+    <a href="https://github.com/zyde-david" target="_blank" class="btn-demo me-2"><i class="bi bi-github me-1"></i>GitHub: zyde-david</a>
+    <a href="/login" class="btn-outline-demo"><i class="bi bi-box-arrow-in-right me-1"></i>เข้าสู่ระบบ</a>
+  </div>
+
+</div>
+
+<div class="footer">
+  ITSM Demo — สร้างโดย Zyde สำหรับการสัมภาษณ์งาน | ข้อมูลเป็นข้อมูลจำลอง<br>
+  Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
+</div>
+</body>
+</html>

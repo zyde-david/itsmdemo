@@ -57,6 +57,11 @@
   <h4 class="mb-0"><i class="bi bi-question-circle me-2"></i>How To & Development Log</h4>
 </div>
 
+<!-- Internal notice -->
+<div class="alert alert-primary mb-4 small">
+  <i class="bi bi-info-circle me-1"></i><strong>หน้านี้สำหรับผู้ใช้งานแล้ว</strong> — ถ้ายังไม่เคยใช้งาน ดู <a href="/howto-public" class="alert-link">แนะนำระบบ</a> ก่อน
+</div>
+
 <!-- Concept -->
 <div class="card mb-4 border-primary">
   <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-lightbulb me-2"></i>Concept</div>
@@ -212,8 +217,8 @@
     <p>แผนการพัฒนาแบบเป็นขั้นตอน เริ่มจาก foundation → ITIL modules → advanced features → production readiness</p>
     <div class="roadmap-stats">
       <div class="roadmap-stat"><span class="num">2</span><span class="label">Phase เสร็จแล้ว</span></div>
-      <div class="roadmap-stat"><span class="num">4</span><span class="label">Phase กำลังดำเนินการ</span></div>
-      <div class="roadmap-stat"><span class="num">9</span><span class="label">Features ทั้งหมด</span></div>
+      <div class="roadmap-stat"><span class="num">5</span><span class="label">Phase วางแผน</span></div>
+      <div class="roadmap-stat"><span class="num">12</span><span class="label">Features ทั้งหมด</span></div>
       <div class="roadmap-stat"><span class="num">~8</span><span class="label">วันที่คาดว่าจะเสร็จ</span></div>
     </div>
   </div>
@@ -358,6 +363,41 @@
         <div class="feature-tags"><span class="tag future-tag">Research</span><span class="tag itil">Operations</span></div>
       </div>
     </div>
+  </div>
+
+  <!-- Phase 0: Data Import / Paperless -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">Phase 0 — Data Import</span>
+      <div>
+        <p class="phase-title">📄 Paperless &amp; Data Migration</p>
+        <p class="phase-sub">นำเข้าข้อมูลเดิมจาก Excel/CSV/เอกสารกระดาษ — ไม่ต้องพิมพ์ซ้ำ</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future" style="border-left-color:#27ae60">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📊</div>
+        <h6>CSV/Excel Import</h6>
+        <p>ดาวน์โหลด template → กรอกข้อมูลใน Excel → อัพโหลด → ระบบ map คอลัมน์อัตโนมัติ ลดเวลากรอก 80%</p>
+        <div class="feature-tags"><span class="tag ux">UX</span></div>
+      </div>
+      <div class="feature-card future" style="border-left-color:#27ae60">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📎</div>
+        <h6>Scan &amp; Archive</h6>
+        <p>สแกนเอกสารกระดาษ แนบกับ ticket/asset — เอกสารเก่ากลายเป็นดิจิทัล ค้นหาได้ ไม่หาย</p>
+        <div class="feature-tags"><span class="tag itil">Paperless</span></div>
+      </div>
+      <div class="feature-card future" style="border-left-color:#27ae60">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">🗄️</div>
+        <h6>DB Migration</h6>
+        <p>มีฐานข้อมูลเดิม (Access/SQLite)? — เขียน script ย้ายข้อมูลทั้งหมด รักษา history</p>
+        <div class="feature-tags"><span class="tag future-tag">Migration</span></div>
+      </div>
+    </div>
+    <div class="alert alert-success mt-3 mb-0 small"><strong>✅ ประโยชน์:</strong> ลดเวลากรอกข้อมูล 80% · เอกสารเก่าไม่สูญหาย · ค้นหาได้ทันที · สำรองข้อมูลบนคลาวด์</div>
   </div>
 
   <!-- Production Readiness -->
