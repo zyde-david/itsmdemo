@@ -99,7 +99,7 @@ body[data-theme="dark"] .bg-light{background:#16213e!important;color:#e0e0e0}
 <nav class="navbar navbar-dark">
  <div class="container-fluid px-3">
   <button class="btn btn-sm btn-outline-light d-md-none me-2" type="button" id="sidebarToggle"><i class="bi bi-list"></i></button>
-  <a href="/" class="navbar-brand mb-0 h5 text-white text-decoration-none"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo</a>
+  <a href="/" class="navbar-brand mb-0 h5 text-white text-decoration-none"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo <span class="small fw-normal opacity-75">v0.11</span></a>
   <div class="d-flex align-items-center gap-2">
    <span class="text-white small d-none d-lg-inline"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</span>
    <span class="ai-badge d-none d-sm-inline"><i class="bi bi-stars me-1"></i>AI-Powered</span>
@@ -186,5 +186,8 @@ function initTable(selector,opts={}){
 }
 </script>
 {% block extra_scripts %}{% endblock %}
+<div class="footer text-center py-3" style="color:#95a5a6;font-size:.7rem">
+  ITSM Demo v0.11 | <span class="id-badge" style="font-size:.65rem">a133e14</span> | Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
+</div>
 </body>
 </html>
