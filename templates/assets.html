@@ -166,11 +166,11 @@ function applyAssetFilters(){
     document.getElementById('aFilterProvince').value = branchToProvince[branch];
   }
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    var node = settings.aoData[dataIndex].nTr;
-    if(status && node.dataset.status !== status) return false;
-    if(type && node.dataset.type !== type) return false;
-    if(branch && node.dataset.branch !== branch) return false;
-    if(province && node.dataset.province !== province) return false;
+    // data[2]=branch, data[3]=province, data[4]=type, data[7]=status
+    if(status && data[7].trim().toLowerCase() !== status) return false;
+    if(type && data[4].trim() !== type) return false;
+    if(branch && data[2].trim() !== branch) return false;
+    if(province && data[3].trim() !== province) return false;
     return true;
   });
   window.assetTable.draw();

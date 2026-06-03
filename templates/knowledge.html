@@ -96,8 +96,8 @@ function applyKbFilters(){
   if(!kbTable) return;
   const cat = document.getElementById('kbFilterCat').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    var node = settings.aoData[dataIndex].nTr;
-    if(cat && node.dataset.category !== cat) return false;
+    // data[2]=category
+    if(cat && data[2].trim() !== cat) return false;
     return true;
   });
   kbTable.draw();
