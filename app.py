@@ -588,22 +588,6 @@ def api_kb_delete(kid):
     return jsonify(success=True)
 
 
-@app.route('/api/kb/create',methods=['POST'])
-@login_required
-def api_kb_create():
-    data = request.get_json()
-    title = data.get('title','').strip()
-    cat = data.get('category','').strip()
-    content = data.get('content','').strip()
-    if not title or not content:
-        return jsonify({'success':False,'error':'ข้อมูลไม่ครบ'})
-    c = get_db()
-    c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,0)',(title,cat,content))
-    kb_id = c.lastrowid
-    c.commit()
-    c.close()
-    return jsonify({'success':True,'id':kb_id})
-
 @app.route('/api/district-data')
 @login_required
 def api_district_data():
