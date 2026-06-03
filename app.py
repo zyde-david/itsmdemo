@@ -604,6 +604,68 @@ def api_kb_create():
     c.close()
     return jsonify({'success':True,'id':kb_id})
 
+@app.route('/api/district-data')
+@login_required
+def api_district_data():
+    c = get_db()
+    # Get ticket count per district
+    branch_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
+    branch_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+    district_coords = {b['district']: {'lat': 6.8, 'lng': 101.3} for b in ALL_BRANCHES}  # approximate
+
+    # Ticket counts by branch
+    ticket_counts = {}
+    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM tickets GROUP BY branch').fetchall()
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if d:
+            ticket_counts[d] = ticket_counts.get(d, 0) + r['cnt']
+
+    # Asset counts by branch
+    asset_counts = {}
+    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM assets GROUP BY branch').fetchall()
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if d:
+            asset_counts[d] = asset_counts.get(d, 0) + r['cnt']
+
+    c.close()
+
+    # Build result for all 33 districts
+    result = []
+    for b in ALL_BRANCHES:
+        d = b['district']
+        result.append({
+            'name': d,
+            'province': b['province'],
+            'tickets': ticket_counts.get(d, 0),
+            'assets': asset_counts.get(d, 0),
+            'lat': b.get('lat', 6.8),
+            'lng': b.get('lng', 101.3)
+        })
+    return jsonify(result)
+
+@app.route('/sitemap')
+@login_required
+def sitemap_page():
+    c = get_db()
+    total_tickets = c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
+    total_assets = c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
+    total_staff = c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
+    total_kb = c.execute('SELECT COUNT(*) FROM knowledge_base').fetchone()[0]
+    c.close()
+    return render_template('sitemap.html', total_tickets=total_tickets, total_assets=total_assets, total_staff=total_staff, total_kb=total_kb)
+
+@app.route('/howto')
+@login_required
+def howto_page():
+    return render_template('howto.html')
+
+@app.route('/route-planner')
+@login_required
+def route_planner_page():
+    return render_template('route-planner.html')
+
 if __name__=='__main__':
     import hashlib as _h
     init_db()

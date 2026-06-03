@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Route Planner — ITSM Demo{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+#routeMap { height: 70vh; min-height: 400px; border-radius: 8px; }
+.leaflet-container { background: #f0f0f0; }
+.district-label { background: transparent; border: none; box-shadow: none; font-size: 10px; font-weight: bold; color: #333; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
+.legend { background: #fff; padding: 8px 12px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.2); font-size: 0.75rem; }
+.legend i { width: 14px; height: 14px; display: inline-block; margin-right: 4px; border-radius: 2px; }
+.rank-item { cursor: pointer; transition: background 0.15s; }
+.rank-item:hover { background: #f0f0ff; }
+.rank-item.active { background: #e0e0ff; }
+@media(max-width:767.98px) {
+  #routeMap { height: 50vh; }
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h4 class="mb-0"><i class="bi bi-map me-2"></i>Route Planner</h4>
+  <div class="d-flex gap-2 align-items-center">
+    <div class="btn-group btn-group-sm" role="group">
+      <button type="button" class="btn btn-outline-primary active" id="btnMetricTickets" onclick="setMetric('tickets')"> Tickets</button>
+      <button type="button" class="btn btn-outline-primary" id="btnMetricAssets" onclick="setMetric('assets')"> Assets</button>
+      <button type="button" class="btn btn-outline-primary" id="btnMetricCombined" onclick="setMetric('combined')"> รวม</button>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary" onclick="resetView()"><i class="bi bi-arrows-fullscreen me-1"></i>Reset Map</button>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Map -->
+  <div class="col-md-8">
+    <div id="routeMap"></div>
+    <!-- Legend -->
+    <div id="mapLegend" class="legend mt-2" style="position:relative;"></div>
+  </div>
+
+  <!-- Sidebar: Priority Ranking -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-white fw-bold">
+        <i class="bi bi-list-ol me-2"></i>ลำดับเยี่ยม (มาก → น้อย)
+      </div>
+      <div class="card-body p-0">
+        <div id="rankList" style="max-height: 50vh; overflow-y: auto;">
+          <div class="text-center text-muted py-3"><small>กำลังโหลด...</small></div>
+        </div>
+      </div>
+      <div class="card-footer small text-muted">
+        <i class="bi bi-info-circle me-1"></i>ค้นหาอำเภอที่มีค่ามากที่สุดก่อน ระบบคำนวณเส้นทางลดการวนกลับ
+      </div>
+    </div>
+
+    <!-- Selected District Detail -->
+    <div class="card mt-3" id="districtDetail" style="display:none;">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-geo-alt me-2"></i><span id="detailName">-</span></div>
+      <div class="card-body small">
+        <div class="row g-2">
+          <div class="col-6"><strong>จังหวัด:</strong><br><span id="detailProvince">-</span></div>
+          <div class="col-6"><strong>Tickets:</strong><br><span id="detailTickets">0</span></div>
+          <div class="col-6"><strong>Assets:</strong><br><span id="detailAssets">0</span></div>
+          <div class="col-6"><strong>คะแนนรวม:</strong><br><span id="detailScore">0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Route Line Info -->
+<div class="card mt-3" id="routeInfo" style="display:none;">
+  <div class="card-header bg-white fw-bold"><i class="bi bi-signpost-split me-2"></i>เส้นทางแนะนำ</div>
+  <div class="card-body small">
+    <p class="mb-1">จำนวล <strong id="routeCount">0</strong> อำเภอ | เริ่มจาก <strong id="routeStart">-</strong></p>
+    <ol id="routeSteps" class="mb-0"></ol>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var map, geojsonLayer, districtData = {};
+var currentMetric = 'tickets';
+var visited = new Set();
+
+// Color scale
+function getColor(value, max) {
+  if (max === 0) return '#f7fbff';
+  var ratio = value / max;
+  if (ratio > 0.8) return '#08306b';
+  if (ratio > 0.6) return '#2171b5';
+  if (ratio > 0.4) return '#4292c6';
+  if (ratio > 0.2) return '#6baed6';
+  return '#bdd7e7';
+}
+
+function initMap() {
+  map = L.map('routeMap', {
+    center: [6.5, 101.5],
+    zoom: 8,
+    minZoom: 7,
+    maxZoom: 13,
+    maxBounds: [[5.5, 100.5], [7.5, 102.5]]
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  loadData();
+}
+
+function loadData() {
+  Promise.all([
+    fetch('/api/district-data').then(r => r.json()),
+    fetch('/static/districts-geo.json').then(r => r.json())
+  ]).then(function(results) {
+    var data = results[0];
+    var geojson = results[1];
+
+    // Index data by district name
+    data.forEach(function(d) { districtData[d.name] = d; });
+
+    // Add properties to GeoJSON
+    geojson.features.forEach(function(f) {
+      var name = f.properties.name;
+      var d = districtData[name] || {tickets: 0, assets: 0, score: 0};
+      f.properties.tickets = d.tickets || 0;
+      f.properties.assets = d.assets || 0;
+      f.properties.score = (d.tickets || 0) + (d.assets || 0) * 0.5;
+    });
+
+    renderMap(geojson);
+    updateRanking();
+  });
+}
+
+function renderMap(geojson) {
+  if (geojsonLayer) map.removeLayer(geojsonLayer);
+
+  var values = geojson.features.map(function(f) {
+    return currentMetric === 'tickets' ? f.properties.tickets :
+           currentMetric === 'assets' ? f.properties.assets : f.properties.score;
+  });
+  var maxVal = Math.max.apply(null, values) || 1;
+
+  geojsonLayer = L.geoJSON(geojson, {
+    style: function(feature) {
+      var val = currentMetric === 'tickets' ? feature.properties.tickets :
+                currentMetric === 'assets' ? feature.properties.assets : feature.properties.score;
+      var fillColor = getColor(val, maxVal);
+      return {
+        fillColor: fillColor,
+        fillOpacity: 0.7,
+        color: visited.has(feature.properties.name) ? '#ff6600' : '#555',
+        weight: visited.has(feature.properties.name) ? 2 : 1
+      };
+    },
+    onEachFeature: function(feature, layer) {
+      var p = feature.properties;
+      var tickets = p.tickets || 0;
+      var assets = p.assets || 0;
+      var score = p.score || 0;
+
+      layer.on('click', function() {
+        showDistrictDetail(p.name, p.province, tickets, assets, score);
+        layer.setStyle({color: '#ff6600', weight: 3});
+      });
+
+      layer.bindTooltip(
+        '<strong>' + p.name + '</strong><br>' +
+        'จังหวัด: ' + p.province + '<br>' +
+        'Tickets: ' + tickets + ' | Assets: ' + assets,
+        {sticky: true, className: 'small'}
+      );
+    }
+  }).addTo(map);
+
+  updateLegend(maxVal);
+}
+
+function updateLegend(maxVal) {
+  var legend = document.getElementById('mapLegend');
+  var grades = [0, Math.round(maxVal*0.2), Math.round(maxVal*0.4), Math.round(maxVal*0.6), Math.round(maxVal*0.8)];
+  legend.innerHTML = '<strong id="legendTitle">' + getMetricLabel() + '</strong><br>';
+  for (var i = 0; i < grades.length; i++) {
+    legend.innerHTML += '<i style="background:' + getColor(grades[i]+1, maxVal) + ';"></i> ' + grades[i] + (grades[i+1] ? '–' + grades[i+1] + '<br>' : '+');
+  }
+}
+
+function getMetricLabel() {
+  return currentMetric === 'tickets' ? 'จำนวน Tickets' :
+         currentMetric === 'assets' ? 'จำนวน Assets' : 'คะแนนรวม';
+}
+
+function setMetric(m) {
+  currentMetric = m;
+  document.querySelectorAll('[id^="btnMetric"]').forEach(function(btn) { btn.classList.remove('active'); });
+  document.getElementById('btnMetric' + m.charAt(0).toUpperCase() + m.slice(1)).classList.add('active');
+  loadData();
+}
+
+function updateRanking() {
+  var items = [];
+  for (var name in districtData) {
+    var d = districtData[name];
+    var score = currentMetric === 'tickets' ? (d.tickets || 0) :
+                currentMetric === 'assets' ? (d.assets || 0) :
+                (d.tickets || 0) + (d.assets || 0) * 0.5;
+    items.push({name: name, province: d.province, tickets: d.tickets||0, assets: d.assets||0, score: score, lat: d.lat, lng: d.lng});
+  }
+  items.sort(function(a, b) { return b.score - a.score; });
+
+  var html = '';
+  items.forEach(function(item, idx) {
+    var badge = item.score >= (items[0].score * 0.7) ? 'bg-danger' :
+                item.score >= (items[0].score * 0.4) ? 'bg-warning text-dark' : 'bg-secondary';
+    html += '<div class="rank-item d-flex justify-content-between align-items-center px-3 py-2 border-bottom" onclick="focusDistrict(\'' + item.name + '\')">' +
+      '<div><span class="fw-bold me-2">' + (idx+1) + '.</span>' + item.name + ' <small class="text-muted">(' + item.province + ')</small></div>' +
+      '<span class="badge ' + badge + ' rounded-pill">' + Math.round(item.score) + '</span>' +
+      '</div>';
+  });
+  document.getElementById('rankList').innerHTML = html;
+
+  // Show route
+  showRoute(items);
+}
+
+function showRoute(items) {
+  if (items.length < 2) return;
+
+  var routeDiv = document.getElementById('routeInfo');
+  routeDiv.style.display = 'block';
+  document.getElementById('routeCount').innerText = items.length;
+  document.getElementById('routeStart').innerText = items[0].name;
+
+  // Nearest neighbor
+  var route = [items[0]];
+  var remaining = items.slice(1);
+  while (remaining.length > 0) {
+    var last = route[route.length-1];
+    var nearest = 0;
+    var minDist = Infinity;
+    remaining.forEach(function(item, i) {
+      var dist = Math.pow(item.lat - last.lat, 2) + Math.pow(item.lng - last.lng, 2);
+      if (dist < minDist) { minDist = dist; nearest = i; }
+    });
+    route.push(remaining[nearest]);
+    remaining.splice(nearest, 1);
+  }
+
+  var steps = '';
+  route.forEach(function(r, i) {
+    steps += '<li>' + (i+1) + '. ' + r.name + ' <small class="text-muted">(' + r.province + ')</small></li>';
+  });
+  document.getElementById('routeSteps').innerHTML = steps;
+}
+
+function focusDistrict(name) {
+  if (!geojsonLayer) return;
+  geojsonLayer.eachLayer(function(layer) {
+    if (layer.feature.properties.name === name) {
+      var bounds = layer.getBounds();
+      map.fitBounds(bounds.pad(0.5));
+      var p = layer.feature.properties;
+      showDistrictDetail(p.name, p.province, p.tickets||0, p.assets||0, p.score||0);
+    }
+  });
+}
+
+function showDistrictDetail(name, province, tickets, assets, score) {
+  document.getElementById('districtDetail').style.display = 'block';
+  document.getElementById('detailName').innerText = name;
+  document.getElementById('detailProvince').innerText = province;
+  document.getElementById('detailTickets').innerText = tickets;
+  document.getElementById('detailAssets').innerText = assets;
+  document.getElementById('detailScore').innerText = Math.round(score);
+}
+
+function resetView() {
+  map.setView([6.5, 101.5], 8);
+}
+
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+{% endblock %}

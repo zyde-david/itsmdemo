@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}How To — ITSM Demo{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="bi bi-question-circle me-2"></i>How To & Development Log</h4>
+</div>
+
+<!-- Concept -->
+<div class="card mb-4 border-primary">
+  <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-lightbulb me-2"></i>Concept</div>
+  <div class="card-body">
+    <p class="mb-1"><strong>ทำไมต้องสร้างระบบนี้?</strong></p>
+    <p class="small text-muted mb-2">ระบบนี้เป็น IT Service Management (ITSM) สำหรับสาขาสหกรณ์ใน 3 จังหวัดชายแดนภาคใต้ (ปัตตานี ยะลา นราธิวาส) มีสาขา 33 แห่ง ต้องการระบบที่:</p>
+    <ul class="small text-muted mb-2">
+      <li>จัดการ Ticket แจ้งซ่อม/ปัญหา IT จากสาขาต่าง ๆ</li>
+      <li>ติดตาม Asset คอมพิวเตอร์ อุปกรณ์ต่าง ๆ ในแต่ละสาขา</li>
+      <li>จัดการทีมงานและมอบหมายงานให้ทีม IT</li>
+      <li>เก็บความรู้ (KB) สำหรับแก้ปัญหาที่เจอซ้ำ</li>
+      <li>วางแผนเส้นทางเยี่ยมสาขาอย่างมีประสิทธิภาพ</li>
+    </ul>
+    <p class="mb-1"><strong>Design Decisions ที่สำคัญ:</strong></p>
+    <ul class="small text-muted mb-0">
+      <li><strong>Asset Tag 1B-PC001</strong> — รหัสที่อ่านเข้าใจได้ทันที: จังหวัด+สาขา+ประเภท+ลำดับ ทำให้รู้สถานที่และประเภทโดยไม่ต้องค้นหา</li>
+      <li><strong>Cascade Dropdowns</strong> — เลือกสาขาแล้วจังหวัดเติมอัตโนมัติ และเลือกจังหวัดแล้วสาขากรองให้ ลดขั้นตอนการทำงาน</li>
+      <li><strong>DataTables + node.dataset</strong> — filter อ่านค่าจาก data attribute ของ HTML แทน cell text แก้ปัญหาภาษาไทย/อังกฤษ mismatch</li>
+      <li><strong>Choropleth Map</strong> — แสงสีแผนที่ให้เห็นว่าสาขาไหนมีปัญหามาก ช่วยวางแผนเส้นทางเยี่ยม</li>
+      <li><strong>IT-only Assign</strong> — dropdown มอบหมายแสดงเฉพาะทีม IT ป้องกันมอบหมายผิดคน</li>
+    </ul>
+  </div>
+</div>
+
+<!-- How To -->
+<h5 class="mb-3"><i class="bi bi-list-ol me-2"></i>How To Use</h5>
+<div class="accordion mb-4" id="howtoAccordion">
+
+  <!-- Tickets -->
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ht-tickets"><i class="bi bi-ticket-perforated me-2 text-danger"></i>Tickets</button></h2>
+    <div id="ht-tickets" class="accordion-collapse collapse show" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — หน้า Tickets แสดงทั้งหมดในตาราง DataTables เลื่อนดูได้ คลิกแถวเพื่อดูรายละเอียด</li>
+          <li><strong>กรอง</strong> — ใช้ dropdown ด้านบนตาราง: สถานะ / ความสำคัญ / สาขา / จังหวัด / หมวด</li>
+          <li><strong>สาขา ↔ จังหวัด</strong> — เลือกสาขาแล้วจังหวัดเติมอัตโนมัติ หรือเลือกจังหวัดแล้วสาขาจะแสดงเฉพาะในจังหวัดนั้น</li>
+          <li><strong>ค้นหา</strong> — พิมพ์ในช่องค้นหา DataTables เพื่อหาจาก ticket code, หัวข้อ, สาขา, ผู้แจ้ง</li>
+          <li><strong>สร้าง</strong> — กดปุ่ม "สร้าง Ticket" เลือกหมวด ระบุรายละเอียด</li>
+          <li><strong>ดูรายละเอียด</strong> — คลิกแถว จะเห้ง status, work notes, มอบหมาย, เชื่อม asset, แนบ KB</li>
+          <li><strong>มอบหมาย</strong> — เลือกจาก dropdown ที่แสดงเฉพาะทีม IT</li>
+          <li><strong>แนบ KB</strong> — ค้นหาบทความ KB จาก search box หรือสร้างใหม่ถ้าไม่พบ</li>
+          <li><strong>สถานะ</strong> — เปลี่ยนผ่าน dropdown หรือปุ่มลัด (กำลังดำเนิน/เสร็จ/ปิด)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assets -->
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-assets"><i class="bi bi-box-seam me-2 text-success"></i>Assets</button></h2>
+    <div id="ht-assets" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — ตารางแสดง asset_tag (เช่น 1B-PC001), ชือ, serial, สถานะ</li>
+          <li><strong>Asset Tag</strong> — รูปแบบ: <code>[จังหวัด][สาขา]-[ประเภท][ลำดับ]</code> เช่น <code>1B-PC001</code> = ปัตตานี สาขาที่ 2 PC เครื่องที่ 1</li>
+          <li><strong>กรอง</strong> — สถานะ / ประเภท / สาขา / จังหวัด (เหมือน tickets)</li>
+          <li><strong>สร้าง</strong> — กด "เพิ่ม Asset" เลือกสาขา ประเภท กรอกรายละเอียด</li>
+          <li><strong>Retire Score</strong> — หน้า detail แสดงจำนวน ticket ที่เกี่ยวข้อง ≥5 = แนะนำเปลี่ยน</li>
+          <li><strong>เชื่อมกับ Ticket</strong> — ที่หน้า ticket detail เลือก asset เพื่อเชื่อมโยง</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff -->
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-staff"><i class="bi bi-people me-2 text-info"></i>Staff</button></h2>
+    <div id="ht-staff" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — ตารางแสดงชื่อ ตำแหน่ง สาขา จังหวัด ไอคอน IT</li>
+          <li><strong>Province Cards</strong> — ด้านบนแสดงสรุปจำนวนพนักงานและทีม IT แต่ละจังหวัด</li>
+          <li><strong>กรอง</strong> — สาขา / จังหวัด / ตำแหน่ง / IT หรือไม่ IT</li>
+          <li><strong>สร้าม</strong> — กด "เพิ่มพนักงาน" เลือกสาขา ตำแหน่ง ระบุว่าเป็น IT หรือไม่</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- KB -->
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-kb"><i class="bi bi-book me-2 text-secondary"></i>Knowledge Base</button></h2>
+    <div id="ht-kb" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — ตารางเรียงตามยอดเข้าชม แสดงหมวดหมู่</li>
+          <li><strong>ค้นหา</strong> — พิมพ์ช่องค้นหาหรือกรองตามหมวด</li>
+          <li><strong>สร้าง/แก้ไข</strong> — กดปุ่ม กรอกหัวข้อ หมวด เนื้อหา</li>
+          <li><strong>แนบกับ Ticket</strong> — ที่หน้า ticket detail ค้นหา KB แล้วแนบ หรือสร้างใหม่ถ้ายังไม่มี</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Route Planner -->
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-route"><i class="bi bi-map me-2 text-warning"></i>Route Planner</button></h2>
+    <div id="ht-route" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>เปิดแผนที่</strong> — แสดง 3 จังหวัด 33 อำเภอ สีเข้ม = มีปัญหามาก</li>
+          <li><strong>เลือกมุมมอง</strong> — Toggle ระหว่าง: จำนวน Ticket / จำนวน Asset / รวม</li>
+          <li><strong>ดูรายละเอียด</strong> — Hover หรือคลิกอำเภอเพื่อดูชื่อและค่า</li>
+          <li><strong>ลำดับเยี่ยม</strong> — ด้านขวาแสดงรายการเรียงตามค่ามาก→น้อย (ไปอันดับแรกก่อน)</li>
+          <li><strong>เส้นทาง</strong> — แสดงเส้นเชื่อมตาม nearest-neighbor (ลดการวนกลับ)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Development Log -->
+<h5 class="mb-3"><i class="bi bi-code-slash me-2"></i>Development Log</h5>
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light"><tr><th>สัปดาห์</th><th>สิ่งที่ทำ</th><th>เหตุผล / ปัญหาที่แก้</th></tr></thead>
+        <tbody class="small">
+          <tr><td>Week 1</td><td>Core Flask app + DataTables + SQLite</td><td>เริ่มจาก CRUD พื้นฐาน ใช้ DataTables สำหรับ table + filter ฝั่ง client</td></tr>
+          <tr><td>Week 1</td><td>Ticket Module — CRUD, server-side filter</td><td>ผู้ใช้แจ้งปัญหา IT จากสาขา กรองตามสถานะ/สาขา/จังหวัด</td></tr>
+          <tr><td>Week 1</td><td>Asset Module — numeric asset code</td><td>เก็บข้อมูลคอมพิวเตอร์/อุปกรณ์ เชื่อมกับ ticket</td></tr>
+          <tr><td>Week 1</td><td>Staff Module + Dashboard</td><td>จัดการทีมงาน ดูสรุปภาพรวม</td></tr>
+          <tr><td>Week 2</td><td>DataTables filter bug fix</td><td>Filter อ่าน cell text (ไทย) แต่ dropdown เป็น English → แก้ด้วย node.dataset</td></tr>
+          <tr><td>Week 2</td><td>Cascade dropdowns: สาขา ↔ จังหวัด</td><td>เลือกสาขาแล้วจังหวัดเติม, เลือกจังหวัดแล้วสาขากรอง</td></tr>
+          <tr><td>Week 2</td><td>Asset smart tag: 1B-PC001</td><td>เปลี่ยนจากรหัสตัวเงินเป็นรหัสที่อ่านเข้าใจได้: จังหวัด+สาขา+ประเภท+ลำดับ</td></tr>
+          <tr><td>Week 2</td><td>Ticket yearly code: TK-YY-NNNN</td><td>เปลี่ยนจาก TK-26-0001 เป็น dynamic year — reset ทุกปีใหม่</td></tr>
+          <tr><td>Week 2</td><td>KB Search + Create & Attach</td><td>ค้นหา KB จาก ticket detail สร้างใหม่ได้ถ้าไม่พบ</td></tr>
+          <tr><td>Week 2</td><td>IT-only assign dropdown</td><td>แสดงเฉพาะทีม IT ใน dropdown มอบหมาย</td></tr>
+          <tr><td>Week 3</td><td>Dashboard fix + stat cards</td><td>แก้ province query alias, เพิ่ม asset/staff/KB cards</td></tr>
+          <tr><td>Week 3</td><td>Route Planner (Leaflet map)</td><td>Choropleth 33 อำเภอ, 3 จังหวัด, priority ranking</td></tr>
+          <tr><td>Week 3</td><td>Site Map + How To</td><td>หน้าสรุประบบ + วิธีใช้ + dev log</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Tech Stack -->
+<h5 class="mb-3"><i class="bi bi-tools me-2"></i>Tech Stack</h5>
+<div class="card">
+  <div class="card-body">
+    <div class="row g-3 text-center">
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-py fs-4 d-block mb-1"></i><small>Python</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-sql fs-4 d-block mb-1"></i><small>SQLite</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-html fs-4 d-block mb-1"></i><small>HTML/CSS</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-js fs-4 d-block mb-1"></i><small>JavaScript</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><img src="https://datatables.net/images/favicon.ico" width="20" class="d-block mx-auto mb-1"><small>DataTables</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><img src="https://leafletjs.com/docs/images/favicon.ico" width="20" class="d-block mx-auto mb-1"><small>Leaflet</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-bootstrap fs-4 d-block mb-1"></i><small>Bootstrap 5</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-cloud-fill fs-4 d-block mb-1 text-primary"></i><small>Render</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-github fs-4 d-block mb-1"></i><small>GitHub</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-py fs-4 d-block mb-1 text-success"></i><small>Flask</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-json fs-4 d-block mb-1"></i><small>GeoJSON</small></div></div>
+      <div class="col-4 col-md-2"><div class="p-2 border rounded"><i class="bi bi-filetype-js fs-4 d-block mb-1 text-warning"></i><small>jQuery</small></div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

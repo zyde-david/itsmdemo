@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Site Map — ITSM Demo{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Site Map</h4>
+</div>
+
+<!-- System Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card card-stat p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div><h6 class="text-muted mb-1">Tickets</h6><h3 class="mb-0 fw-bold text-primary">{{ total_tickets }}</h3></div>
+        <i class="bi bi-ticket-perforated stat-icon text-primary"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card card-stat p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div><h6 class="text-muted mb-1">Assets</h6><h3 class="mb-0 fw-bold text-success">{{ total_assets }}</h3></div>
+        <i class="bi bi-box-seam stat-icon text-success"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card card-stat p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div><h6 class="text-muted mb-1">Staff</h6><h3 class="mb-0 fw-bold text-info">{{ total_staff }}</h3></div>
+        <i class="bi bi-people stat-icon text-info"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card card-stat p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div><h6 class="text-muted mb-1">KB Articles</h6><h3 class="mb-0 fw-bold text-secondary">{{ total_kb }}</h3></div>
+        <i class="bi bi-book stat-icon text-secondary"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page Map -->
+<h5 class="mb-3"><i class="bi bi-grid me-2"></i>Pages</h5>
+<div class="row g-3 mb-4">
+  <!-- Dashboard -->
+  <div class="col-md-4">
+    <div class="card h-100 border-primary">
+      <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-speedometer2 me-2"></i>Dashboard</div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li>✓ Ticket stats by status</li>
+          <li>✓ Asset/Staff/KB summary</li>
+          <li>✓ Province breakdown</li>
+          <li>✓ Category breakdown</li>
+          <li>✓ Recent tickets list</li>
+        </ul>
+      </div>
+      <div class="card-footer"><a href="/" class="btn btn-sm btn-outline-primary w-100">Go to Dashboard</a></div>
+    </div>
+  </div>
+
+  <!-- Tickets -->
+  <div class="col-md-4">
+    <div class="card h-100 border-danger">
+      <div class="card-header bg-danger text-white fw-bold"><i class="bi bi-ticket-perforated me-2"></i>Tickets</div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li>✓ Ticket list with DataTables</li>
+          <li>✓ Filter: status/priority/branch/province/category</li>
+          <li>✓ Cascade: สาขา ↔ จังหวัด</li>
+          <li>✓ Create/Edit/Delete tickets</li>
+          <li>✓ Yearly code: TK-YY-NNNN</li>
+          <li>✓ Assign to IT staff</li>
+          <li>✓ Attach KB articles</li>
+          <li>✓ Work notes</li>
+        </ul>
+      </div>
+      <div class="card-footer"><a href="/tickets" class="btn btn-sm btn-outline-danger w-100">Go to Tickets</a></div>
+    </div>
+  </div>
+
+  <!-- Assets -->
+  <div class="col-md-4">
+    <div class="card h-100 border-success">
+      <div class="card-header bg-success text-white fw-bold"><i class="bi bi-box-seam me-2"></i>Assets</div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li>✓ Asset list with smart tags</li>
+          <li>✓ Tag format: 1B-PC001</li>
+          <li>✓ Filter: status/type/branch/province</li>
+          <li>✓ Cascade: สาขา ↔ จังหวัด</li>
+          <li>✓ Create/Edit/Delete assets</li>
+          <li>✓ Link assets to tickets</li>
+          <li>✓ Retire score (ticket count)</li>
+        </ul>
+      </div>
+      <div class="card-footer"><a href="/assets" class="btn btn-sm btn-outline-success w-100">Go to Assets</a></div>
+    </div>
+  </div>
+
+  <!-- Staff -->
+  <div class="col-md-4">
+    <div class="card h-100 border-info">
+      <div class="card-header bg-info text-white fw-bold"><i class="bi bi-people me-2"></i>Staff</div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li>✓ Staff list with DataTables</li>
+          <li>✓ Filter: branch/province/role/IT</li>
+          <li>✓ Province summary cards</li>
+          <li>✓ IT team indicator</li>
+          <li>✓ Create/Edit/Delete staff</li>
+        </ul>
+      </div>
+      <div class="card-footer"><a href="/staff" class="btn btn-sm btn-outline-info w-100">Go to Staff</a></div>
+    </div>
+  </div>
+
+  <!-- Knowledge Base -->
+  <div class="col-md-4">
+    <div class="card h-100 border-secondary">
+      <div class="card-header bg-secondary text-white fw-bold"><i class="bi bi-book me-2"></i>Knowledge Base</div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li>✓ KB article list</li>
+          <li>✓ Filter by category</li>
+          <li>✓ Search articles</li>
+          <li>✓ Create/Edit/Delete articles</li>
+          <li>✓ View count tracking</li>
+          <li>✓ Attach to tickets</li>
+        </ul>
+      </div>
+      <div class="card-footer"><a href="/knowledge" class="btn btn-sm btn-outline-secondary w-100">Go to KB</a></div>
+    </div>
+  </div>
+
+  <!-- Route Planner -->
+  <div class="col-md-4">
+    <div class="card h-100 border-warning">
+      <div class="card-header bg-warning text-dark fw-bold"><i class="bi bi-map me-2"></i>Route Planner</div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li>✓ Interactive Leaflet map</li>
+          <li>✓ Choropleth: 3 southern provinces</li>
+          <li>✓ 33 districts color-coded</li>
+          <li>✓ Toggle: tickets/assets/combined</li>
+          <li>✓ Priority ranking (visit order)</li>
+          <li>✓ Nearest-neighbor route</li>
+        </ul>
+      </div>
+      <div class="card-footer"><a href="/route-planner" class="btn btn-sm btn-outline-warning w-100">Go to Route Planner</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- Data Flow -->
+<h5 class="mb-3"><i class="bi bi-arrow-left-right me-2"></i>Data Flow</h5>
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+      <div class="bg-danger text-white rounded-pill px-3 py-2"><i class="bi bi-ticket-perforated me-1"></i>Tickets</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-box-seam me-1"></i>Asset Link</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-secondary text-white rounded-pill px-3 py-2"><i class="bi bi-book me-1"></i>KB Attach</div>
+    </div>
+    <hr>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+      <div class="bg-info text-white rounded-pill px-3 py-2"><i class="bi bi-people me-1"></i>Staff</div>
+      <i class="bi bi-arrow-left-right text-muted"></i>
+      <div class="bg-danger text-white rounded-pill px-3 py-2"><i class="bi bi-ticket-perforated me-1"></i>Ticket Assign</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-gear me-1"></i>Work Notes</div>
+    </div>
+  </div>
+</div>
+
+<!-- Development Log -->
+<h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Development Log</h5>
+<div class="card">
+  <div class="card-body">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Date</th><th>Feature</th><th>Notes</th></tr></thead>
+      <tbody class="small">
+        <tr><td>June 2026</td><td>Core System</td><td>Flask + SQLite + DataTables</td></tr>
+        <tr><td>June 2026</td><td>Ticket Module</td><td>CRUD, filters, yearly code TK-YY-NNNN</td></tr>
+        <tr><td>June 2026</td><td>Asset Module</td><td>Smart tag 1B-PC001, retire score</td></tr>
+        <tr><td>June 2026</td><td>Staff Module</td><td>Province cards, IT filter, cascade dropdowns</td></tr>
+        <tr><td>June 2026</td><td>Dashboard</td><td>Stats by status, province, category</td></tr>
+        <tr><td>June 2026</td><td>Knowledge Base</td><td>Search, create, attach to tickets</td></tr>
+        <tr><td>June 2026</td><td>Route Planner</td><td>Leaflet choropleth, 33 districts, priority ranking</td></tr>
+        <tr><td>June 2026</td><td>Site Map</td><td>System overview + this page</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
