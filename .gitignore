@@ -15,3 +15,5 @@ __pycache__/
 .DS_Store
 Thumbs.db
 tickets.db
+Building
+docker
