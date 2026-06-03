@@ -220,7 +220,9 @@ KB = [
 ]
 
 def get_db():
-    c=sqlite3.connect(DB_PATH);c.row_factory=sqlite3.Row;return c
+    c = sqlite3.connect(DB_PATH, check_same_thread=False)
+    c.row_factory = sqlite3.Row
+    return c
 
 def init_db():
     c=get_db()
