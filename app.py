@@ -345,10 +345,10 @@ def tickets_page():
     pending=c.execute("SELECT COUNT(*) FROM tickets WHERE status='pending'").fetchone()[0]
     resolved=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
     closed_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0]
+    critical_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     c.close()
     province_to_branches = PROVINCE_TO_BRANCHES
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
-    critical_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES,
         filter_status=status, filter_priority=priority, filter_branch=branch,
         filter_province=province, filter_category=category, filter_search=search,
@@ -412,12 +412,12 @@ def staff_page():
     c=get_db();rows=c.execute('SELECT * FROM staff ORDER BY province,branch,name').fetchall()
     total=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
     itc=c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0]
+    staff_by_province = c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN is_it=1 THEN 1 ELSE 0 END) as it_cnt FROM staff GROUP BY province').fetchall()
     c.close()
     provinces = sorted(set(s['province'] for s in rows))
     roles = sorted(set(s['role'] for s in rows))
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     province_to_branches = PROVINCE_TO_BRANCHES
-    staff_by_province = c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN is_it=1 THEN 1 ELSE 0 END) as it_cnt FROM staff GROUP BY province').fetchall()
     return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches,staff_by_province=staff_by_province)
 
 @app.route('/knowledge')
