@@ -42,7 +42,7 @@
  <thead class="table-light"><tr><th>ID</th><th>หัวข้อ</th><th>หมวดหมู่</th><th>ยอดเข้าชม</th><th>จัดการ</th></tr></thead>
  <tbody>
   {% for a in articles %}
-  <tr data-id="{{ a.id }}" onclick="handleRowClick(event, '/kb/{{ a.id }}')">
+  <tr data-id="{{ a.id }}" data-category="{{ a.category }}" onclick="handleRowClick(event, '/kb/{{ a.id }}')">
    <td><span class="id-badge" style="display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:6px;font-family:monospace">{{ a.id }}</span></td>
    <td style="cursor:pointer" onclick="event.stopPropagation(); openEditKB({{ a.id }})"><strong>{{ a.title }}</strong></td>
    <td><span class="badge bg-info text-dark">{{ a.category }}</span></td>
@@ -96,7 +96,8 @@ function applyKbFilters(){
   if(!kbTable) return;
   const cat = document.getElementById('kbFilterCat').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(cat && data[2] != cat) return false;
+    var node = settings.aoData[dataIndex].nTr;
+    if(cat && node.dataset.category !== cat) return false;
     return true;
   });
   kbTable.draw();

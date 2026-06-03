@@ -91,7 +91,7 @@
  </tr></thead>
  <tbody>
   {% for t in tickets %}
-  <tr data-id="{{ t.id }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
+  <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-province="{{ t.province }}" data-category="{{ t.category }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
    <td><input type="checkbox" class="ticket-check" value="{{ t.id }}"></td>
    <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
    <td><span class="branch-tag">{{ t.branch }}</span></td>
@@ -185,11 +185,12 @@ function applyTicketFilters(){
   const category = document.getElementById('tFilterCategory').value;
   const province = document.getElementById('tFilterProvince').value;
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(status && String(data[7]).trim() !== status) return false;
-    if(priority && String(data[6]).trim() !== priority) return false;
-    if(branch && String(data[2]).trim() !== branch) return false;
-    if(category && String(data[5]).trim() !== category) return false;
-    if(province && String(data[3]).trim() !== province) return false;
+    var node = settings.aoData[dataIndex].nTr;
+    if(status && node.dataset.status !== status) return false;
+    if(priority && node.dataset.priority !== priority) return false;
+    if(branch && node.dataset.branch !== branch) return false;
+    if(category && node.dataset.category !== category) return false;
+    if(province && node.dataset.province !== province) return false;
     return true;
   });
   ticketsTable.draw();

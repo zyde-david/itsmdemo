@@ -131,14 +131,15 @@ function toggleStaffFilter(){
 // Persistent custom filter for staff — survives sorting and pagination
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   if(settings.nTable.id !== 'staffTable') return true;
+  var node = settings.aoData[dataIndex].nTr;
   const branch = document.getElementById('sFilterBranch').value;
   const province = document.getElementById('sFilterProvince').value;
   const role = document.getElementById('sFilterRole').value;
   const isIt = document.getElementById('sFilterIsIt').value;
-  if(branch && data[4] !== branch) return false;
-  if(province && data[5] !== province) return false;
-  if(role && data[3] !== role) return false;
-  if(isIt && data[6] !== isIt) return false;
+  if(branch && node.dataset.branch !== branch) return false;
+  if(province && node.dataset.province !== province) return false;
+  if(role && node.dataset.role !== role) return false;
+  if(isIt && node.dataset.isIt !== isIt) return false;
   return true;
 });
 
