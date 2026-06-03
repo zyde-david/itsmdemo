@@ -9,7 +9,7 @@ from functools import wraps
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(_BASE_DIR, 'static'))
 app.config['SECRET_KEY'] = 'demo-2026-secret'
-DB_PATH = os.path.join(_BASE_DIR, 'tickets.db')
+DB_PATH = os.environ.get('DB_PATH', os.path.join(_BASE_DIR, 'tickets.db'))
 
 app.logger.setLevel(logging.ERROR)
 
@@ -103,15 +103,21 @@ def _name():
 
 def _staff():
     S = []
+    name_pool = [
+        "นายสมชาย ใจดี","นางสาวปราณี สุขใจ","นายวิชัย รุ่งเรือง","นางสาวกนกพร พูนผล",
+        "นายธนากร ศรีสุข","นางสาวนงลักษณ์ บัวทอง","นายรัตนชัย ทองคำ","นางสาวชลิดา จันทร์เพ็ญ",
+        "นายพีรพัฒน์ ยูโซฟ","นางสาวฟาติมะห์ นาซรี","นายอาหมัด ลาหี","นางสาวนูรุลฮูดา มะนู",
+        "นายซุลธาน เทค","นายอารีฟ กอมาลี","นายฮาซัน ดือราแม","นางสาวอามีนะห์ ซอรายา",
+        "นายสุรศักดิ์ ลายเพชร","นางสาววิไล ศรีสุข","นายชัยวัฒน์ เจะอาแซ","นางสาวรัตนา สมบูรณ์",
+    ]
+    idx = 0
     for b in ALL_BRANCHES:
-        n = random.randint(11,15) if b["type"]=="main" else random.randint(6,9) if b["type"]=="service_point" else random.randint(9,13)
-        u = set()
-        pool = ["ผู้จัดการสาขา","รองผู้จัดการสาขา","เจ้าหน้าที่บัญชี","เจ้าหน้าที่บัญชี","เจ้าหน้าที่สินเชื่อ","เจ้าหน้าที่รับ-ส่งเงิน","เจ้าหน้าที่รับ-ส่งเงิน","เจ้าหน้าที่สมาชิก","เจ้าหน้าที่คอมพิวเตอร์","IT Support","พนักงานต้อนรับ","พนักงานรักษาความปลอดภัย","พนักงานทำความสะอาด"] if b["type"]=="main" else ["ผู้จัดการสาขา","เจ้าหน้าที่บัญชี","เจ้าหน้าที่สินเชื่อ","เจ้าหน้าที่รับ-ส่งเงิน","เจ้าหน้าที่สมาชิก","เจ้าหน้าที่คอมพิวเตอร์","พนักงานต้อนรับ","พนักงานรักษาความปลอดภัย","พนักงานทำความสะอาด"]
-        while len(pool)<n: pool.append(random.choice(["เจ้าหน้าที่บัญชี","เจ้าหน้าที่สินเชื่อ","เจ้าหน้าที่สมาชิก","พนักงานต้อนรับ","เจ้าหน้าที่สนับสนุน"]))
+        n = random.randint(3,5) if b["type"]=="main" else random.randint(2,3) if b["type"]=="service_point" else random.randint(2,4)
+        pool = ["ผู้จัดการสาขา","เจ้าหน้าที่บัญชี","เจ้าหน้าที่สินเชื่อ","เจ้าหน้าที่รับ-ส่งเงิน","เจ้าหน้าที่สมาชิก","เจ้าหน้าที่คอมพิวเตอร์","IT Support","พนักงานต้อนรับ"] if b["type"]=="main" else ["ผู้จัดการสาขา","เจ้าหน้าที่บัญชี","เจ้าหน้าที่สมาชิก","เจ้าหน้าที่คอมพิวเตอร์","พนักงานต้อนรับ"]
+        while len(pool)<n: pool.append(random.choice(["เจ้าหน้าที่บัญชี","เจ้าหน้าที่สมาชิก","พนักงานต้อนรับ"]))
         for i in range(n):
-            for _ in range(20):
-                nm = _name()
-                if nm not in u: u.add(nm); break
+            nm = name_pool[idx % len(name_pool)]
+            idx += 1
             role = pool[i] if i<len(pool) else random.choice(["เจ้าหน้าที่บัญชี","เจ้าหน้าที่สมาชิก"])
             S.append({"name":nm,"role":role,"branch":b["branch"],"province":b["province"],"is_it":role=="IT Support"})
     return S
@@ -122,7 +128,7 @@ def _tickets(S):
     if not IT: IT = [{"name":"นายซุลธาน เทค","branch":"สาขาเมืองปัตตานี","province":"ปัตตานี"},{"name":"นายอารีฟ","branch":"สาขาเมืองนราธิวาส","province":"นราธิวาส"}]
     T = []
     tc = 0
-    for _ in range(random.randint(85,105)):
+    for _ in range(random.randint(20,30)):
         tc += 1
         year_code = datetime.utcnow().strftime('%y')
         ticket_code = f"TK-{year_code}-{tc:04d}"
@@ -150,7 +156,7 @@ def _assets():
     AC = {"คอมพิวเตอร์":{"m":["Dell OptiPlex 3090","HP ProDesk 400 G7","Lenovo M70q"],"p":"PC","spec":"Core i5/8GB/256GB SSD"},"เครื่องพิมพ์":{"m":["HP LaserJet M404dn","Epson L3250","Brother HL-L2350DW","Canon G3010"],"p":"PRT","spec":"Laser/Inkjet A4"},"Scanner":{"m":["Fujitsu fi-7160","Epson DS-1640","Brother DS-640"],"p":"SCN","spec":"A4 Duplex 60ppm"},"Router":{"m":["Cisco ISR 1111","MikroTik hEX","TP-Link ER7206"],"p":"RT","spec":"Gigabit VPN Router"},"Switch":{"m":["Cisco SG250-26","TP-Link TL-SG1024","MikroTik CRS326"],"p":"SW","spec":"24-Port Gigabit"},"UPS":{"m":["APC 1500VA","Eaton 5S 1500VA","CyberPower OL2000"],"p":"UPS","spec":"1500VA Online"}}
     S_pool = ["นายสมชาย ใจดี","นางสาวปราณี สุขใจ","นายวิชัai","นางสาวกนกพร พูนผล"]
     for b in ALL_BRANCHES:
-        n = random.randint(4,6) if b["type"]=="main" else random.randint(1,3) if b["type"]=="service_point" else random.randint(2,4)
+        n = random.randint(2,3) if b["type"]=="main" else random.randint(1,2) if b["type"]=="service_point" else random.randint(1,2)
         ch = random.sample(list(AC.keys()),k=min(n,len(AC)))
         if n>=2: ch[0]="คอมพิวเตอร์"
         if n>=3: ch[1]="เครื่องพิมพ์"
@@ -650,9 +656,27 @@ def howto_page():
 def route_planner_page():
     return render_template('route-planner.html')
 
-if __name__=='__main__':
-    import hashlib as _h
-    init_db()
-    c=get_db();ns=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0];nt=c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0];na=c.execute('SELECT COUNT(*) FROM assets').fetchone()[0];c.close()
-    print('='*60);print(f'  IT Ticket Demo');print(f'  {ns} staff | {nt} tickets | {na} assets | {NUM_BRANCHES} branches');print(f'  http://localhost:5000');print(f'  Password: demo2026');print('='*60)
-    app.run(host='0.0.0.0',port=5000,debug=False)
+def _start_init_db():
+    """Run init_db in a background thread so it doesn't block gunicorn startup."""
+    try:
+        init_db()
+        c = get_db()
+        ns = c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
+        nt = c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
+        na = c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
+        c.close()
+        print(f'[INIT OK] {ns} staff, {nt} tickets, {na} assets')
+    except Exception as e:
+        print(f'[INIT ERR] {e}')
+
+if __name__ == '__main__':
+    import threading
+    t = threading.Thread(target=_start_init_db, daemon=True)
+    t.start()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
+else:
+    # Running under gunicorn — init_db runs in background thread
+    import threading
+    t = threading.Thread(target=_start_init_db, daemon=True)
+    t.start()
