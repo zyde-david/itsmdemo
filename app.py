@@ -62,6 +62,12 @@ ALL_BRANCHES = [
  {"branch":"สาขาเจาะไอร้อง","district":"เจาะไอร้อง","province":"นราธิวาส","type":"branch"},
 ]
 NUM_BRANCHES = len(ALL_BRANCHES)  # 33
+PROVINCE_TO_BRANCHES = {}
+for b in ALL_BRANCHES:
+    prov = b['province']
+    if prov not in PROVINCE_TO_BRANCHES:
+        PROVINCE_TO_BRANCHES[prov] = []
+    PROVINCE_TO_BRANCHES[prov].append({'branch': b['branch'], 'district': b['district']})
 DISTRICT_TO_PROVINCE = {b['district']: b['province'] for b in ALL_BRANCHES}
 DISTRICT_TO_BRANCH = {b['district']: b['branch'] for b in ALL_BRANCHES}
 ALL_DISTRICTS = sorted(set(b['district'] for b in ALL_BRANCHES))
@@ -283,6 +289,7 @@ def tickets_page():
     resolved=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
     closed_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0]
     c.close()
+    province_to_branches = PROVINCE_TO_BRANCHES
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     critical_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES,
@@ -291,6 +298,7 @@ def tickets_page():
         total=total, open_tickets=open_tickets, in_progress=in_progress,
         pending=pending, resolved=resolved, closed_tickets=closed_tickets,
         branch_to_province=branch_to_province,
+        province_to_branches=province_to_branches,
         critical_tickets=critical_tickets)
 
 @app.route('/ticket/<int:ticket_id>')
@@ -337,8 +345,9 @@ def assets_page():
         a = dict(r)
         a['province'] = branch_to_province.get(a['branch'], '-')
         assets_list.append(a)
+    province_to_branches = PROVINCE_TO_BRANCHES
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
-    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES,asset_types=sorted(set(a['asset_type'] for a in assets_list)),branch_to_province=branch_to_province)
+    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES,asset_types=sorted(set(a['asset_type'] for a in assets_list)),branch_to_province=branch_to_province,province_to_branches=province_to_branches)
 
 @app.route('/staff')
 @login_required

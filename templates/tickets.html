@@ -71,7 +71,7 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">จังหวัด</label>
-    <select class="form-select form-select-sm" id="tFilterProvince" onchange="applyTicketFilters()">
+    <select class="form-select form-select-sm" id="tFilterProvince" onchange="filterBranchByProvince(this.value);applyTicketFilters()">
      <option value="">ทั้งหมด</option>
      <option value="ปัตตานี">ปัตตานี</option>
      <option value="ยะลา">ยะลา</option>
@@ -178,6 +178,34 @@ function toggleTicketFilter(){
 }
 
 var branchToProvince = {{ branch_to_province|tojson }};
+var provinceToBranches = {{ province_to_branches|tojson }};
+
+function filterBranchByProvince(province){
+  var sel = document.getElementById('tFilterBranch');
+  var currentVal = sel.value;
+  // Save all options on first run
+  if(!sel.dataset.allopts){
+    var opts = [];
+    for(var i=0;i<sel.options.length;i++) opts.push({v:sel.options[i].value,t:sel.options[i].text});
+    sel.dataset.allopts = JSON.stringify(opts);
+  }
+  var allOpts = JSON.parse(sel.dataset.allopts);
+  sel.innerHTML = '';
+  if(!province){
+    // Show all
+    allOpts.forEach(function(o){ var opt=document.createElement('option'); opt.value=o.v; opt.text=o.t; sel.appendChild(opt); });
+  } else {
+    // Show only "ทั้งหมด" + branches in province
+    var defaultOpt = allOpts[0]; // ทั้งหมด
+    sel.appendChild(new Option(defaultOpt.t, defaultOpt.v));
+    var branches = provinceToBranches[province] || [];
+    branches.forEach(function(b){
+      sel.appendChild(new Option(b.district, b.branch));
+    });
+  }
+  // Restore selection if still valid
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
+}
 
 function applyTicketFilters(){
   if(!ticketsTable) return;
@@ -186,7 +214,6 @@ function applyTicketFilters(){
   const branch = document.getElementById('tFilterBranch').value;
   const category = document.getElementById('tFilterCategory').value;
   const province = document.getElementById('tFilterProvince').value;
-  const branch = document.getElementById('tFilterBranch').value;
   // Cascade: branch → province
   if(branch && branchToProvince[branch] && !province){
     document.getElementById('tFilterProvince').value = branchToProvince[branch];

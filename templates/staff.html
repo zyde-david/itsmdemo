@@ -31,7 +31,7 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">จังหวัด</label>
-    <select class="form-select form-select-sm" id="sFilterProvince" onchange="applyStaffFilters()">
+    <select class="form-select form-select-sm" id="sFilterProvince" onchange="filterStaffBranchByProvince(this.value);applyStaffFilters()">
      <option value="">ทั้งหมด</option>
      {% for p in staff_provinces %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
     </select>
@@ -129,6 +129,27 @@ function toggleStaffFilter(){
 }
 
 var branchToProvince = {{ branch_to_province|tojson }};
+var provinceToBranches = {{ province_to_branches|tojson }};
+
+function filterStaffBranchByProvince(province){
+  var sel = document.getElementById('sFilterBranch');
+  var currentVal = sel.value;
+  if(!sel.dataset.allopts){
+    var opts = [];
+    for(var i=0;i<sel.options.length;i++) opts.push({v:sel.options[i].value,t:sel.options[i].text});
+    sel.dataset.allopts = JSON.stringify(opts);
+  }
+  var allOpts = JSON.parse(sel.dataset.allopts);
+  sel.innerHTML = '';
+  if(!province){
+    allOpts.forEach(function(o){ var opt=document.createElement('option'); opt.value=o.v; opt.text=o.t; sel.appendChild(opt); });
+  } else {
+    sel.appendChild(new Option(allOpts[0].t, allOpts[0].v));
+    var branches = provinceToBranches[province] || [];
+    branches.forEach(function(b){ sel.appendChild(new Option(b.district, b.branch)); });
+  }
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
+}
 
 // Persistent custom filter for staff — survives sorting and pagination
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
