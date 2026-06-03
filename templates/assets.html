@@ -48,13 +48,6 @@
     </select>
    </div>
    <div class="col-md-2">
-    <label class="form-label small mb-1">อำเภอ</label>
-    <select class="form-select form-select-sm" id="aFilterDistrict" onchange="applyAssetFilters()">
-     <option value="">ทั้งหมด</option>
-     {% for d in all_districts %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
-    </select>
-   </div>
-   <div class="col-md-2">
     <label class="form-label small mb-1">จังหวัด</label>
     <select class="form-select form-select-sm" id="aFilterProvince" onchange="applyAssetFilters()">
      <option value="">ทั้งหมด</option>
@@ -79,7 +72,7 @@
  </tr></thead>
  <tbody>
   {% for a in assets %}
-  <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}" data-district="{{ a.get('district','') }}" onclick="handleRowClick(event, '/asset/{{ a.id }}')">
+  <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}" onclick="handleRowClick(event, '/asset/{{ a.id }}')">
    <td><input type="checkbox" class="asset-check" value="{{ a.id }}"></td>
    <td><span class="id-badge">{{ a.id }}</span></td>
    <td><span class="branch-tag">{{ a.branch }}</span></td>
@@ -139,7 +132,7 @@ function toggleAssetFilter(){
 
 function filterAssetStatus(s){document.getElementById('aFilterStatus').value=s;applyAssetFilters();}
 
-var districtToProvince = {{ district_to_province|tojson }};
+var branchToProvince = {{ branch_to_province|tojson }};
 
 function applyAssetFilters(){
   if(!window.assetTable) return;
@@ -147,16 +140,15 @@ function applyAssetFilters(){
   const type = document.getElementById('aFilterType').value;
   const branch = document.getElementById('aFilterBranch').value;
   const province = document.getElementById('aFilterProvince').value;
-  const district = document.getElementById('aFilterDistrict').value;
-  if(district && districtToProvince[district] && !province){
-    document.getElementById('aFilterProvince').value = districtToProvince[district];
+  const branch = document.getElementById('aFilterBranch').value;
+  if(branch && branchToProvince[branch] && !province){
+    document.getElementById('aFilterProvince').value = branchToProvince[branch];
   }
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
     var node = settings.aoData[dataIndex].nTr;
     if(status && node.dataset.status !== status) return false;
     if(type && node.dataset.type !== type) return false;
     if(branch && node.dataset.branch !== branch) return false;
-    if(district && node.dataset.district !== district) return false;
     if(province && node.dataset.province !== province) return false;
     return true;
   });
