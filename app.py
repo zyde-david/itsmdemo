@@ -68,10 +68,6 @@ for b in ALL_BRANCHES:
     if prov not in PROVINCE_TO_BRANCHES:
         PROVINCE_TO_BRANCHES[prov] = []
     PROVINCE_TO_BRANCHES[prov].append({'branch': b['branch'], 'district': b['district']})
-DISTRICT_TO_PROVINCE = {b['district']: b['province'] for b in ALL_BRANCHES}
-DISTRICT_TO_BRANCH = {b['district']: b['branch'] for b in ALL_BRANCHES}
-ALL_DISTRICTS = sorted(set(b['district'] for b in ALL_BRANCHES))
-BRANCH_TO_DISTRICT = {b['branch']: b['district'] for b in ALL_BRANCHES}
 
 TICKET_CATS = {
  "ระบบ Core Banking":{"titles":["Core Banking ล่ม","เข้า Core ไม่ได้","บันทึกรายการไม่ได้","ถอนเงินผิดพลาด","ปิดรอบวันไม่ได้","พิมพ์ใบเสร็จไม่ได้","สินเชื่อดอกเบี้ยผิดปกติ","ระบบสมาชิก Error"],"priority":"critical","ai":"1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"},
@@ -358,9 +354,9 @@ def staff_page():
     c.close()
     provinces = sorted(set(s['province'] for s in rows))
     roles = sorted(set(s['role'] for s in rows))
-    district_to_province = {b['district']: b['province'] for b in ALL_BRANCHES}
-    all_districts = sorted(set(b['district'] for b in ALL_BRANCHES))
-    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles,district_to_province=district_to_province,all_districts=all_districts)
+    branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+    province_to_branches = PROVINCE_TO_BRANCHES
+    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches)
 
 @app.route('/knowledge')
 @login_required
