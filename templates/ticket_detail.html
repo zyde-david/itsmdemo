@@ -163,12 +163,12 @@
             <div class="card-header bg-white fw-bold"><i class="bi bi-book me-2"></i>ความรู้ (KB)</div>
             <div class="card-body">
                 <div class="input-group input-group-sm mb-2">
-                    <select class="form-select form-select-sm" id="kbSelect" onchange="attachKb()">
-                        <option value="">-- แนบบทความ KB --</option>
-                        {% for kb in kb_articles %}
-                        <option value="{{ kb.id }}" {% if ticket.kb_id == kb.id %}selected{% endif %}>{{ kb.title }} ({{ kb.category }})</option>
-                        {% endfor %}
-                    </select>
+                    <input type="text" class="form-control form-control-sm" id="kbSearch" placeholder="ค้นหา KB..." oninput="searchKb()">
+                </div>
+                <div id="kbResults" class="mb-2" style="max-height:200px;overflow-y:auto;"></div>
+                <div id="kbNoResult" class="text-center py-2 d-none">
+                    <small class="text-muted">ไม่พบ KB ที่เกี่ยวข้อง</small><br>
+                    <button class="btn btn-sm btn-outline-primary mt-1" onclick="openNewKbModal()"><i class="bi bi-plus-lg me-1"></i>สร้าง KB ใหม่ & แนบ</button>
                 </div>
                 {% if ticket.kb_id %}
                 <div class="alert alert-info py-1 px-2 mb-0 small">
@@ -176,6 +176,34 @@
                     — <a href="/kb/{{ kb_linked.id }}" target="_blank">ดูบทความ</a>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- New KB Modal -->
+        <div class="modal fade" id="newKbModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title">สร้าง KB ใหม่ & แนบ</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" class="form-control form-control-sm mb-2" id="newKbTitle" placeholder="หัวข้อ">
+                        <select class="form-select form-select-sm mb-2" id="newKbCat">
+                            <option value="เครื่องพิมพ์">เครื่องพิมพ์</option>
+                            <option value="เครือข่าย">เครือข่าย</option>
+                            <option value="VPN">VPN</option>
+                            <option value="Core Banking">Core Banking</option>
+                            <option value="คอมพิวเตอร์">คอมพิวเตอร์</option>
+                            <option value="ทั่วไป">ทั่วไป</option>
+                        </select>
+                        <textarea class="form-control form-control-sm" id="newKbContent" rows="5" placeholder="เนื้อหา..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button class="btn btn-sm btn-primary" onclick="createAndAttachKb()"><i class="bi bi-check-lg me-1"></i>สร้าง & แนบ</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -222,12 +250,56 @@ async function linkAsset(){
     await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:parseInt(assetId)})});
     location.reload();
 }
-async function attachKb(){
-    const kbId = document.getElementById('kbSelect').value;
-    if(!kbId)return;
-    await fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:parseInt(kbId)})});
-    location.reload();
+var KB_ARTICLES = {{ kb_articles|tojson }};
+
+function searchKb(){
+    var q = document.getElementById('kbSearch').value.toLowerCase().trim();
+    var results = document.getElementById('kbResults');
+    var noResult = document.getElementById('kbNoResult');
+    results.innerHTML = '';
+    if(!q){ noResult.classList.add('d-none'); return; }
+    var matched = KB_ARTICLES.filter(function(kb){
+        return kb.title.toLowerCase().indexOf(q)>=0 || kb.category.toLowerCase().indexOf(q)>=0;
+    });
+    if(matched.length === 0){
+        noResult.classList.remove('d-none');
+    } else {
+        noResult.classList.add('d-none');
+        matched.forEach(function(kb){
+            var div = document.createElement('div');
+            div.className = 'd-flex justify-content-between align-items-center p-2 border-bottom small';
+            div.innerHTML = '<span><strong>'+kb.title+'</strong> <span class="text-muted">('+kb.category+')</span></span><button class="btn btn-sm btn-outline-primary" onclick="attachKbArticle('+kb.id+')">แนบ</button>';
+            results.appendChild(div);
+        });
+    }
 }
+
+function attachKbArticle(kbId){
+    fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:kbId})}).then(function(){location.reload();});
+}
+
+function openNewKbModal(){
+    document.getElementById('kbSearch').value = '';
+    document.getElementById('kbResults').innerHTML = '';
+    document.getElementById('kbNoResult').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('newKbModal')).show();
+}
+
+function createAndAttachKb(){
+    var title = document.getElementById('newKbTitle').value.trim();
+    var cat = document.getElementById('newKbCat').value;
+    var content = document.getElementById('newKbContent').value.trim();
+    if(!title || !content){ alert('กรุณากรอกหัวข้อและเนื้อหา'); return; }
+    fetch('/api/kb/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:title,category:cat,content:content})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+        if(d.success){
+            fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:d.id})})
+            .then(function(){location.reload();});
+        }
+    });
+}
+
 (function(){
     const c=new Date('{{ ticket.created_at }}Z');
     const r='{{ ticket.resolved_at }}'?new Date('{{ ticket.resolved_at }}Z'):new Date();

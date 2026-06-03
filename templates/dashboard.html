@@ -77,6 +77,57 @@
     </div>
 </div>
 
+<div class="row g-3 mt-2">
+    <div class="col-6 col-md-3">
+        <a href="/assets" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Assets ทั้งหมด</h6>
+                    <h3 class="mb-0 fw-bold text-primary">{{ total_assets }}</h3>
+                </div>
+                <i class="bi bi-box-seam stat-icon text-primary"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/assets?status=active" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">Active</h6>
+                    <h3 class="mb-0 fw-bold text-success">{{ active_assets }}</h3>
+                </div>
+                <i class="bi bi-check-circle stat-icon text-success"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/staff" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">พนักงานทั้งหมด</h6>
+                    <h3 class="mb-0 fw-bold text-info">{{ total_staff }}</h3>
+                </div>
+                <i class="bi bi-people stat-icon text-info"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="/knowledge" class="text-decoration-none">
+        <div class="card card-stat p-3" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">KB Articles</h6>
+                    <h3 class="mb-0 fw-bold text-secondary">{{ total_kb }}</h3>
+                </div>
+                <i class="bi bi-book stat-icon text-secondary"></i>
+            </div>
+        </div></a>
+    </div>
+</div>
+
 <div class="row g-3">
     <!-- Province Summary -->
     <div class="col-md-4">

@@ -69,6 +69,15 @@ for b in ALL_BRANCHES:
         PROVINCE_TO_BRANCHES[prov] = []
     PROVINCE_TO_BRANCHES[prov].append({'branch': b['branch'], 'district': b['district']})
 
+CATEGORY_CODES = {'คอมพิวเตอร์':'PC','เครื่องพิมพ์':'PR','Scanner':'SC','Router':'RT','Switch':'SW','UPS':'UP'}
+BRANCH_CODES = {}
+for prov in ['ปัตตานี','ยะลา','นราธิวาส']:
+    branches_in_prov = [b for b in ALL_BRANCHES if b['province']==prov]
+    for i, b in enumerate(branches_in_prov):
+        code = str(i+1) if i < 9 else chr(ord('A') + i - 9)
+        BRANCH_CODES[b['branch']] = code
+PROVINCE_CODES = {'ปัตตานี':'1','ยะลา':'2','นราธิวาส':'3'}
+
 TICKET_CATS = {
  "ระบบ Core Banking":{"titles":["Core Banking ล่ม","เข้า Core ไม่ได้","บันทึกรายการไม่ได้","ถอนเงินผิดพลาด","ปิดรอบวันไม่ได้","พิมพ์ใบเสร็จไม่ได้","สินเชื่อดอกเบี้ยผิดปกติ","ระบบสมาชิก Error"],"priority":"critical","ai":"1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"},
  "เครือข่าย/อินเทอร์เน็ต":{"titles":["อินเทอร์เน็ตไม่ได้","อินเทอร์เน็ตช้า","WiFi ดรอป","WAN IP เปลี่ยน","DNS ไม่ resolve","Firewall Block","IP Camera ภาพไม่ขึ้น"],"priority":"high","ai":"1. เช็ค Router/Switch\n2. Ping Gateway\n3. เช็ค LAN\n4. รีสตาร์ท Modem"},
@@ -115,7 +124,8 @@ def _tickets(S):
     tc = 0
     for _ in range(random.randint(85,105)):
         tc += 1
-        ticket_code = f"TK-26-{tc:04d}"
+        year_code = datetime.utcnow().strftime('%y')
+        ticket_code = f"TK-{year_code}-{tc:04d}"
         cat = random.choice(list(TICKET_CATS.keys()))
         cd = TICKET_CATS[cat]
         rep = random.choice(EU)
@@ -150,11 +160,16 @@ def _assets():
             sc[p]=sc.get(p,100)+1
             sn=f"{bn:02d}{p}{sc[p]:04d}"
             asset_code=f"{bn:02d}{p}{sc[p]:04d}"
+            prov_code = PROVINCE_CODES.get(b['province'],'0')
+            br_code = BRANCH_CODES.get(b['branch'],'0')
+            cat_code = CATEGORY_CODES.get(at,'XX')
+            seq = sc[p] - 100
+            asset_tag = f"{prov_code}{br_code}-{cat_code}{seq:03d}"
             st=random.choices(["active","active","active","active","maintenance","retired"],weights=[65,12,8,5,5,5],k=1)[0]
             lc=datetime.now()-timedelta(days=random.randint(3,60))
             nx=lc+timedelta(days=90)
             nm2={"active":random.choice(["สถานะปกติ","ใช้งานปกติ"]),"maintenance":random.choice(["รออะไหล่","ส่งซ่อน"]),"retired":random.choice(["เกษียณแล้ว","รอจำหน่าย"])}
-            A.append({"asset_code":asset_code,"branch":b["branch"],"asset_type":at,"name":mdl,"serial":sn,"status":st,"brand":mdl.split()[0],"spec":sp,"assigned_to":random.choice(S_pool),"last_check":lc.strftime("%Y-%m-%d"),"next_check":nx.strftime("%Y-%m-%d"),"notes":nm2.get(st,"")})
+            A.append({"asset_code":asset_code,"asset_tag":asset_tag,"branch":b["branch"],"asset_type":at,"name":mdl,"serial":sn,"status":st,"brand":mdl.split()[0],"spec":sp,"assigned_to":random.choice(S_pool),"last_check":lc.strftime("%Y-%m-%d"),"next_check":nx.strftime("%Y-%m-%d"),"notes":nm2.get(st,"")})
     return A
 
 KB = [
@@ -194,6 +209,9 @@ def init_db():
     cols = [row[1] for row in c.execute('PRAGMA table_info(tickets)')]
     if 'kb_id' not in cols:
         c.execute('ALTER TABLE tickets ADD COLUMN kb_id INTEGER DEFAULT 0')
+    cols_assets = [row[1] for row in c.execute('PRAGMA table_info(assets)')]
+    if 'asset_tag' not in cols_assets:
+        c.execute('ALTER TABLE assets ADD COLUMN asset_tag TEXT DEFAULT \'\'')
     if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
         c.close();return
     print('Seeding...')
@@ -230,7 +248,7 @@ def dashboard():
     pend=c.execute("SELECT COUNT(*) FROM tickets WHERE status='pending'").fetchone()[0]
     critical=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     recent=c.execute('SELECT * FROM tickets ORDER BY created_at DESC LIMIT 10').fetchall()
-    bp=c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as oc FROM tickets GROUP BY province').fetchall()
+    bp=c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as open_cnt FROM tickets GROUP BY province').fetchall()
     bc=c.execute('SELECT category,COUNT(*) as cnt FROM tickets GROUP BY category ORDER BY cnt DESC').fetchall()
     ns=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
     na=c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
@@ -303,7 +321,7 @@ def ticket_detail(ticket_id):
     c=get_db()
     t=c.execute('SELECT * FROM tickets WHERE id=?',(ticket_id,)).fetchone()
     notes=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(ticket_id,)).fetchall()
-    staff=c.execute('SELECT * FROM staff ORDER BY is_it DESC, name').fetchall()
+    staff=c.execute('SELECT * FROM staff WHERE is_it=1 ORDER BY name').fetchall()
     assets=c.execute('SELECT * FROM assets WHERE status="active" ORDER BY branch,serial').fetchall()
     kb=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall()
     kb_linked=None
@@ -356,7 +374,8 @@ def staff_page():
     roles = sorted(set(s['role'] for s in rows))
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     province_to_branches = PROVINCE_TO_BRANCHES
-    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches)
+    staff_by_province = c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN is_it=1 THEN 1 ELSE 0 END) as it_cnt FROM staff GROUP BY province').fetchall()
+    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches,staff_by_province=staff_by_province)
 
 @app.route('/knowledge')
 @login_required
@@ -568,6 +587,22 @@ def api_kb_delete(kid):
     c=get_db();c.execute('DELETE FROM knowledge_base WHERE id=?',(kid,));c.commit();c.close()
     return jsonify(success=True)
 
+
+@app.route('/api/kb/create',methods=['POST'])
+@login_required
+def api_kb_create():
+    data = request.get_json()
+    title = data.get('title','').strip()
+    cat = data.get('category','').strip()
+    content = data.get('content','').strip()
+    if not title or not content:
+        return jsonify({'success':False,'error':'ข้อมูลไม่ครบ'})
+    c = get_db()
+    c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,0)',(title,cat,content))
+    kb_id = c.lastrowid
+    c.commit()
+    c.close()
+    return jsonify({'success':True,'id':kb_id})
 
 if __name__=='__main__':
     import hashlib as _h

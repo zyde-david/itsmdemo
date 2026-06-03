@@ -13,6 +13,21 @@
  <div class="col-6 col-md-6"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทีม IT</h6><h4 class="mb-0 fw-bold text-success">{{ it_count }}</h4></div></div></div>
 </div>
 
+<!-- Province Summary Cards -->
+<div class="row g-2 mb-3">
+ {% for pv in staff_by_province %}
+ <div class="col-4 col-md-4">
+  <div class="card card-stat p-2">
+   <div class="text-center">
+    <h6 class="text-muted small mb-1">{{ pv.province }}</h6>
+    <h4 class="mb-0 fw-bold text-primary">{{ pv.cnt }} คน</h4>
+    <small class="text-muted">{{ pv.it_cnt }} IT</small>
+   </div>
+  </div>
+ </div>
+ {% endfor %}
+</div>
+
 <!-- Filter Row -->
 <div class="card mb-3">
  <div class="card-body py-2">

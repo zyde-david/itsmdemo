@@ -74,7 +74,7 @@
   {% for a in assets %}
   <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}" onclick="handleRowClick(event, '/asset/{{ a.id }}')">
    <td><input type="checkbox" class="asset-check" value="{{ a.id }}"></td>
-   <td><span class="id-badge">{{ a.id }}</span></td>
+   <td><span class="id-badge">{{ a.asset_tag or a.asset_code or a.id }}</span></td>
    <td><span class="branch-tag">{{ a.branch }}</span></td>
    <td><small>{{ a.province }}</small></td>
    <td>{{ a.asset_type }}</td>
