@@ -30,6 +30,13 @@
     </select>
    </div>
    <div class="col-md-2">
+    <label class="form-label small mb-1">อำเภอ</label>
+    <select class="form-select form-select-sm" id="sFilterDistrict" onchange="applyStaffFilters()">
+     <option value="">ทั้งหมด</option>
+     {% for d in all_districts %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+    </select>
+   </div>
+   <div class="col-md-2">
     <label class="form-label small mb-1">จังหวัด</label>
     <select class="form-select form-select-sm" id="sFilterProvince" onchange="applyStaffFilters()">
      <option value="">ทั้งหมด</option>
@@ -67,7 +74,7 @@
   </tr></thead>
   <tbody>
    {% for s in staff %}
-   <tr data-id="{{ s.id }}" data-branch="{{ s.branch }}" data-province="{{ s.province }}" data-role="{{ s.role }}" data-is-it="{{ s.is_it }}" onclick="handleRowClick(event, null, {{ s.id }})">
+   <tr data-id="{{ s.id }}" data-branch="{{ s.branch }}" data-province="{{ s.province }}" data-district="{{ s.get('district','') }}" data-role="{{ s.role }}" data-is-it="{{ s.is_it }}" onclick="handleRowClick(event, null, {{ s.id }})">
     <td><input type="checkbox" class="staff-check" value="{{ s.id }}"></td>
     <td>{{ loop.index }}</td>
     <td><strong>{{ s.name }}</strong></td>
@@ -128,15 +135,23 @@ function toggleStaffFilter(){
   chevron.classList.toggle('bi-chevron-right');
 }
 
+var districtToProvince = {{ district_to_province|tojson }};
+
 // Persistent custom filter for staff — survives sorting and pagination
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   if(settings.nTable.id !== 'staffTable') return true;
   var node = settings.aoData[dataIndex].nTr;
   const branch = document.getElementById('sFilterBranch').value;
   const province = document.getElementById('sFilterProvince').value;
+  const district = document.getElementById('sFilterDistrict').value;
   const role = document.getElementById('sFilterRole').value;
   const isIt = document.getElementById('sFilterIsIt').value;
+  // Cascade: district → province
+  if(district && districtToProvince[district] && !province){
+    document.getElementById('sFilterProvince').value = districtToProvince[district];
+  }
   if(branch && node.dataset.branch !== branch) return false;
+  if(district && node.dataset.district !== district) return false;
   if(province && node.dataset.province !== province) return false;
   if(role && node.dataset.role !== role) return false;
   if(isIt && node.dataset.isIt !== isIt) return false;

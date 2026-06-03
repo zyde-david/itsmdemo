@@ -70,6 +70,13 @@
     </select>
    </div>
    <div class="col-md-2">
+    <label class="form-label small mb-1">อำเภอ</label>
+    <select class="form-select form-select-sm" id="tFilterDistrict" onchange="applyTicketFilters()">
+     <option value="">ทั้งหมด</option>
+     {% for d in all_districts %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+    </select>
+   </div>
+   <div class="col-md-2">
     <label class="form-label small mb-1">จังหวัด</label>
     <select class="form-select form-select-sm" id="tFilterProvince" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
@@ -91,7 +98,7 @@
  </tr></thead>
  <tbody>
   {% for t in tickets %}
-  <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-province="{{ t.province }}" data-category="{{ t.category }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
+  <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-province="{{ t.province }}" data-district="{{ t.get('district','') }}" data-category="{{ t.category }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
    <td><input type="checkbox" class="ticket-check" value="{{ t.id }}"></td>
    <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
    <td><span class="branch-tag">{{ t.branch }}</span></td>
@@ -177,6 +184,8 @@ function toggleTicketFilter(){
   chevron.classList.toggle('bi-chevron-right');
 }
 
+var districtToProvince = {{ district_to_province|tojson }};
+
 function applyTicketFilters(){
   if(!ticketsTable) return;
   const status = document.getElementById('tFilterStatus').value;
@@ -184,12 +193,18 @@ function applyTicketFilters(){
   const branch = document.getElementById('tFilterBranch').value;
   const category = document.getElementById('tFilterCategory').value;
   const province = document.getElementById('tFilterProvince').value;
+  const district = document.getElementById('tFilterDistrict').value;
+  // Cascade: district → province
+  if(district && districtToProvince[district] && !province){
+    document.getElementById('tFilterProvince').value = districtToProvince[district];
+  }
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
     var node = settings.aoData[dataIndex].nTr;
     if(status && node.dataset.status !== status) return false;
     if(priority && node.dataset.priority !== priority) return false;
     if(branch && node.dataset.branch !== branch) return false;
     if(category && node.dataset.category !== category) return false;
+    if(district && node.dataset.district !== district) return false;
     if(province && node.dataset.province !== province) return false;
     return true;
   });

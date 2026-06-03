@@ -62,6 +62,10 @@ ALL_BRANCHES = [
  {"branch":"สาขาเจาะไอร้อง","district":"เจาะไอร้อง","province":"นราธิวาส","type":"branch"},
 ]
 NUM_BRANCHES = len(ALL_BRANCHES)  # 33
+DISTRICT_TO_PROVINCE = {b['district']: b['province'] for b in ALL_BRANCHES}
+DISTRICT_TO_BRANCH = {b['district']: b['branch'] for b in ALL_BRANCHES}
+ALL_DISTRICTS = sorted(set(b['district'] for b in ALL_BRANCHES))
+BRANCH_TO_DISTRICT = {b['branch']: b['district'] for b in ALL_BRANCHES}
 
 TICKET_CATS = {
  "ระบบ Core Banking":{"titles":["Core Banking ล่ม","เข้า Core ไม่ได้","บันทึกรายการไม่ได้","ถอนเงินผิดพลาด","ปิดรอบวันไม่ได้","พิมพ์ใบเสร็จไม่ได้","สินเชื่อดอกเบี้ยผิดปกติ","ระบบสมาชิก Error"],"priority":"critical","ai":"1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"},
@@ -271,7 +275,13 @@ def tickets_page():
     if where:
         q += ' WHERE ' + ' AND '.join(where)
     q += ' ORDER BY created_at DESC'
-    rows=c.execute(q, params).fetchall()
+    raw_rows=c.execute(q, params).fetchall()
+    branch_to_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
+    rows = []
+    for r in raw_rows:
+        row = dict(r)
+        row['district'] = branch_to_district.get(row['branch'], '')
+        rows.append(row)
     total=c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
     open_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0]
     in_progress=c.execute("SELECT COUNT(*) FROM tickets WHERE status='in_progress'").fetchone()[0]
@@ -279,11 +289,16 @@ def tickets_page():
     resolved=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
     closed_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0]
     c.close()
+    district_to_province = {b['district']: b['province'] for b in ALL_BRANCHES}
+    all_districts = sorted(set(b['district'] for b in ALL_BRANCHES))
+    critical_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES,
         filter_status=status, filter_priority=priority, filter_branch=branch,
         filter_province=province, filter_category=category, filter_search=search,
         total=total, open_tickets=open_tickets, in_progress=in_progress,
-        pending=pending, resolved=resolved, closed_tickets=closed_tickets)
+        pending=pending, resolved=resolved, closed_tickets=closed_tickets,
+        district_to_province=district_to_province, all_districts=all_districts,
+        critical_tickets=critical_tickets)
 
 @app.route('/ticket/<int:ticket_id>')
 @login_required
@@ -323,12 +338,16 @@ def assets_page():
     retired=c.execute("SELECT COUNT(*) FROM assets WHERE status='retired'").fetchone()[0]
     c.close()
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+    branch_to_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
     assets_list = []
     for r in rows:
         a = dict(r)
         a['province'] = branch_to_province.get(a['branch'], '-')
+        a['district'] = branch_to_district.get(a['branch'], '')
         assets_list.append(a)
-    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES,asset_types=sorted(set(a['asset_type'] for a in assets_list)))
+    district_to_province = {b['district']: b['province'] for b in ALL_BRANCHES}
+    all_districts = sorted(set(b['district'] for b in ALL_BRANCHES))
+    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES,asset_types=sorted(set(a['asset_type'] for a in assets_list)),district_to_province=district_to_province,all_districts=all_districts)
 
 @app.route('/staff')
 @login_required
@@ -339,7 +358,13 @@ def staff_page():
     c.close()
     provinces = sorted(set(s['province'] for s in rows))
     roles = sorted(set(s['role'] for s in rows))
-    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles)
+    district_to_province = {b['district']: b['province'] for b in ALL_BRANCHES}
+    all_districts = sorted(set(b['district'] for b in ALL_BRANCHES))
+    branch_to_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
+    rows = [dict(r) for r in rows]
+    for r in rows:
+        r['district'] = branch_to_district.get(r['branch'], '')
+    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles,district_to_province=district_to_province,all_districts=all_districts)
 
 @app.route('/knowledge')
 @login_required
