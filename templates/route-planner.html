@@ -114,26 +114,37 @@ function initMap() {
 
 function loadData() {
   Promise.all([
-    fetch('/api/district-data').then(r => r.json()),
-    fetch('/static/districts-geo.json').then(r => r.json())
+    fetch('/api/district-data').then(r => { if(!r.ok) throw new Error('API error'); return r.json(); }),
+    fetch('/static/districts-geo.json').then(r => { if(!r.ok) throw new Error('GeoJSON error'); return r.json(); })
   ]).then(function(results) {
     var data = results[0];
     var geojson = results[1];
 
-    // Index data by district name
+    // Index data by district name and compute centroids from GeoJSON
     data.forEach(function(d) { districtData[d.name] = d; });
-
-    // Add properties to GeoJSON
     geojson.features.forEach(function(f) {
       var name = f.properties.name;
       var d = districtData[name] || {tickets: 0, assets: 0, score: 0};
       f.properties.tickets = d.tickets || 0;
       f.properties.assets = d.assets || 0;
       f.properties.score = (d.tickets || 0) + (d.assets || 0) * 0.5;
+      // Compute centroid from polygon and store in districtData
+      var coords = f.geometry.coordinates[0];
+      var clat = 0, clng = 0;
+      coords.forEach(function(c) { clng += c[0]; clat += c[1]; });
+      d.centroid = [clat / coords.length, clng / coords.length];
+      districtData[name] = d;
     });
 
     renderMap(geojson);
     updateRanking();
+    // Fit map to show all districts
+    if (geojsonLayer.getBounds().isValid()) {
+      map.fitBounds(geojsonLayer.getBounds());
+    }
+  }).catch(function(err) {
+    console.error('Route planner load error:', err);
+    document.getElementById('rankList').innerHTML = '<div class="text-center text-danger py-3"><small>โหลดข้อมูลไม่สำเร็จ<br>' + err.message + '</small></div>';
   });
 }
 
@@ -209,7 +220,9 @@ function updateRanking() {
     var score = currentMetric === 'tickets' ? (d.tickets || 0) :
                 currentMetric === 'assets' ? (d.assets || 0) :
                 (d.tickets || 0) + (d.assets || 0) * 0.5;
-    items.push({name: name, province: d.province, tickets: d.tickets||0, assets: d.assets||0, score: score, lat: d.lat, lng: d.lng});
+    // Use centroid from GeoJSON if available, else fallback to API lat/lng
+    var centroid = d.centroid || null;
+    items.push({name: name, province: d.province, tickets: d.tickets||0, assets: d.assets||0, score: score, lat: centroid ? centroid[0] : (d.lat||6.8), lng: centroid ? centroid[1] : (d.lng||101.3)});
   }
   items.sort(function(a, b) { return b.score - a.score; });
 
