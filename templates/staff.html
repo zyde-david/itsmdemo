@@ -167,25 +167,25 @@ function filterStaffBranchByProvince(province){
 }
 
 // Persistent custom filter for staff — survives sorting and pagination
+// Uses data attributes on <tr> instead of cell text (cells contain HTML badges)
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   if(settings.nTable.id !== 'staffTable') return true;
-  // data[3]=role, data[4]=branch, data[5]=province, data[6]=is_it(icon)
-  const branch = document.getElementById('sFilterBranch').value;
-  const province = document.getElementById('sFilterProvince').value;
-  const role = document.getElementById('sFilterRole').value;
-  const isIt = document.getElementById('sFilterIsIt').value;
+  var row = settings.aoData[dataIndex].nTr;
+  var branch = document.getElementById('sFilterBranch').value;
+  var province = document.getElementById('sFilterProvince').value;
+  var role = document.getElementById('sFilterRole').value;
+  var isIt = document.getElementById('sFilterIsIt').value;
   // Cascade: branch → province
   if(branch && branchToProvince[branch] && !province){
     document.getElementById('sFilterProvince').value = branchToProvince[branch];
   }
-  if(branch && data[4].trim() !== branch) return false;
-  if(province && data[5].trim() !== province) return false;
-  if(role && data[3].trim() !== role) return false;
+  if(branch && row.getAttribute('data-branch') !== branch) return false;
+  if(province && row.getAttribute('data-province') !== province) return false;
+  if(role && row.getAttribute('data-role') !== role) return false;
   if(isIt){
-    var isItCell = data[6].trim();
-    var hasIt = isItCell.includes('bi-check-circle') || isItCell.includes('text-success');
-    if(isIt === '1' && !hasIt) return false;
-    if(isIt === '0' && hasIt) return false;
+    var rowIsIt = row.getAttribute('data-is-it');
+    if(isIt === '1' && rowIsIt !== '1') return false;
+    if(isIt === '0' && rowIsIt === '1') return false;
   }
   return true;
 });

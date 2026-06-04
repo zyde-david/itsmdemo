@@ -78,12 +78,45 @@
     </ul>
     <p class="mb-1"><strong>Design Decisions ที่สำคัญ:</strong></p>
     <ul class="small text-muted mb-0">
-      <li><strong>Asset Tag 1B-PC001</strong> — รหัสที่อ่านเข้าใจได้ทันที: จังหวัด+สาขา+ประเภท+ลำดับ ทำให้รู้สถานที่และประเภทโดยไม่ต้องค้นหา</li>
+      <li><strong>Asset Tag 1B-PC01</strong> — รหัสที่อ่านเข้าใจได้ทันที: จังหวัด+สาขา+ประเภท+ลำดับ ทำให้รู้สถานที่และประเภทโดยไม่ต้องค้นหา</li>
       <li><strong>Cascade Dropdowns</strong> — เลือกสาขาแล้วจังหวัดเติมอัตโนมัติ และเลือกจังหวัดแล้วสาขากรองให้ ลดขั้นตอนการทำงาน</li>
       <li><strong>DataTables + data[N]</strong> — filter อ่านค่าจาก data attribute ของ HTML แทน cell text แก้ปัญหาภาษาไทย/อังกฤษ mismatch</li>
       <li><strong>Choropleth Map</strong> — แสงสีแผนที่ให้เห็นว่าสาขาไหนมีปัญหามาก ช่วยวางแผนเส้นทางเยี่ยม</li>
       <li><strong>IT-only Assign</strong> — dropdown มอบหมายแสดงเฉพาะทีม IT ป้องกันมอบหมายผิดคน</li>
     </ul>
+  </div>
+</div>
+
+<!-- Data Flow / ITIL Process -->
+<h5 class="mb-3"><i class="bi bi-arrow-left-right me-2"></i>Data Flow & ITIL Process</h5>
+<div class="card mb-4">
+  <div class="card-body">
+    <p class="small text-muted mb-2">ข้อมูลไหลในระบบตาม ITIL framework — ทุก ticket ผ่านกระบวนการต่อเนื่อง:</p>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
+      <div class="bg-danger text-white rounded-pill px-3 py-2 small"><i class="bi bi-ticket-perforated me-1"></i>Ticket แจ้งปัญหา</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-info text-white rounded-pill px-3 py-2 small"><i class="bi bi-people me-1"></i>IT Assign</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-warning text-dark rounded-pill px-3 py-2 small"><i class="bi bi-gear me-1"></i>Work Notes</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-success text-white rounded-pill px-3 py-2 small"><i class="bi bi-check-circle me-1"></i>Resolved</div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
+      <div class="bg-danger text-white rounded-pill px-3 py-2 small"><i class="bi bi-ticket-perforated me-1"></i>Ticket</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-success text-white rounded-pill px-3 py-2 small"><i class="bi bi-box-seam me-1"></i>Asset Link</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-secondary text-white rounded-pill px-3 py-2 small"><i class="bi bi-book me-1"></i>KB Attach</div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+      <div class="bg-primary text-white rounded-pill px-3 py-2 small"><i class="bi bi-speedometer2 me-1"></i>Dashboard</div>
+      <i class="bi bi-arrow-left-right text-muted"></i>
+      <div class="bg-warning text-dark rounded-pill px-3 py-2 small"><i class="bi bi-map me-1"></i>Route Planner</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-info text-white rounded-pill px-3 py-2 small"><i class="bi bi-geo-alt me-1"></i>Geo-Auth</div>
+    </div>
+    <hr>
+    <p class="small text-muted mb-0"><strong>ITIL Process:</strong> Incident (Ticket) → Assign → Work Notes → Resolve → Close → Knowledge Base (เก็บบทเรียน) → Problem Management (root cause) → Change Management (เปลี่ยนแปลงระบบ)</p>
   </div>
 </div>
 
@@ -113,8 +146,8 @@
     <div id="ht-assets" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
       <div class="accordion-body small">
         <ol>
-          <li><strong>ดูรายการ</strong> — ตารางแสดง asset_tag (เช่น 1B-PC001), ชื่อ, serial, สถานะ</li>
-          <li><strong>Asset Tag</strong> — รูปแบบ: <code class="bg-light px-1 rounded">[จังหวัด][สาขา]-[ประเภท][ลำดับ]</code> เช่น <code class="bg-light px-1 rounded">1B-PC001</code> = ปัตตานี สาขาที่ 2 PC เครื่องที่ 1</li>
+          <li><strong>ดูรายการ</strong> — ตารางแสดง asset_tag (เช่น 1B-PC01), ชื่อ, serial, สถานะ</li>
+          <li><strong>Asset Tag</strong> — รูปแบบ: <code class="bg-light px-1 rounded">[จังหวัด][สาขา]-[ประเภท][ลำดับ]</code> เช่น <code class="bg-light px-1 rounded">1B-PC01</code> = ปัตตานี สาขาที่ 2 PC เครื่องที่ 1</li>
           <li><strong>กรอง</strong> — สถานะ / ประเภท / สาขา / จังหวัด (เหมือน tickets)</li>
           <li><strong>สร้าง</strong> — กด "เพิ่ม Asset" เลือกสาขา ประเภท กรอกรายละเอียด</li>
           <li><strong>Retire Score</strong> — หน้า detail แสดงจำนวน ticket ที่เกี่ยวข้อง ≥5 = แนะนำเปลี่ยน</li>
@@ -193,7 +226,7 @@
           <tr><td>Week 1</td><td>Staff Module + Dashboard</td><td>จัดการทีมงาน ดูสรุปภาพรวม</td></tr>
           <tr><td>Week 2</td><td>DataTables filter bug fix</td><td>Filter อ่าน cell text (ไทย) แต่ dropdown เป็น English → แก้ด้วย node.dataset → data[N]</td></tr>
           <tr><td>Week 2</td><td>Cascade dropdowns: สาขา ↔ จังหวัด</td><td>เลือกสาขาแล้วจังหวัดเติม, เลือกจังหวัดแล้วสาขากรอง</td></tr>
-          <tr><td>Week 2</td><td>Asset smart tag: 1B-PC001</td><td>เปลี่ยนจากรหัสตัวเงินเป็นรหัสที่อ่านเข้าใจได้: จังหวัด+สาขา+ประเภท+ลำดับ</td></tr>
+          <tr><td>Week 2</td><td>Asset smart tag: 1B-PC01</td><td>เปลี่ยนจากรหัสตัวเงินเป็นรหัสที่อ่านเข้าใจได้: จังหวัด+สาขา+ประเภท+ลำดับ</td></tr>
           <tr><td>Week 2</td><td>Ticket yearly code: TK-YY-NNNN</td><td>เปลี่ยนจาก TK-26-0001 เป็น dynamic year — reset ทุกปีใหม่</td></tr>
           <tr><td>Week 2</td><td>KB Search + Create & Attach</td><td>ค้นหา KB จาก ticket detail สร้างใหม่ได้ถ้าไม่พบ</td></tr>
           <tr><td>Week 2</td><td>IT-only assign dropdown</td><td>แสดงเฉพาะทีม IT ใน dropdown มอบหมาย</td></tr>

@@ -181,13 +181,12 @@ def _assets():
         for at in ch[:n]:
             c2 = AC[at]; mdl=random.choice(c2["m"]); p=c2["p"]; sp=c2["spec"]
             sc[p]=sc.get(p,100)+1
-            sn=f"{bn:02d}{p}{sc[p]:04d}"
-            asset_code=f"{bn:02d}{p}{sc[p]:04d}"
+            seq = sc[p] - 100
+            asset_code=f"{bn:02d}{p}{seq:02d}"
             prov_code = PROVINCE_CODES.get(b['province'],'0')
             br_code = BRANCH_CODES.get(b['branch'],'0')
             cat_code = CATEGORY_CODES.get(at,'XX')
-            seq = sc[p] - 100
-            asset_tag = f"{prov_code}{br_code}-{cat_code}{seq:03d}"
+            asset_tag = f"{prov_code}{br_code}-{cat_code}{seq:02d}"
             st=random.choices(["active","active","active","active","maintenance","retired"],weights=[65,12,8,5,5,5],k=1)[0]
             lc=datetime.now()-timedelta(days=random.randint(3,60))
             nx=lc+timedelta(days=90)

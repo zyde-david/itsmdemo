@@ -24,7 +24,7 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 .card{border:none;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .card-stat{transition:transform .2s}.card-stat:hover{transform:translateY(-3px)}
 .stat-icon{font-size:2rem;opacity:.8}
-.sidebar{background:#fff;min-height:calc(100vh - 90px);border-right:1px solid #e0e0e0}
+.sidebar{background:#fff;min-height:calc(100vh - 90px);border-right:1px solid #e0e0e0;position:sticky;top:0;align-self:flex-start;height:calc(100vh - 90px);overflow-y:auto;z-index:1020}
 .nav-link{color:#555;padding:10px 16px;border-radius:8px;margin:2px 6px;font-size:0.9rem}
 .nav-link:hover,.nav-link.active{background:#e8f4fd;color:var(--primary)}
 .nav-link i{margin-right:8px}
@@ -93,7 +93,7 @@ body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:v
 }
 
 @media(min-width:768px){
- .sidebar{position:sticky;top:0;transform:none!important}
+ .sidebar{transform:none!important}
 }
 
 /* ═══════════════════════════════════════════
@@ -342,15 +342,78 @@ async function sendChat(){
  body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">${ans}</div></div>`;
  body.scrollTop=body.scrollHeight;
 }
-// ── Theme System (base.html — global restore) ──
-// Settings page has the full picker UI; this handles restore on every page
+// ── Theme System (base.html — global) ──
+// WCAG Relative Luminance → auto-invert text for any custom color
+function hexToRgb(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  return [parseInt(hex.substr(0,2),16), parseInt(hex.substr(2,2),16), parseInt(hex.substr(4,2),16)];
+}
+function relativeLuminance(hex){
+  var rgb = hexToRgb(hex).map(function(c){ c/=255; return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4); });
+  return 0.2126*rgb[0]+0.7152*rgb[1]+0.0722*rgb[2];
+}
+function isDark(hex){ return relativeLuminance(hex) < 0.179; }
+function contrastRatio(hex1, hex2){
+  var l1=relativeLuminance(hex1), l2=relativeLuminance(hex2);
+  return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+}
+function lighten(hex, percent){
+  var rgb = hexToRgb(hex);
+  var r = Math.min(255, rgb[0] + Math.round(2.55*percent));
+  var g = Math.min(255, rgb[1] + Math.round(2.55*percent));
+  var b = Math.min(255, rgb[2] + Math.round(2.55*percent));
+  return '#'+[r,g,b].map(function(c){return c.toString(16).padStart(2,'0');}).join('');
+}
+
+function applyCustomColor(hex){
+  hex = hex.startsWith('#') ? hex : '#'+hex;
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  var dark = isDark(hex);
+  var b = document.body;
+  b.setAttribute('data-theme','custom');
+  b.style.setProperty('--bg-body', hex);
+  b.style.setProperty('--bg-surface', dark ? lighten(hex,12) : '#ffffff');
+  b.style.setProperty('--bg-elevated', dark ? lighten(hex,18) : '#f8f9fa');
+  b.style.setProperty('--text-body', dark ? '#e0e0e0' : '#212529');
+  b.style.setProperty('--text-surface', dark ? '#e0e0e0' : '#212529');
+  b.style.setProperty('--text-muted', dark ? '#8899aa' : '#888888');
+  b.style.setProperty('--text-label', dark ? '#b0b0b0' : '#555555');
+  b.style.setProperty('--border-subtle', dark ? 'rgba(255,255,255,0.06)' : '#e0e0e0');
+  b.style.setProperty('--border-dark', dark ? 'rgba(255,255,255,0.1)' : '#dee2e6');
+  b.style.setProperty('--bg-input', dark ? lighten(hex,8) : '#ffffff');
+  b.style.setProperty('--text-input', dark ? '#e0e0e0' : '#212529');
+  b.style.setProperty('--shadow-color', dark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)');
+  b.style.setProperty('--link-color', dark ? '#5dade2' : '#1a5276');
+  b.style.setProperty('--id-badge-bg', dark ? 'rgba(255,255,255,0.08)' : '#e8f4fd');
+  b.style.setProperty('--id-badge-text', dark ? '#5dade2' : '#1a5276');
+  b.style.setProperty('--ai-badge-bg', dark ? 'rgba(41,128,185,.25)' : 'linear-gradient(135deg,#667eea,#764ba2)');
+  b.style.setProperty('--ai-badge-text', dark ? '#5dade2' : '#ffffff');
+  b.style.setProperty('--btn-page-bg', dark ? lighten(hex,10) : 'transparent');
+  b.style.setProperty('--btn-page-text', dark ? '#e0e0e0' : '#1a5276');
+  b.style.setProperty('--btn-page-border', dark ? 'rgba(255,255,255,0.1)' : '#dee2e6');
+  b.style.setProperty('--bg-chat', dark ? hex : '#f8f9fa');
+  b.style.setProperty('--text-chat', dark ? '#e0e0e0' : '#212529');
+  b.style.setProperty('--bg-banner', dark ? lighten(hex,5) : '#ffecd2');
+  b.style.setProperty('--text-banner', dark ? '#e0e0e0' : '#333333');
+  b.style.setProperty('--bg-footer', 'transparent');
+  b.style.setProperty('--text-footer', dark ? '#667788' : '#95a5a6');
+  b.style.setProperty('--bg-sidebar', dark ? lighten(hex,5) : '#ffffff');
+  b.style.setProperty('--text-sidebar', dark ? '#b0b0b0' : '#555555');
+  b.style.setProperty('--bg-table', '#ffffff');
+  b.style.setProperty('--text-table', '#212529');
+  b.style.setProperty('--bg-nav', dark ? lighten(hex,8) : '#1a5276');
+  b.style.setProperty('--text-nav', dark ? '#e0e0e0' : '#ffffff');
+  localStorage.setItem('theme','custom');
+  localStorage.setItem('customColor', hex);
+}
+
+// Restore on every page load
 (function(){
   var mode = localStorage.getItem('theme') || 'light';
   if(mode === 'custom'){
     var hex = localStorage.getItem('customColor') || '#1a1a2e';
-    document.body.setAttribute('data-theme','custom');
-    if(window.applyCustomColor) applyCustomColor(hex);
-    else document.body.style.setProperty('--bg-body', hex);
+    applyCustomColor(hex);
   } else {
     document.body.setAttribute('data-theme', mode);
   }

@@ -88,7 +88,7 @@
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
           <li>✓ Asset list with smart tags</li>
-          <li>✓ Tag format: 1B-PC001</li>
+          <li>✓ Tag format: 1B-PC01</li>
           <li>✓ Filter: status/type/branch/province</li>
           <li>✓ Cascade: สาขา ↔ จังหวัด</li>
           <li>✓ Create/Edit/Delete assets</li>
@@ -154,45 +154,4 @@
   </div>
 </div>
 
-<!-- Data Flow -->
-<h5 class="mb-3"><i class="bi bi-arrow-left-right me-2"></i>Data Flow</h5>
-<div class="card mb-4">
-  <div class="card-body">
-    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
-      <div class="bg-danger text-white rounded-pill px-3 py-2"><i class="bi bi-ticket-perforated me-1"></i>Tickets</div>
-      <i class="bi bi-arrow-right text-muted"></i>
-      <div class="bg-success text-white rounded-pill px-3 py-2"><i class="bi bi-box-seam me-1"></i>Asset Link</div>
-      <i class="bi bi-arrow-right text-muted"></i>
-      <div class="bg-secondary text-white rounded-pill px-3 py-2"><i class="bi bi-book me-1"></i>KB Attach</div>
-    </div>
-    <hr>
-    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
-      <div class="bg-info text-white rounded-pill px-3 py-2"><i class="bi bi-people me-1"></i>Staff</div>
-      <i class="bi bi-arrow-left-right text-muted"></i>
-      <div class="bg-danger text-white rounded-pill px-3 py-2"><i class="bi bi-ticket-perforated me-1"></i>Ticket Assign</div>
-      <i class="bi bi-arrow-right text-muted"></i>
-      <div class="bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-gear me-1"></i>Work Notes</div>
-    </div>
-  </div>
-</div>
-
-<!-- Development Log -->
-<h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Development Log</h5>
-<div class="card">
-  <div class="card-body">
-    <table class="table table-sm mb-0">
-      <thead><tr><th>Date</th><th>Feature</th><th>Notes</th></tr></thead>
-      <tbody class="small">
-        <tr><td>June 2026</td><td>Core System</td><td>Flask + SQLite + DataTables</td></tr>
-        <tr><td>June 2026</td><td>Ticket Module</td><td>CRUD, filters, yearly code TK-YY-NNNN</td></tr>
-        <tr><td>June 2026</td><td>Asset Module</td><td>Smart tag 1B-PC001, retire score</td></tr>
-        <tr><td>June 2026</td><td>Staff Module</td><td>Province cards, IT filter, cascade dropdowns</td></tr>
-        <tr><td>June 2026</td><td>Dashboard</td><td>Stats by status, province, category</td></tr>
-        <tr><td>June 2026</td><td>Knowledge Base</td><td>Search, create, attach to tickets</td></tr>
-        <tr><td>June 2026</td><td>Route Planner</td><td>Leaflet choropleth, 33 districts, priority ranking</td></tr>
-        <tr><td>June 2026</td><td>Site Map</td><td>System overview + this page</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
 {% endblock %}

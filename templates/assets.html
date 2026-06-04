@@ -155,26 +155,28 @@ function filterAssetBranchByProvince(province){
   for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
 }
 
-function applyAssetFilters(){
-  if(!window.assetTable) return;
-  const status = document.getElementById('aFilterStatus').value;
-  const type = document.getElementById('aFilterType').value;
-  const branch = document.getElementById('aFilterBranch').value;
-  const province = document.getElementById('aFilterProvince').value;
+// Persistent custom filter for assets — survives sorting and pagination
+// Uses data attributes on <tr> instead of cell text (cells contain HTML badges)
+$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+  if(settings.nTable.id !== 'assetsTable') return true;
+  var row = settings.aoData[dataIndex].nTr;
+  var status = document.getElementById('aFilterStatus').value;
+  var type = document.getElementById('aFilterType').value;
+  var branch = document.getElementById('aFilterBranch').value;
+  var province = document.getElementById('aFilterProvince').value;
   // Cascade: branch → province
   if(branch && branchToProvince[branch] && !province){
     document.getElementById('aFilterProvince').value = branchToProvince[branch];
   }
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    // data[2]=branch, data[3]=province, data[4]=type, data[7]=status
-    if(status && data[7].trim().toLowerCase() !== status) return false;
-    if(type && data[4].trim() !== type) return false;
-    if(branch && data[2].trim() !== branch) return false;
-    if(province && data[3].trim() !== province) return false;
-    return true;
-  });
-  window.assetTable.draw();
-  $.fn.dataTable.ext.search.pop();
+  if(status && row.getAttribute('data-status') !== status) return false;
+  if(type && row.getAttribute('data-type') !== type) return false;
+  if(branch && row.getAttribute('data-branch') !== branch) return false;
+  if(province && row.getAttribute('data-province') !== province) return false;
+  return true;
+});
+
+function applyAssetFilters(){
+  if(window.assetTable) window.assetTable.draw();
 }
 
 function toggleAllAssets(cb){document.querySelectorAll('.asset-check').forEach(c=>c.checked=cb.checked);}
