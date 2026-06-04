@@ -63,9 +63,9 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 body[data-theme="dark"] .sidebar-pin-btn,
 body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:var(--text-elevated);border:1px solid var(--border-dark)}
 
-/* Sidebar hover-expand on desktop when collapsed — overlay, no layout shift */
+/* Sidebar hover-expand on desktop when collapsed — fixed overlay, zero layout shift */
 @media(min-width:768px){
-  .sidebar-collapsed .sidebar:hover{width:220px!important;min-width:220px!important;max-width:220px!important;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.15);z-index:1060;margin-left:-164px;transition:width .2s ease}
+  .sidebar-collapsed .sidebar:hover{position:fixed;left:0;top:90px;bottom:0;width:220px!important;min-width:220px!important;max-width:220px!important;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.15);z-index:1060;transition:width .25s ease}
   .sidebar-collapsed .sidebar:hover .nav-text{display:inline!important}
   .sidebar-collapsed .sidebar:hover .nav-link{justify-content:flex-start;padding:10px 16px}
   .sidebar-collapsed .sidebar:hover .nav-link i{margin-right:8px!important;font-size:1rem}
