@@ -95,13 +95,34 @@
     </div>
     {% endif %}
 
-    <!-- Theme Toggle -->
+    <!-- Theme & Color Picker -->
     <div class="card mb-4">
-      <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-palette me-2"></i>ธีม</h6></div>
+      <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-palette me-2"></i>ธีม & สีพื้นหลัง</h6></div>
       <div class="card-body">
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="themeToggle" onchange="toggleTheme(this.checked)">
-          <label class="form-check-label" for="themeToggle">โหมดกลางคืน (Dark Mode)</label>
+        <!-- Mode selector -->
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <button type="button" class="btn btn-sm btn-outline-primary" id="btnThemeLight" onclick="setThemeMode('light')">☀️ Light</button>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="btnThemeDark" onclick="setThemeMode('dark')">🌙 Dark</button>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="btnThemeCustom" onclick="setThemeMode('custom')">🎨 Custom</button>
+        </div>
+        <!-- Preset swatches -->
+        <div class="mb-3" id="customColorSection" style="display:none">
+          <label class="form-label small text-muted">เลือกสี</label>
+          <div class="d-flex gap-2 flex-wrap mb-2" id="colorSwatches">
+            <button type="button" class="color-swatch" data-color="#1a1a2e" style="background:#1a1a2e" title="Midnight"></button>
+            <button type="button" class="color-swatch" data-color="#0d1117" style="background:#0d1117" title="GitHub Dark"></button>
+            <button type="button" class="color-swatch" data-color="#1b2838" style="background:#1b2838" title="Steam"></button>
+            <button type="button" class="color-swatch" data-color="#1a237e" style="background:#1a237e" title="Indigo"></button>
+            <button type="button" class="color-swatch" data-color="#004d40" style="background:#004d40" title="Teal"></button>
+            <button type="button" class="color-swatch" data-color="#3e2723" style="background:#3e2723" title="Brown"></button>
+            <button type="button" class="color-swatch" data-color="#263238" style="background:#263238" title="Blue Grey"></button>
+            <button type="button" class="color-swatch" data-color="#4a148c" style="background:#4a148c" title="Purple"></button>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="color" id="customColorPicker" value="#1a1a2e" class="form-control form-control-color" style="width:48px;height:38px" oninput="applyCustomColor(this.value)">
+            <input type="text" id="customColorHex" value="#1a1a2e" class="form-control form-control-sm" style="width:100px" maxlength="7" onchange="applyCustomColor(this.value)">
+            <span class="text-muted small" id="contrastBadge">AA ✓</span>
+          </div>
         </div>
       </div>
     </div>
@@ -152,12 +173,156 @@ async function deleteUser(uid, username) {
   else alert(d.error);
 }
 
-// Theme toggle (syncs with base.html persistence)
-function toggleTheme(dark) {
-  document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-  localStorage.setItem('theme', dark ? 'dark' : 'light');
-  var t = document.getElementById('themeToggle');
-  if(t) t.checked = dark;
+// ── Custom Theme System ──
+// WCAG Relative Luminance → auto-invert text for any custom color
+function hexToRgb(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  return [parseInt(hex.substr(0,2),16), parseInt(hex.substr(2,2),16), parseInt(hex.substr(4,2),16)];
 }
+function relativeLuminance(hex){
+  var rgb = hexToRgb(hex).map(function(c){ c/=255; return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4); });
+  return 0.2126*rgb[0]+0.7152*rgb[1]+0.0722*rgb[2];
+}
+function isDark(hex){ return relativeLuminance(hex) < 0.179; }
+function contrastRatio(hex1, hex2){
+  var l1=relativeLuminance(hex1), l2=relativeLuminance(hex2);
+  var lighter=Math.max(l1,l2), darker=Math.min(l1,l2);
+  return (lighter+0.05)/(darker+0.05);
+}
+
+// Apply custom color with auto-inverted text tokens
+function applyCustomColor(hex){
+  hex = hex.startsWith('#') ? hex : '#'+hex;
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  var dark = isDark(hex);
+  var surface = dark ? lighten(hex,12) : '#ffffff';
+  var elevated = dark ? lighten(hex,18) : '#f8f9fa';
+  var textBody = dark ? '#e0e0e0' : '#212529';
+  var textSurface = dark ? '#e0e0e0' : '#212529';
+  var textMuted = dark ? '#8899aa' : '#888888';
+  var textLabel = dark ? '#b0b0b0' : '#555555';
+  var borderSubtle = dark ? 'rgba(255,255,255,0.06)' : '#e0e0e0';
+  var borderDark = dark ? 'rgba(255,255,255,0.1)' : '#dee2e6';
+  var bgInput = dark ? lighten(hex,8) : '#ffffff';
+  var textInput = dark ? '#e0e0e0' : '#212529';
+  var shadowColor = dark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)';
+  var linkColor = dark ? '#5dade2' : '#1a5276';
+  var idBadgeBg = dark ? 'rgba(255,255,255,0.08)' : '#e8f4fd';
+  var idBadgeText = dark ? '#5dade2' : '#1a5276';
+  var aiBadgeBg = dark ? 'rgba(41,128,185,.25)' : 'linear-gradient(135deg,#667eea,#764ba2)';
+  var aiBadgeText = dark ? '#5dade2' : '#ffffff';
+  var btnPageBg = dark ? lighten(hex,10) : 'transparent';
+  var btnPageText = dark ? '#e0e0e0' : '#1a5276';
+  var btnPageBorder = dark ? 'rgba(255,255,255,0.1)' : '#dee2e6';
+
+  var b = document.body;
+  b.setAttribute('data-theme','custom');
+  b.style.setProperty('--bg-body', hex);
+  b.style.setProperty('--bg-surface', surface);
+  b.style.setProperty('--bg-elevated', elevated);
+  b.style.setProperty('--text-body', textBody);
+  b.style.setProperty('--text-surface', textSurface);
+  b.style.setProperty('--text-muted', textMuted);
+  b.style.setProperty('--text-label', textLabel);
+  b.style.setProperty('--border-subtle', borderSubtle);
+  b.style.setProperty('--border-dark', borderDark);
+  b.style.setProperty('--bg-input', bgInput);
+  b.style.setProperty('--text-input', textInput);
+  b.style.setProperty('--shadow-color', shadowColor);
+  b.style.setProperty('--link-color', linkColor);
+  b.style.setProperty('--id-badge-bg', idBadgeBg);
+  b.style.setProperty('--id-badge-text', idBadgeText);
+  b.style.setProperty('--ai-badge-bg', aiBadgeBg);
+  b.style.setProperty('--ai-badge-text', aiBadgeText);
+  b.style.setProperty('--btn-page-bg', btnPageBg);
+  b.style.setProperty('--btn-page-text', btnPageText);
+  b.style.setProperty('--btn-page-border', btnPageBorder);
+  b.style.setProperty('--bg-chat', dark ? hex : '#f8f9fa');
+  b.style.setProperty('--text-chat', dark ? textBody : '#212529');
+  b.style.setProperty('--bg-banner', dark ? lighten(hex,5) : '#ffecd2');
+  b.style.setProperty('--text-banner', dark ? textBody : '#333333');
+  b.style.setProperty('--bg-footer', 'transparent');
+  b.style.setProperty('--text-footer', dark ? '#667788' : '#95a5a6');
+  b.style.setProperty('--bg-sidebar', dark ? lighten(hex,5) : '#ffffff');
+  b.style.setProperty('--text-sidebar', dark ? '#b0b0b0' : '#555555');
+  b.style.setProperty('--bg-table', '#ffffff');
+  b.style.setProperty('--text-table', '#212529');
+  b.style.setProperty('--bg-nav', dark ? lighten(hex,8) : '#1a5276');
+  b.style.setProperty('--text-nav', dark ? '#e0e0e0' : '#ffffff');
+
+  // Update UI
+  document.getElementById('customColorPicker').value = hex;
+  document.getElementById('customColorHex').value = hex;
+  updateContrastBadge(hex);
+  updateActiveSwatch(hex);
+  localStorage.setItem('theme','custom');
+  localStorage.setItem('customColor', hex);
+  updateModeButtons('custom');
+}
+
+function lighten(hex, percent){
+  var rgb = hexToRgb(hex);
+  var r = Math.min(255, rgb[0] + Math.round(2.55*percent));
+  var g = Math.min(255, rgb[1] + Math.round(2.55*percent));
+  var b = Math.min(255, rgb[2] + Math.round(2.55*percent));
+  return '#'+[r,g,b].map(function(c){return c.toString(16).padStart(2,'0');}).join('');
+}
+
+function updateContrastBadge(hex){
+  var dark = isDark(hex);
+  var textColor = dark ? '#e0e0e0' : '#212529';
+  var ratio = contrastRatio(hex, textColor);
+  var badge = document.getElementById('contrastBadge');
+  if(ratio >= 4.5){ badge.textContent='AA ✓'; badge.className='text-success small'; }
+  else if(ratio >= 3){ badge.textContent='AA Large'; badge.className='text-warning small'; }
+  else{ badge.textContent='Low ✗'; badge.className='text-danger small'; }
+}
+
+function updateActiveSwatch(hex){
+  document.querySelectorAll('.color-swatch').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.color.toLowerCase()===hex.toLowerCase());
+  });
+}
+
+function updateModeButtons(mode){
+  document.getElementById('btnThemeLight').classList.toggle('active', mode==='light');
+  document.getElementById('btnThemeDark').classList.toggle('active', mode==='dark');
+  document.getElementById('btnThemeCustom').classList.toggle('active', mode==='custom');
+  document.getElementById('customColorSection').style.display = mode==='custom' ? 'block' : 'none';
+}
+
+function setThemeMode(mode){
+  if(mode==='light'){
+    document.body.setAttribute('data-theme','light');
+    document.body.removeAttribute('style');
+    localStorage.setItem('theme','light');
+    updateModeButtons('light');
+  } else if(mode==='dark'){
+    document.body.setAttribute('data-theme','dark');
+    document.body.removeAttribute('style');
+    localStorage.setItem('theme','dark');
+    updateModeButtons('dark');
+  } else {
+    var saved = localStorage.getItem('customColor') || '#1a1a2e';
+    applyCustomColor(saved);
+  }
+}
+
+// Swatch click handlers
+document.querySelectorAll('.color-swatch').forEach(function(btn){
+  btn.addEventListener('click', function(){ applyCustomColor(this.dataset.color); });
+});
+
+// Restore on page load
+(function(){
+  var mode = localStorage.getItem('theme') || 'light';
+  if(mode==='custom'){
+    var color = localStorage.getItem('customColor') || '#1a1a2e';
+    applyCustomColor(color);
+  } else {
+    setThemeMode(mode);
+  }
+})();
 </script>
 {% endblock %}

@@ -128,105 +128,104 @@ body[data-theme="dark"]{
 }
 
 /* ── Apply tokens to components ── */
+/* Shared selector: dark + custom themes (both set CSS vars on body) */
+body[data-theme="dark"],
+body[data-theme="custom"]{
 
 /* Cards */
-body[data-theme="dark"] .card,
-body[data-theme="dark"] .accordion-item,
-body[data-theme="dark"] .modal-content{
+.card,.accordion-item,.modal-content{
   background:var(--bg-surface);border-color:var(--border-dark);color:var(--text-surface);
 }
-body[data-theme="dark"] .card-header{background:var(--bg-elevated);color:var(--text-elevated)}
-body[data-theme="dark"] .card-body{color:var(--text-surface)}
-body[data-theme="dark"] .card-stat{border-left-color:var(--border-dark)}
+.card-header{background:var(--bg-elevated);color:var(--text-elevated)}
+.card-body{color:var(--text-surface)}
+.card-stat{border-left-color:var(--border-dark)}
 
 /* Sidebar & Nav */
-body[data-theme="dark"] .sidebar{background:var(--bg-sidebar);border-color:var(--border-dark)}
-body[data-theme="dark"] .nav-link{color:var(--text-sidebar)}
-body[data-theme="dark"] .nav-link:hover,
-body[data-theme="dark"] .nav-link.active{background:#1a1a4e;color:var(--primary)}
+.sidebar{background:var(--bg-sidebar);border-color:var(--border-dark)}
+.nav-link{color:var(--text-sidebar)}
+.nav-link:hover,.nav-link.active{background:#1a1a4e;color:var(--primary)}
 
 /* Navbar */
-body[data-theme="dark"] .navbar{background:linear-gradient(135deg,var(--bg-nav),#1a1a2e)}
+.navbar{background:linear-gradient(135deg,var(--bg-nav),#1a1a2e)}
 
 /* Demo banner */
-body[data-theme="dark"] .demo-banner{background:linear-gradient(135deg,#2c3e50,#34495e);color:var(--text-banner)}
+.demo-banner{background:linear-gradient(135deg,#2c3e50,#34495e);color:var(--text-banner)}
 
 /* Forms */
-body[data-theme="dark"] .form-control,
-body[data-theme="dark"] .form-select{background:var(--bg-input);border-color:var(--border-dark);color:var(--text-input)}
-body[data-theme="dark"] .form-label,
-body[data-theme="dark"] label{color:var(--text-label)}
-body[data-theme="dark"] .form-check-label{color:var(--text-label)}
-body[data-theme="dark"] .form-text{color:var(--text-muted)}
+.form-control,.form-select{background:var(--bg-input);border-color:var(--border-dark);color:var(--text-input)}
+.form-label,label{color:var(--text-label)}
+.form-check-label{color:var(--text-label)}
+.form-text{color:var(--text-muted)}
 
 /* Tables — stay white for readability */
-body[data-theme="dark"] .table{color:var(--text-table)}
-body[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd){background:rgba(0,0,0,0.03);color:var(--text-table)}
-body[data-theme="dark"] .table-hover tbody tr:hover{background:rgba(0,0,0,0.06);color:var(--text-table)}
+.table{color:var(--text-table)}
+.table-striped tbody tr:nth-of-type(odd){background:rgba(0,0,0,0.03);color:var(--text-table)}
+.table-hover tbody tr:hover{background:rgba(0,0,0,0.06);color:var(--text-table)}
 
 /* DataTables */
-body[data-theme="dark"] .dataTables_wrapper,
-body[data-theme="dark"] .dataTables_info,
-body[data-theme="dark"] .dataTables_paginate,
-body[data-theme="dark"] .dataTables_length,
-body[data-theme="dark"] .dataTables_filter{color:var(--text-body)}
-body[data-theme="dark"] .dataTables_filter input,
-body[data-theme="dark"] .dataTables_length select{background:var(--bg-input);color:var(--text-input);border-color:var(--border-dark)}
+.dataTables_wrapper,.dataTables_info,.dataTables_paginate,.dataTables_length,.dataTables_filter{color:var(--text-body)}
+.dataTables_filter input,.dataTables_length select{background:var(--bg-input);color:var(--text-input);border-color:var(--border-dark)}
 
 /* Pagination */
-body[data-theme="dark"] .page-link{background:var(--btn-page-bg);border-color:var(--btn-page-border);color:var(--btn-page-text)}
-body[data-theme="dark"] .page-link:hover{background:#1a1a4e;color:var(--primary)}
-body[data-theme="dark"] .page-item.active .page-link{background:var(--primary);border-color:var(--primary);color:#fff}
+.page-link{background:var(--btn-page-bg);border-color:var(--btn-page-border);color:var(--btn-page-text)}
+.page-link:hover{background:#1a1a4e;color:var(--primary)}
+.page-item.active .page-link{background:var(--primary);border-color:var(--primary);color:#fff}
 
 /* Headings & text */
-body[data-theme="dark"] h1,body[data-theme="dark"] h2,body[data-theme="dark"] h3,
-body[data-theme="dark"] h4,body[data-theme="dark"] h5,body[data-theme="dark"] h6{color:var(--text-body)}
-body[data-theme="dark"] .text-muted{color:var(--text-muted)!important}
-body[data-theme="dark"] small,body[data-theme="dark"] .small{color:var(--text-muted)}
+h1,h2,h3,h4,h5,h6{color:var(--text-body)}
+.text-muted{color:var(--text-muted)!important}
+small,.small{color:var(--text-muted)}
 
 /* Badges */
-body[data-theme="dark"] .badge{color:#fff}
-body[data-theme="dark"] .ai-badge{background:var(--ai-badge-bg);color:var(--ai-badge-text)}
-body[data-theme="dark"] .branch-tag{background:var(--bg-surface);color:var(--text-muted)}
+.badge{color:#fff}
+.ai-badge{background:var(--ai-badge-bg);color:var(--ai-badge-text)}
+.branch-tag{background:var(--bg-surface);color:var(--text-muted)}
 
 /* Priority badges — keep colors but ensure contrast */
-body[data-theme="dark"] .priority-critical{background:#4d1010;color:#f5b7b1;border-color:#7b241c}
-body[data-theme="dark"] .priority-high{background:#4d3800;color:#f9e79f;border-color:#7d6608}
-body[data-theme="dark"] .priority-medium{background:#0e4d2b;color:#abebc6;border-color:#196f3d}
-body[data-theme="dark"] .priority-low{background:#0d2f4f;color:#aed6f1;border-color:#1a5276}
+.priority-critical{background:#4d1010;color:#f5b7b1;border-color:#7b241c}
+.priority-high{background:#4d3800;color:#f9e79f;border-color:#7d6608}
+.priority-medium{background:#0e4d2b;color:#abebc6;border-color:#196f3d}
+.priority-low{background:#0d2f4f;color:#aed6f1;border-color:#1a5276}
 
 /* Chatbot */
-body[data-theme="dark"] .chatbot-box{background:var(--bg-surface);border-color:var(--border-dark)}
-body[data-theme="dark"] .chatbot-header{background:var(--bg-elevated);color:var(--text-elevated)}
-body[data-theme="dark"] .chatbot-body{background:var(--bg-chat)}
-body[data-theme="dark"] .chatbot-body .bg-white{background:var(--bg-surface)!important;color:var(--text-surface)}
-body[data-theme="dark"] .chatbot-input{background:var(--bg-elevated)}
+.chatbot-box{background:var(--bg-surface);border-color:var(--border-dark)}
+.chatbot-header{background:var(--bg-elevated);color:var(--text-elevated)}
+.chatbot-body{background:var(--bg-chat)}
+.chatbot-body .bg-white{background:var(--bg-surface)!important;color:var(--text-surface)}
+.chatbot-input{background:var(--bg-elevated)}
 
 /* Alerts */
-body[data-theme="dark"] .alert{color:var(--text-body)}
-body[data-theme="dark"] .alert-info{background:#0f3460;border-color:#1a5276;color:#aed6f1}
-body[data-theme="dark"] .alert-success{background:#0e4d2b;border-color:#196f3d;color:#abebc6}
-body[data-theme="dark"] .alert-warning{background:#4d3800;border-color:#7d6608;color:#f9e79f}
-body[data-theme="dark"] .alert-danger{background:#4d1010;border-color:#7b241c;color:#f5b7b1}
+.alert{color:var(--text-body)}
+.alert-info{background:#0f3460;border-color:#1a5276;color:#aed6f1}
+.alert-success{background:#0e4d2b;border-color:#196f3d;color:#abebc6}
+.alert-warning{background:#4d3800;border-color:#7d6608;color:#f9e79f}
+.alert-danger{background:#4d1010;border-color:#7b241c;color:#f5b7b1}
 
 /* Dropdowns */
-body[data-theme="dark"] .dropdown-menu{background:var(--bg-surface);border-color:var(--border-dark)}
-body[data-theme="dark"] .dropdown-item{color:var(--text-surface)}
-body[data-theme="dark"] .dropdown-item:hover{background:#1a1a4e;color:var(--primary)}
+.dropdown-menu{background:var(--bg-surface);border-color:var(--border-dark)}
+.dropdown-item{color:var(--text-surface)}
+.dropdown-item:hover{background:#1a1a4e;color:var(--primary)}
 
 /* bg-light override */
-body[data-theme="dark"] .bg-light{background:var(--bg-surface)!important;color:var(--text-surface)}
+.bg-light{background:var(--bg-surface)!important;color:var(--text-surface)}
 
 /* Footer */
-body[data-theme="dark"] .footer{color:var(--text-footer)}
-body[data-theme="dark"] .id-badge{background:var(--id-badge-bg);color:var(--id-badge-text)}
+.footer{color:var(--text-footer)}
+.id-badge{background:var(--id-badge-bg);color:var(--id-badge-text)}
 
 /* Editable cells */
-body[data-theme="dark"] .editable-cell:hover{background:#1a1a4e}
+.editable-cell:hover{background:#1a1a4e}
 
-/* Card shadows in dark mode */
-body[data-theme="dark"] .card{box-shadow:0 2px 12px var(--shadow-color)}
-body[data-theme="dark"] .card:hover{box-shadow:0 4px 16px var(--shadow-color)}
+/* Card shadows */
+.card{box-shadow:0 2px 12px var(--shadow-color)}
+.card:hover{box-shadow:0 4px 16px var(--shadow-color)}
+
+} /* end dark+custom shared block */
+
+/* Color swatch picker styles */
+.color-swatch{width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;padding:0}
+.color-swatch:hover{transform:scale(1.15);border-color:var(--primary)}
+.color-swatch.active{border-color:var(--primary);box-shadow:0 0 0 2px rgba(41,128,185,.3)}
 
 /* ID badge for clean numeric display */
 .id-badge{display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:6px;font-family:monospace}
@@ -313,18 +312,18 @@ async function sendChat(){
  body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">${ans}</div></div>`;
  body.scrollTop=body.scrollHeight;
 }
-// ── Dark Mode Persistence ──
-function applyTheme(dark){
-  document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-}
-function toggleTheme(dark){
-  applyTheme(dark);
-  localStorage.setItem('theme', dark ? 'dark' : 'light');
-}
-// Restore on every page load
+// ── Theme System (base.html — global restore) ──
+// Settings page has the full picker UI; this handles restore on every page
 (function(){
-  var saved = localStorage.getItem('theme');
-  if(saved === 'dark'){ applyTheme(true); }
+  var mode = localStorage.getItem('theme') || 'light';
+  if(mode === 'custom'){
+    var hex = localStorage.getItem('customColor') || '#1a1a2e';
+    document.body.setAttribute('data-theme','custom');
+    if(window.applyCustomColor) applyCustomColor(hex);
+    else document.body.style.setProperty('--bg-body', hex);
+  } else {
+    document.body.setAttribute('data-theme', mode);
+  }
 })();
 
 // Generic DataTable init with server-like features via client-side
