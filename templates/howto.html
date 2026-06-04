@@ -576,33 +576,47 @@
   <div class="card-body">
     <div class="table-responsive">
       <table class="table table-sm table-hover mb-0">
-        <thead class="table-light"><tr><th>Date</th><th>Time</th><th>Feature</th><th>Notes</th></tr></thead>
+        <thead class="table-light"><tr><th>Version</th><th>Date</th><th>Feature</th><th>Notes</th></tr></thead>
         <tbody class="small">
-          <tr><td>31 May</td><td>09:00</td><td>Project Start</td><td>Flask + SQLite setup, DB schema, seed data</td></tr>
-          <tr><td>31 May</td><td>10:00</td><td>Ticket Module</td><td>CRUD, server-side filter, yearly code TK-YY-NNNN</td></tr>
-          <tr><td>31 May</td><td>11:00</td><td>Asset Module</td><td>Asset list, detail page, basic tag system</td></tr>
-          <tr><td>31 May</td><td>12:00</td><td>Staff + Dashboard</td><td>Staff list, province cards, IT filter</td></tr>
-          <tr><td>31 May</td><td>13:00</td><td>Knowledge Base</td><td>KB list, search, category filter</td></tr>
-          <tr><td>31 May</td><td>14:00</td><td>DataTables filter fix</td><td>Filter reads cell text → fixed with data-* attributes</td></tr>
-          <tr><td>31 May</td><td>15:00</td><td>Cascade Dropdowns</td><td>Branch↔Province bidirectional filtering</td></tr>
-          <tr><td>31 May</td><td>16:00</td><td>Asset Tag System</td><td>Smart tag 1B-PC001 format with province/branch/category codes</td></tr>
-          <tr><td>31 May</td><td>17:00</td><td>KB Attach on Ticket</td><td>Search/create/attach KB from ticket detail</td></tr>
-          <tr><td>1 Jun</td><td>09:00</td><td>Route Planner</td><td>Leaflet choropleth map, 33 districts, priority ranking</td></tr>
-          <tr><td>1 Jun</td><td>10:00</td><td>Site Map + How To</td><td>System overview + user guide pages</td></tr>
-          <tr><td>1 Jun</td><td>11:00</td><td>Multi-User Auth</td><td>Users table, role-based sessions (admin/manager/user/hr)</td></tr>
-          <tr><td>1 Jun</td><td>12:00</td><td>Settings Page</td><td>User management, theme switcher, ITSM roadmap</td></tr>
-          <tr><td>1 Jun</td><td>13:00</td><td>UI/UX Pro Max</td><td>Fira Sans fonts, card hover effects, border-left accents</td></tr>
-          <tr><td>1 Jun</td><td>14:00</td><td>Dark Mode</td><td>CSS token system, 34 paired bg/text tokens, WCAG AA</td></tr>
-          <tr><td>2 Jun</td><td>09:00</td><td>Color Picker</td><td>Custom theme color on all pages</td></tr>
-          <tr><td>2 Jun</td><td>10:00</td><td>PIN Sidebar</td><td>Sidebar collapse/expand on desktop</td></tr>
-          <tr><td>2 Jun</td><td>11:00</td><td>Quick Dial 888</td><td>IT Hotline button, FAB, top bar</td></tr>
-          <tr><td>2 Jun</td><td>12:00</td><td>Centered Navbar</td><td>Sticky navbar, hamburger mobile menu</td></tr>
-          <tr><td>2 Jun</td><td>13:00</td><td>SQLite Fix Fly.io</td><td>get_db() → Flask g object pattern, connection per request</td></tr>
-          <tr><td>2 Jun</td><td>14:00</td><td>Filter + Sort Fix</td><td>Staff/asset filter survives sorting (permanent data-* filter)</td></tr>
-          <tr><td>3 Jun</td><td>09:00</td><td>Asset Tag Update</td><td>1BPC01 format (no dash), type dropdown on create</td></tr>
-          <tr><td>3 Jun</td><td>10:00</td><td>Route Planner Fix</td><td>Fixed block name (scripts → extra_scripts)</td></tr>
-          <tr><td>3 Jun</td><td>11:00</td><td>Live Dev Log</td><td>Real-time progress section on How To page</td></tr>
-          <tr><td>4 Jun</td><td>09:00</td><td>Ticket Detail Fix</td><td>Reassign function, work notes, status update</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.1 — Project Start</b></td></tr>
+          <tr><td></td><td>31 May</td><td>Flask + SQLite Setup</td><td>DB schema, seed data, 22 branches, 249 staff, 105 tickets</td></tr>
+          <tr><td></td><td>31 May</td><td>Ticket Module</td><td>CRUD, server-side filter, yearly code TK-YY-NNNN</td></tr>
+          <tr><td></td><td>31 May</td><td>Asset Module</td><td>Asset list, detail page, basic tag system</td></tr>
+          <tr><td></td><td>31 May</td><td>Staff + Dashboard</td><td>Staff list, province cards, IT filter</td></tr>
+          <tr><td></td><td>31 May</td><td>Knowledge Base</td><td>KB list, search, category filter</td></tr>
+          <tr><td></td><td>31 May</td><td>DataTables Filter Fix</td><td>Filter reads cell text → fixed with data-* attributes</td></tr>
+          <tr><td></td><td>31 May</td><td>Cascade Dropdowns</td><td>Branch↔Province bidirectional filtering</td></tr>
+          <tr><td></td><td>31 May</td><td>Asset Tag System</td><td>Smart tag 1B-PC001 format with province/branch/category codes</td></tr>
+          <tr><td></td><td>31 May</td><td>KB Attach on Ticket</td><td>Search/create/attach KB from ticket detail</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.2 — Core Features</b></td></tr>
+          <tr><td></td><td>1 Jun</td><td>Route Planner</td><td>Leaflet choropleth map, 33 districts, priority ranking</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Site Map + How To</td><td>System overview + user guide pages</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Multi-User Auth</td><td>Users table, role-based sessions (admin/manager/user/hr)</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Settings Page</td><td>User management, theme switcher, ITSM roadmap</td></tr>
+          <tr><td></td><td>1 Jun</td><td>UI/UX Polish</td><td>Fira Sans fonts, card hover effects, border-left accents</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Dark Mode</td><td>CSS token system, 34 paired bg/text tokens, WCAG AA</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.3 — UI/UX + Deploy</b></td></tr>
+          <tr><td></td><td>2 Jun</td><td>Color Picker</td><td>Custom theme color on all pages</td></tr>
+          <tr><td></td><td>2 Jun</td><td>PIN Sidebar</td><td>Sidebar collapse/expand on desktop</td></tr>
+          <tr><td></td><td>2 Jun</td><td>Quick Dial 888</td><td>IT Hotline button, FAB, top bar</td></tr>
+          <tr><td></td><td>2 Jun</td><td>Centered Navbar</td><td>Sticky navbar, hamburger mobile menu</td></tr>
+          <tr><td></td><td>2 Jun</td><td>SQLite Fix</td><td>get_db() → Flask g object pattern, connection per request</td></tr>
+          <tr><td></td><td>2 Jun</td><td>Filter + Sort Fix</td><td>Staff/asset filter survives sorting (permanent data-* filter)</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.4 — Polish + Deploy</b></td></tr>
+          <tr><td></td><td>3 Jun</td><td>Asset Tag Update</td><td>1BPC01 format (no dash), type dropdown on create</td></tr>
+          <tr><td></td><td>3 Jun</td><td>Route Planner Fix</td><td>Fixed block name (scripts → extra_scripts)</td></tr>
+          <tr><td></td><td>3 Jun</td><td>Live Dev Log</td><td>Real-time progress section on How To page</td></tr>
+          <tr><td></td><td>3 Jun</td><td>Fly.io Deploy</td><td>Persistent volume, always-on, auto-deploy from GitHub</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.5 — Ticket Detail + Map</b></td></tr>
+          <tr><td></td><td>4 Jun</td><td>Ticket Detail Fix</td><td>Reassign function, work notes, status update</td></tr>
+          <tr><td></td><td>4 Jun</td><td>Auto-Log Timeline</td><td>Status/reassign/asset/KB changes auto-logged to timeline</td></tr>
+          <tr><td></td><td>4 Jun</td><td>Short Branch Names</td><td>สาขายะหา → 2ยะหา (province+district format)</td></tr>
+          <tr><td></td><td>4 Jun</td><td>Sidebar Hover Labels</td><td>CSS-only tooltip, zero layout shift</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.6 — Theme + Map Merge</b></td></tr>
+          <tr><td></td><td>5 Jun</td><td>Theme Single Source</td><td>Removed duplicate applyCustomColor() from settings.html</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Leaflet Map Merge</td><td>Route Planner now uses real GeoJSON + live ticket counts</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Realtime Refresh</td><td>Map polls /api/district-tickets every 30 seconds</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Version Log</td><td>Dev log grouped by version with real dates</td></tr>
         </tbody>
       </table>
     </div>
