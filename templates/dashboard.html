@@ -217,7 +217,7 @@
 </div>
 
 <script>
-    (function(){
+    window.addEventListener('load', function(){
         const chartLabels = {{ cat_labels | tojson }};
         const chartValues = {{ cat_counts | tojson }};
         const catColors = ['#3498db','#e74c3c','#f39c12','#2ecc71','#9b59b6','#1abc9c','#e67e22','#34495e'];
@@ -261,6 +261,6 @@
             });
             legendDiv.innerHTML = html;
         }
-    })();
+    });
 </script>
 {% endblock %}
