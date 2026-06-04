@@ -20,7 +20,7 @@
         <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-muted mb-1">รอดำเนินการ</h6>
+                    <h6 class="text-muted mb-1">เปิด</h6>
                     <h3 class="mb-0 fw-bold text-warning">{{ open_tickets }}</h3>
                 </div>
                 <i class="bi bi-hourglass-split stat-icon text-warning"></i>
@@ -56,7 +56,7 @@
         <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-muted mb-1">⏳ รอดำเนินการ</h6>
+                    <h6 class="text-muted mb-1">รอดำเนินการ</h6>
                     <h3 class="mb-0 fw-bold text-secondary">{{ pending }}</h3>
                 </div>
                 <i class="bi bi-pause-circle stat-icon text-secondary"></i>
@@ -139,7 +139,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#f0f0ff'" onmouseout="this.style.background=''">
                     <div>
                         <span class="fw-bold">{{ pv.province }}</span>
-                        <br><small class="text-muted">{{ pv.open_cnt }} รอดำเนิน</small>
+                        <small class="text-muted">{{ pv.open_cnt }} เปิด</small>
                     </div>
                     <span class="badge bg-primary rounded-pill">{{ pv.cnt }}</span>
                 </div></a>
