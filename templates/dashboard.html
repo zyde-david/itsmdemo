@@ -33,7 +33,7 @@
         <div class="card card-stat p-2 p-md-3 border-info" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-muted mb-1">กำลังดำเนินการ</h6>
+                    <h6 class="text-muted mb-1">กำลังแก้</h6>
                     <h3 class="mb-0 fw-bold text-info">{{ in_progress }}</h3>
                 </div>
                 <i class="bi bi-gear stat-icon text-info"></i>
@@ -198,9 +198,9 @@
                         {% if t.status == 'open' %}
                         <span class="badge bg-primary">เปิด</span>
                         {% elif t.status == 'in_progress' %}
-                        <span class="badge bg-warning text-dark">กำลังดำเนิน</span>
+                        <span class="badge bg-warning text-dark">กำลังแก้</span>
                         {% elif t.status == 'pending' %}
-                        <span class="badge bg-secondary">รอดำเนิน</span>
+                        <span class="badge bg-secondary">รอ</span>
                         {% elif t.status == 'resolved' %}
                         <span class="badge bg-success">เสร็จ</span>
                         {% else %}

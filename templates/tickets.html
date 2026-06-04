@@ -13,7 +13,7 @@
 <div class="row g-2 mb-3">
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketPriority('critical');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-danger"><div class="text-center"><h6 class="text-muted small mb-1">ด่วน</h6><h5 class="mb-0 fw-bold text-danger">{{ critical_tickets|default(0) }}</h5></div></div></a></div>
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('open');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-success"><div class="text-center"><h6 class="text-muted small mb-1">เปิด</h6><h5 class="mb-0 fw-bold text-success">{{ open_tickets|default(0) }}</h5></div></div></a></div>
- <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('in_progress');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-info"><div class="text-center"><h6 class="text-muted small mb-1">กำลังดำเนิน</h6><h5 class="mb-0 fw-bold text-info">{{ in_progress|default(0) }}</h5></div></div></a></div>
+ <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('in_progress');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-info"><div class="text-center"><h6 class="text-muted small mb-1">กำลังแก้</h6><h5 class="mb-0 fw-bold text-info">{{ in_progress|default(0) }}</h5></div></div></a></div>
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('pending');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-warning"><div class="text-center"><h6 class="text-muted small mb-1">รอ</h6><h5 class="mb-0 fw-bold text-warning">{{ pending|default(0) }}</h5></div></div></a></div>
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('resolved');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-success"><div class="text-center"><h6 class="text-muted small mb-1">เรียบร้อย</h6><h5 class="mb-0 fw-bold text-success">{{ resolved|default(0) }}</h5></div></div></a></div>
  <div class="col-4 col-md-2"><a href="#" onclick="filterTicketStatus('');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-primary"><div class="text-center"><h6 class="text-muted small mb-1">ทั้งหมด</h6><h5 class="mb-0 fw-bold text-primary">{{ total|default(0) }}</h5></div></div></a></div>
@@ -33,7 +33,7 @@
     <select class="form-select form-select-sm" id="tFilterStatus" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
      <option value="open">เปิด</option>
-     <option value="in_progress">กำลังดำเนิน</option>
+     <option value="in_progress">กำลังแก้</option>
      <option value="pending">รอ</option>
      <option value="resolved">เสร็จแล้ว</option>
      <option value="closed">ปิด</option>
@@ -100,7 +100,7 @@
    <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
    <td>
     {% if t.status=='open' %}<span class="badge bg-primary">เปิด</span>
-    {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังดำเนิน</span>
+    {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลังแก้</span>
     {% elif t.status=='pending' %}<span class="badge bg-secondary">รอ</span>
     {% elif t.status=='resolved' %}<span class="badge bg-success">เสร็จแล้ว</span>
     {% else %}<span class="badge bg-dark">ปิด</span>{% endif %}
@@ -144,7 +144,7 @@
     <div class="row g-2 mb-2">
      <div class="col-md-3"><label class="form-label small">สถานะ</label>
       <select class="form-select form-select-sm" id="mStatus">
-       <option value="open">เปิด</option><option value="in_progress">กำลังดำเนิน</option>
+       <option value="open">เปิด</option><option value="in_progress">กำลังแก้</option>
        <option value="pending">รอ</option><option value="resolved">เสร็จ</option><option value="closed">ปิด</option>
       </select>
      </div>
@@ -217,7 +217,7 @@ function applyTicketFilters(){
   if(branch && branchToProvince[branch] && !province){
     document.getElementById('tFilterProvince').value = branchToProvince[branch];
   }
-  const statusMap = {'เปิด':'open','กำลังดำเนิน':'in_progress','รอ':'pending','เสร็จแล้ว':'resolved','เสร็จ':'resolved','ปิด':'closed'};
+  const statusMap = {'เปิด':'open','กำลังแก้':'in_progress','รอ':'pending','เสร็จแล้ว':'resolved','เสร็จ':'resolved','ปิด':'closed'};
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
     // data[2]=branch, data[3]=province, data[5]=category, data[6]=priority, data[7]=status(Thai)
     if(status && statusMap[data[7].trim()] !== status) return false;
@@ -258,7 +258,7 @@ function editTicket(id){
       document.getElementById('mTitle').value=c[4].innerText.trim();
       document.getElementById('mReporter').value=c[9].innerText.trim();
       document.getElementById('mAssignee').value=c[10].innerText.trim();
-      const statusMap={'เปิด':'open','กำลังดำเนิน':'in_progress','รอ':'pending','เสร็จแล้ว':'resolved','เสร็จ':'resolved','ปิด':'closed'};
+      const statusMap={'เปิด':'open','กำลังแก้':'in_progress','รอ':'pending','เสร็จแล้ว':'resolved','เสร็จ':'resolved','ปิด':'closed'};
       document.getElementById('mStatus').value=statusMap[c[8].innerText.trim()]||'open';
       const cat=c[5].innerText.trim();const catSel=document.getElementById('mCategory');
       for(let i=0;i<catSel.options.length;i++){if(catSel.options[i].text===cat){catSel.selectedIndex=i;break}}
