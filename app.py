@@ -943,7 +943,7 @@ def route_planner_page():
         if active <= 0:
             color = 'none'
         elif p.get('critical',0) > 0 or dispatch_score >= 100:
-            color = 'red'
+            color = 'orange'
         elif p.get('high',0) > 0 or dispatch_score >= 40:
             color = 'yellow'
         else:

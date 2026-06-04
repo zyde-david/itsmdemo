@@ -3,26 +3,28 @@
 {% block extra_head %}
 <style>
 .dispatch-map { background:#fff; border:1px solid #d1d5db; border-radius:16px; overflow:hidden; position:relative; }
-.dispatch-map-base { width:100%; display:block; }
+.dispatch-map-base { width:100%; display:block; opacity:.72; }
 .dispatch-map-overlay { position:absolute; inset:0; width:100%; height:100%; }
-.map-outline { fill:#fff; stroke:#64748b; stroke-width:2.4; stroke-linejoin:round; }
-.map-district-line { fill:none; stroke:#cbd5e1; stroke-width:1.2; stroke-dasharray:4 4; }
-.branch-cell { stroke:#ffffff; stroke-width:3; filter:drop-shadow(0 2px 4px rgba(15,23,42,.12)); }
-.cell-red { fill:#dc2626; }
-.cell-yellow { fill:#f59e0b; }
-.cell-green { fill:#16a34a; }
-.cell-none { fill:#f8fafc; stroke:#cbd5e1; stroke-width:1.5; }
-.cell-text { font-size:12px; font-weight:800; text-anchor:middle; dominant-baseline:central; paint-order:stroke; stroke:#fff; stroke-width:3.5; stroke-linejoin:round; fill:#0f172a; }
-.cell-text-active { fill:#fff; stroke:rgba(0,0,0,.18); stroke-width:2; }
-.cell-count { font-size:15px; font-weight:900; text-anchor:middle; dominant-baseline:central; fill:#fff; paint-order:stroke; stroke:rgba(0,0,0,.25); stroke-width:2; }
-.hq-label { fill:#111827; font-size:15px; font-weight:900; paint-order:stroke; stroke:#fff; stroke-width:4; }
+.route-line { fill:none; stroke:#2563eb; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:8 8; filter:drop-shadow(0 2px 3px rgba(37,99,235,.25)); }
+.route-km { font-size:13px; font-weight:800; fill:#1d4ed8; paint-order:stroke; stroke:#fff; stroke-width:5; }
+.site-badge { stroke:#fff; stroke-width:3; filter:drop-shadow(0 2px 5px rgba(15,23,42,.22)); }
+.badge-orange { fill:#f97316; }
+.badge-yellow { fill:#f59e0b; }
+.badge-green { fill:#16a34a; }
+.badge-none { fill:#f8fafc; stroke:#94a3b8; stroke-width:1.5; }
+.badge-count { font-size:16px; font-weight:900; text-anchor:middle; dominant-baseline:central; fill:#fff; paint-order:stroke; stroke:rgba(0,0,0,.22); stroke-width:2; }
+.badge-count-none { fill:#475569; stroke:#fff; stroke-width:3; }
+.site-label { font-size:12px; font-weight:800; text-anchor:middle; fill:#0f172a; paint-order:stroke; stroke:#fff; stroke-width:4; stroke-linejoin:round; }
+.route-no { font-size:10px; font-weight:900; text-anchor:middle; fill:#fff; }
+.hq-dot { fill:#111827; stroke:#fff; stroke-width:4; filter:drop-shadow(0 2px 5px rgba(0,0,0,.3)); }
+.hq-label { fill:#111827; font-size:14px; font-weight:900; paint-order:stroke; stroke:#fff; stroke-width:5; }
 .legend-pill { display:inline-flex; align-items:center; gap:6px; margin-right:10px; font-size:.85rem; }
-.legend-dot { width:13px; height:13px; border-radius:3px; display:inline-block; }
+.legend-dot { width:13px; height:13px; border-radius:50%; display:inline-block; }
 .route-step { width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:700; }
-.priority-high { background:#fee2e2; color:#991b1b; }
+.priority-high { background:#ffedd5; color:#9a3412; }
 .priority-mid { background:#fef3c7; color:#92400e; }
 .priority-low { background:#dcfce7; color:#166534; }
-@media(max-width:767.98px){ .cell-text{font-size:10px}.cell-count{font-size:12px}.route-step{width:30px;height:30px;font-size:.85rem} }
+@media(max-width:767.98px){ .site-label{font-size:10px}.badge-count{font-size:13px}.route-km{font-size:11px}.route-step{width:30px;height:30px;font-size:.85rem} }
 </style>
 {% endblock %}
 
@@ -30,7 +32,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
     <h4 class="mb-1"><i class="bi bi-signpost-split me-2"></i>Route Planner</h4>
-    <div class="text-muted small">แผนที่สีตามจำนวน Ticket: ดูสาขาใกล้กันเพื่อวางแผนออกไซต์</div>
+    <div class="text-muted small">แผนที่เส้นทางออกไซต์: ดูลำดับ, จำนวน Ticket และระยะทางระหว่างสาขา</div>
   </div>
   <a href="{{ url_for('tickets_page') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-ticket-detailed me-1"></i>ดู Tickets</a>
 </div>
@@ -44,30 +46,36 @@
 
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <span><i class="bi bi-map me-2"></i>แผนที่สาขาจากรูปจริง + Color Code</span>
-    <span class="small text-muted">สี + ชื่อสาขา + จำนวน Ticket</span>
+    <span><i class="bi bi-map me-2"></i>แผนที่เส้นทาง + Ticket Count</span>
+    <span class="small text-muted">เส้นทาง + กม. + จำนวนเคส</span>
   </div>
   <div class="card-body">
     <div class="dispatch-map">
       <img class="dispatch-map-base" src="{{ url_for('static', filename='images/clean_border_map_4k.png') }}" alt="Clean black border district map">
-      <svg class="dispatch-map-overlay" viewBox="0 0 1000 637" preserveAspectRatio="xMidYMid meet" role="img" aria-label="ITSM ticket labels on clean border map">
+      <svg class="dispatch-map-overlay" viewBox="0 0 1000 637" preserveAspectRatio="xMidYMid meet" role="img" aria-label="ITSM site visit route with ticket count and distance">
+        {% for seg in route_segments %}
+          <line class="route-line" x1="{{ '%.1f'|format(seg.x1) }}" y1="{{ '%.1f'|format(seg.y1) }}" x2="{{ '%.1f'|format(seg.x2) }}" y2="{{ '%.1f'|format(seg.y2) }}"/>
+          <text class="route-km" x="{{ '%.1f'|format(seg.mx) }}" y="{{ '%.1f'|format(seg.my - 8) }}">{{ seg.km }} กม.</text>
+        {% endfor %}
+        <circle class="hq-dot" cx="{{ '%.1f'|format(hq.x) }}" cy="{{ '%.1f'|format(hq.y) }}" r="11"/>
+        <text class="hq-label" x="{{ '%.1f'|format(hq.x + 16) }}" y="{{ '%.1f'|format(hq.y - 14) }}">HQ</text>
         {% for d in districts %}
           {% set active = d.tickets > 0 %}
           <g>
-            <rect class="branch-cell {% if d.color == 'red' %}cell-red{% elif d.color == 'yellow' %}cell-yellow{% elif d.color == 'green' %}cell-green{% else %}cell-none{% endif %}"
-                  x="{{ '%.1f'|format(d.x - 36) }}" y="{{ '%.1f'|format(d.y - 22) }}" width="72" height="44" rx="10"/>
-            <text class="cell-text {% if active %}cell-text-active{% endif %}" x="{{ '%.1f'|format(d.x) }}" y="{{ '%.1f'|format(d.y - 7) }}">{{ d.short_branch }}</text>
-            <text class="{% if active %}cell-count{% else %}cell-text{% endif %}" x="{{ '%.1f'|format(d.x) }}" y="{{ '%.1f'|format(d.y + 10) }}">{{ d.tickets }}</text>
+            <circle class="site-badge {% if d.color == 'orange' %}badge-orange{% elif d.color == 'yellow' %}badge-yellow{% elif d.color == 'green' %}badge-green{% else %}badge-none{% endif %}"
+                    cx="{{ '%.1f'|format(d.x) }}" cy="{{ '%.1f'|format(d.y) }}" r="18"/>
+            <text class="badge-count {% if not active %}badge-count-none{% endif %}" x="{{ '%.1f'|format(d.x) }}" y="{{ '%.1f'|format(d.y + 1) }}">{{ d.tickets }}</text>
+            {% if d.route_no %}<text class="route-no" x="{{ '%.1f'|format(d.x - 13) }}" y="{{ '%.1f'|format(d.y - 13) }}">{{ d.route_no }}</text>{% endif %}
+            <text class="site-label" x="{{ '%.1f'|format(d.x) }}" y="{{ '%.1f'|format(d.y + 33) }}">{{ d.short_branch }}</text>
           </g>
         {% endfor %}
       </svg>
     </div>
     <div class="mt-2">
-      <span class="legend-pill"><span class="legend-dot" style="background:#dc2626"></span>แดง = Critical/เคสสูงสุด</span>
+      <span class="legend-pill"><span class="legend-dot" style="background:#f97316"></span>ส้ม = ด่วน/Critical</span>
       <span class="legend-pill"><span class="legend-dot" style="background:#f59e0b"></span>เหลือง = High/กลาง</span>
-      <span class="legend-pill"><span class="legend-dot" style="background:#16a34a"></span>เขียว = Low/ต่ำ</span>
-      <span class="legend-pill"><span class="legend-dot" style="background:#f8fafc;border:1px solid #cbd5e1"></span>ขาว = ไม่มีเคส</span>
-    </div>
+      <span class="legend-pill"><span class="legend-dot" style="background:#16a34a"></span>เขียว = Low</span>
+      <span class="legend-pill"><span class="legend-dot" style="background:#2563eb"></span>เส้นประ = เส้นทางออกไซต์ + กม.</span></div>
   </div>
 </div>
 
