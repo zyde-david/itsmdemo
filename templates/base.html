@@ -387,20 +387,25 @@ function lighten(hex, percent){
 function applyCustomColor(hex){
   hex = hex.startsWith('#') ? hex : '#'+hex;
   if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
-  var dark = isDark(hex);
+  var lum = relativeLuminance(hex);
+  var dark = lum < 0.179;
+  // For mid-tone colors, pick the side with better contrast
+  var textPrimary = dark ? '#e0e0e0' : '#2c3e50';   // soft white / dark gray (not pure black)
+  var textSecondary = dark ? '#b0b0b0' : '#555555';
+  var textMuted = dark ? '#8899aa' : '#888888';
   var b = document.body;
   b.setAttribute('data-theme','custom');
   b.style.setProperty('--bg-body', hex);
   b.style.setProperty('--bg-surface', dark ? lighten(hex,12) : '#ffffff');
   b.style.setProperty('--bg-elevated', dark ? lighten(hex,18) : '#f8f9fa');
-  b.style.setProperty('--text-body', dark ? '#e0e0e0' : '#212529');
-  b.style.setProperty('--text-surface', dark ? '#e0e0e0' : '#212529');
-  b.style.setProperty('--text-muted', dark ? '#8899aa' : '#888888');
-  b.style.setProperty('--text-label', dark ? '#b0b0b0' : '#555555');
+  b.style.setProperty('--text-body', textPrimary);
+  b.style.setProperty('--text-surface', textPrimary);
+  b.style.setProperty('--text-muted', textMuted);
+  b.style.setProperty('--text-label', textSecondary);
   b.style.setProperty('--border-subtle', dark ? 'rgba(255,255,255,0.06)' : '#e0e0e0');
   b.style.setProperty('--border-dark', dark ? 'rgba(255,255,255,0.1)' : '#dee2e6');
   b.style.setProperty('--bg-input', dark ? lighten(hex,8) : '#ffffff');
-  b.style.setProperty('--text-input', dark ? '#e0e0e0' : '#212529');
+  b.style.setProperty('--text-input', textPrimary);
   b.style.setProperty('--shadow-color', dark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)');
   b.style.setProperty('--link-color', dark ? '#5dade2' : '#1a5276');
   b.style.setProperty('--id-badge-bg', dark ? 'rgba(255,255,255,0.08)' : '#e8f4fd');
@@ -411,15 +416,15 @@ function applyCustomColor(hex){
   b.style.setProperty('--btn-page-text', dark ? '#e0e0e0' : '#1a5276');
   b.style.setProperty('--btn-page-border', dark ? 'rgba(255,255,255,0.1)' : '#dee2e6');
   b.style.setProperty('--bg-chat', dark ? hex : '#f8f9fa');
-  b.style.setProperty('--text-chat', dark ? '#e0e0e0' : '#212529');
+  b.style.setProperty('--text-chat', textPrimary);
   b.style.setProperty('--bg-banner', dark ? lighten(hex,5) : '#ffecd2');
-  b.style.setProperty('--text-banner', dark ? '#e0e0e0' : '#333333');
+  b.style.setProperty('--text-banner', textPrimary);
   b.style.setProperty('--bg-footer', 'transparent');
   b.style.setProperty('--text-footer', dark ? '#667788' : '#95a5a6');
   b.style.setProperty('--bg-sidebar', dark ? lighten(hex,5) : '#ffffff');
-  b.style.setProperty('--text-sidebar', dark ? '#b0b0b0' : '#555555');
+  b.style.setProperty('--text-sidebar', textSecondary);
   b.style.setProperty('--bg-table', '#ffffff');
-  b.style.setProperty('--text-table', '#212529');
+  b.style.setProperty('--text-table', '#2c3e50');
   b.style.setProperty('--bg-nav', dark ? lighten(hex,8) : '#1a5276');
   b.style.setProperty('--text-nav', dark ? '#e0e0e0' : '#ffffff');
   localStorage.setItem('theme','custom');
