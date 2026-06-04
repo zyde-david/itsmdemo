@@ -465,7 +465,13 @@ def staff_page():
 @app.route('/knowledge')
 @login_required
 def kb_page():
-    c=get_db();rows=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall();
+    c=get_db();rows=c.execute('''
+        SELECT kb.*, COALESCE(COUNT(t.id), 0) AS ticket_count
+        FROM knowledge_base kb
+        LEFT JOIN tickets t ON t.kb_id = kb.id
+        GROUP BY kb.id
+        ORDER BY kb.views DESC
+    ''').fetchall();
     cats = sorted(set(r['category'] for r in rows))
     return render_template('knowledge.html',articles=rows,kb_categories=cats)
 
@@ -1020,3 +1026,7 @@ else:
     import threading
     t = threading.Thread(target=_start_init_db, daemon=True)
     t.start()
+
+@app.route('/test')
+def test_page():
+    return render_template('test.html')

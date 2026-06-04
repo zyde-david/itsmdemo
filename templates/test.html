@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 จังหวัดชายแดนภาคใต้ Map Dashboard</title>
+
+    <!-- ดึงไลบรารีสำหรับวาดแผนที่ (Leaflet) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { font-family: 'Tahoma', sans-serif; margin: 0; padding: 20px; background-color: #f4f6f9; color: #333; }
+        .container { display: flex; max-width: 1200px; margin: 0 auto; gap: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .sidebar { width: 30%; max-height: 600px; overflow-y: auto; padding-right: 10px; }
+        .map-wrapper { width: 70%; position: relative; }
+        #map { height: 600px; width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+
+        /* สไตล์ตารางอันดับใน Sidebar (เหมือน Excel) */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        tr:hover { background-color: #f1f3f5; cursor: pointer; }
+        .badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: white; }
+
+        /* กล่องข้อมูลลอยบนแผนที่ */
+        .info-panel { padding: 10px 14px; font-size: 14px; background: white; background: rgba(255,255,255,0.95); box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 6px; line-height: 1.6; border-left: 5px solid #2b5c8f; }
+        .info-panel h4 { margin: 0 0 5px; color: #2b5c8f; }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar, .map-wrapper { width: 100%; }
+            #map { height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align: center; margin-bottom: 20px;">แผนที่วางแผนเส้นทางและจัดอันดับข้อมูล (ปัตตานี ยะลา นราธิวาส)</h2>
+
+    <div class="container">
+        <!-- ฝั่งซ้าย: ตารางจัดอันดับความสำคัญเพื่อวางแผนการเดินทาง (อารมณ์ Excel) -->
+        <div class="sidebar">
+            <h3>📌 จัดอันดับตามค่าข้อมูล</h3>
+            <p style="font-size: 12px; color: #666;">เรียงจากอำเภอที่ต้องไปก่อน (ค่าสูงไปต่ำ)</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>อันดับ</th>
+                        <th>อำเภอ</th>
+                        <th>จังหวัด</th>
+                        <th>ค่าที่ได้</th>
+                    </tr>
+                </thead>
+                <tbody id="rank-table">
+                    <!-- ข้อมูลจะถูกใส่ด้วย JavaScript อัตโนมัติ -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ฝั่งขวา: แผนที่โค้ดล้วน (ไม่มีรูปภาพ) -->
+        <div class="map-wrapper">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script>
+        // 1. ตั้งค่าศูนย์กลางแผนที่ให้โฟกัสแค่ 3 จังหวัดใต้ และล็อกการซูมให้พอดีหน้าจอ
+        var map = L.map('map').setView([6.32, 101.40], 9.5);
+
+        // 2. ใช้แผนที่ฐานแบบโปร่งคลีน เพื่อให้สีของแต่ละอำเภอเด่นขึ้นมา
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+        // 3. ข้อมูลจำลองจาก Database (คุณสามารถเปลี่ยนตัวเลขพวกนี้ หรือให้ Backend ดึงมาใส่แทนได้เลย)
+        var reportData = {
+            "อำเภอเมืองยะลา": 95, "อำเภอเมืองปัตตานี": 88, "อำเภอสุไหงโก-ลก": 82, "อำเภอเบตง": 78,
+            "อำเภอสายบุรี": 65, "อำเภอหนองจิก": 58, "อำเภอตากใบ": 52, "อำเภอยะรัง": 50,
+            "อำเภอยะหริ่ง": 48, "อำเภอระแงะ": 45, "อำเภอโคกโพธิ์": 42, "อำเภอรือเสาะ": 41,
+            "อำเภอบันนังสตา": 40, "อำเภอรามัน": 38, "อำเภอสุไหงปาดี": 37, "อำเภอยะหา": 35,
+            "อำเภอแว้ง": 34, "อำเภอบาเจาะ": 33, "อำเภอปะนาเระ": 30, "อำเภอยี่งอ": 29,
+            "อำเภอมายอ": 28, "อำเภอเจาะไอร้อง": 25, "อำเภอจะแนะ": 23, "อำเภอกรงปินัง": 22,
+            "อำเภอธารโต": 20, "อำเภอศรีสาคร": 19, "อำเภอกะพ้อ": 18, "อำเภอสุคิริน": 16,
+            "อำเภอทุ่งยางแดง": 15, "อำเภอแม่ลาน": 14, "อำเภอกาบัง": 12, "อำเภอไม้แก่น": 12
+        };
+
+        // 4. ฟังก์ชันคำนวณเฉดสีเหมือนใน Excel (ค่ายิ่งสูง สีจะยิ่งเข้มดุดัน ค่าน้อยสีจะอ่อน)
+        function getColor(d) {
+            return d > 80  ? '#084594' : // น้ำเงินเข้มจัด (วิกฤต/ต้องไปด่วน)
+                   d > 60  ? '#2171b5' : // น้ำเงินเข้ม
+                   d > 40  ? '#4292c6' : // น้ำเงินกลาง
+                   d > 20  ? '#8c96c6' : // ม่วงอ่อน
+                   d > 0   ? '#d0d1e6' : // ฟ้าอ่อนมาก
+                             '#f7f7f7';  // ไม่มีข้อมูล
+        }
+
+        // 5. สร้างกล่องข้อความสรุปข้อมูลลอยไว้มุมขวาบนของแผนที่
+        var info = L.control({position: 'topright'});
+        info.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info-panel');
+            this.update();
+            return this._div;
+        };
+        info.update = function (props) {
+            this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>' +  (props ?
+                '<b>จังหวัด:</b> ' + props.pv_tn +
+                '<br /><b>อำเภอ:</b> อำเภอ' + props.ap_tn +
+                '<br /><b>ค่ารายงาน:</b> <span style="font-size:16px; color:#084594; font-weight:bold;">' + (reportData["อำเภอ" + props.ap_tn] || 0) + '</span>'
+                : 'เลื่อนเมาส์ชี้ที่อำเภอเพื่อดูตัวเลข');
+        };
+        info.addTo(map);
+
+        // 6. โหลดโค้ดเส้นขอบเขตอำเภอของไทย และกรองเอา "เฉพาะ 3 จังหวัดใต้" เท่านั้น (อำเภอจังหวัดอื่นโดนลบออกหมด)
+        var geojsonLayer;
+        fetch('https://raw.githubusercontent.com/hasand99/thailand-amphoe-geojson/main/thailand-amphoe.json')
+            .then(res => res.json())
+            .then(geoData => {
+
+                // กรองข้อมูลแผนที่เอาแค่ ปัตตานี ยะลา นราธิวาส
+                var southData = {
+                    type: "FeatureCollection",
+                    features: geoData.features.filter(f => ['ปัตตานี', 'ยะลา', 'นราธิวาส'].includes(f.properties.pv_tn))
+                };
+
+                // วาดลายเส้นและลงสีแผนที่จากโค้ดพิกัด
+                geojsonLayer = L.geoJson(southData, {
+                    style: function(feature) {
+                        var name = "อำเภอ" + feature.properties.ap_tn;
+                        var val = reportData[name] || 0;
+                        return {
+                            fillColor: getColor(val),
+                            weight: 1.5,
+                            opacity: 1,
+                            color: 'white', // เส้นขอบเขตระหว่างอำเภอสีขาวแบบคลีนๆ
+                            fillOpacity: 0.85
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        // ผูกเหตุการณ์ตอนเมาส์ชี้ (Hover) และเมาส์ออก
+                        layer.on({
+                            mouseover: function(e) {
+                                var l = e.target;
+                                l.setStyle({ weight: 3, color: '#333', fillOpacity: 0.95 }); // ไฮไลต์เส้นขอบเมื่อชี้
+                                info.update(l.feature.properties);
+                            },
+                            mouseout: function(e) {
+                                geojsonLayer.resetStyle(e.target); // กลับเป็นสีปกติเมื่อเอาเมาส์ออก
+                                info.update();
+                            }
+                        });
+                    }
+                }).addTo(map);
+
+                // 7. สร้างตารางสรุปใน Sidebar และเรียงลำดับจากค่ามากไปหาน้อย (ช่วยวางแผน Route)
+                generateSidebarTable(southData.features);
+            })
+            .catch(err => {
+                console.error('Failed to load GeoJSON', err);
+                document.getElementById('rank-table').innerHTML = '<tr><td colspan="4" style="color:#999;">โหลดข้อมูลแผนที่ไม่สำเร็จ</td></tr>';
+            });
+
+        function generateSidebarTable(features) {
+            var tableBody = document.getElementById('rank-table');
+
+            // นำข้อมูลมาแปลงและจัดเรียงตามค่าตัวเลขจากสูงไปต่ำ
+            var sortedList = features.map(f => {
+                var name = "อำเภอ" + f.properties.ap_tn;
+                return {
+                    name: name,
+                    province: f.properties.pv_tn,
+                    value: reportData[name] || 0,
+                    layerId: f.properties.ap_id
+                };
+            }).sort((a, b) => b.value - a.value);
+
+            // สร้างแถวตารางใน HTML
+            sortedList.forEach((item, index) => {
+                var row = document.createElement('tr');
+                row.innerHTML =
+                    '<td><b>' + (index + 1) + '</b></td>' +
+                    '<td>' + item.name + '</td>' +
+                    '<td>' + item.province + '</td>' +
+                    '<td><span class="badge" style="background-color:' + getColor(item.value) + '">' + item.value + '</span></td>';
+
+                // ลูกเล่น: ถ้าคลิกที่แถวในตาราง แผนที่จะขยับไปไฮไลต์และซูมดูอำเภอนั้นๆ ทันที
+                row.addEventListener('click', () => {
+                    geojsonLayer.eachLayer(function(layer) {
+                        if ("อำเภอ" + layer.feature.properties.ap_tn === item.name) {
+                            map.panTo(layer.getBounds().getCenter());
+                            layer.openPopup();
+                            // จำลองเอฟเฟกต์การกะพริบไฮไลต์
+                            layer.setStyle({ weight: 4, color: '#ff0000' });
+                            setTimeout(() => geojsonLayer.resetStyle(layer), 1500);
+                        }
+                    });
+                });
+
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
