@@ -873,7 +873,44 @@ def howto_page():
 @app.route('/route-planner')
 @login_required
 def route_planner_page():
-    return render_template('route-planner.html')
+    c = get_db()
+    branch_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
+
+    ticket_counts = {}
+    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM tickets GROUP BY branch').fetchall()
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if d:
+            ticket_counts[d] = ticket_counts.get(d, 0) + r['cnt']
+
+    asset_counts = {}
+    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM assets GROUP BY branch').fetchall()
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if d:
+            asset_counts[d] = asset_counts.get(d, 0) + r['cnt']
+
+    districts = []
+    for b in ALL_BRANCHES:
+        d = b['district']
+        tickets = ticket_counts.get(d, 0)
+        assets = asset_counts.get(d, 0)
+        score = tickets * 2 + assets
+        districts.append({
+            'name': d,
+            'short_branch': _short_branch(b['branch']),
+            'branch': b['branch'],
+            'province': b['province'],
+            'tickets': tickets,
+            'assets': assets,
+            'score': score,
+            'priority': 'สูง' if score >= 10 else ('กลาง' if score >= 5 else 'ต่ำ')
+        })
+
+    districts.sort(key=lambda x: (x['score'], x['tickets'], x['assets']), reverse=True)
+    total_tickets = sum(d['tickets'] for d in districts)
+    total_assets = sum(d['assets'] for d in districts)
+    return render_template('route-planner.html', districts=districts, total_tickets=total_tickets, total_assets=total_assets)
 
 def _start_init_db():
     """Run init_db in a background thread so it doesn't block gunicorn startup."""
