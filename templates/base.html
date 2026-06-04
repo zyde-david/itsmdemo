@@ -63,13 +63,10 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 body[data-theme="dark"] .sidebar-pin-btn,
 body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:var(--text-elevated);border:1px solid var(--border-dark)}
 
-/* Sidebar hover-expand on desktop — expand in-place, overlap content to right */
+/* Sidebar hover-expand on desktop — tooltip labels on icon hover */
 @media(min-width:768px){
-  .sidebar-collapsed .sidebar:hover{width:220px!important;min-width:220px!important;max-width:220px!important;overflow-y:auto!important;overflow-x:visible!important;box-shadow:4px 0 20px rgba(0,0,0,.15);z-index:1060;transition:width .25s ease;background:var(--bg-sidebar)!important}
-  .sidebar-collapsed .sidebar:hover .nav-text{display:inline!important}
-  .sidebar-collapsed .sidebar:hover .nav-link{justify-content:flex-start;padding:10px 16px}
-  .sidebar-collapsed .sidebar:hover .nav-link i{margin-right:8px!important;font-size:1rem}
-  .sidebar-collapsed .sidebar:hover .sidebar-pin-btn{right:8px;transform:rotate(180deg)}
+  .sidebar-collapsed .sidebar .nav-link{position:relative;overflow:visible}
+  .sidebar-collapsed .sidebar .nav-link:hover::after{content:attr(data-label);position:absolute;left:52px;top:50%;transform:translateY(-50%);background:var(--bg-sidebar);color:var(--text-sidebar);padding:6px 12px;border-radius:6px;box-shadow:2px 2px 8px rgba(0,0,0,.15);white-space:nowrap;z-index:1070;font-size:.8rem;pointer-events:none}
 }
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1040}
 .sidebar-overlay.show{display:block}
@@ -286,15 +283,15 @@ small,.small{color:var(--text-muted)}
    <i class="bi bi-chevron-left" id="sidebarPinIcon"></i>
   </div>
   <div class="py-2" id="sidebarNav">
-   <a class="nav-link" href="/"><i class="bi bi-speedometer2"></i><span class="nav-text">Dashboard</span></a>
-   <a class="nav-link" href="/tickets"><i class="bi bi-ticket-detailed"></i><span class="nav-text">Tickets</span></a>
-   <a class="nav-link" href="/assets"><i class="bi bi-box-seam"></i><span class="nav-text">Assets</span></a>
-   <a class="nav-link" href="/staff"><i class="bi bi-people"></i><span class="nav-text">ทีมงาน</span></a>
-   <a class="nav-link" href="/knowledge"><i class="bi bi-book"></i><span class="nav-text">ความรู้</span></a>
-   <a class="nav-link" href="/route-planner"><i class="bi bi-map"></i><span class="nav-text">Route Planner</span></a>
-   <a class="nav-link" href="/sitemap"><i class="bi bi-diagram-3"></i><span class="nav-text">Site Map</span></a>
-   <a class="nav-link" href="/howto"><i class="bi bi-question-circle"></i><span class="nav-text">How To</span></a>
-   <a class="nav-link" href="/settings"><i class="bi bi-gear"></i><span class="nav-text">ตั้งค่า</span></a>
+   <a class="nav-link" href="/" data-label="Dashboard"><i class="bi bi-speedometer2"></i><span class="nav-text">Dashboard</span></a>
+   <a class="nav-link" href="/tickets" data-label="Tickets"><i class="bi bi-ticket-detailed"></i><span class="nav-text">Tickets</span></a>
+   <a class="nav-link" href="/assets" data-label="Assets"><i class="bi bi-box-seam"></i><span class="nav-text">Assets</span></a>
+   <a class="nav-link" href="/staff" data-label="ทีมงาน"><i class="bi bi-people"></i><span class="nav-text">ทีมงาน</span></a>
+   <a class="nav-link" href="/knowledge" data-label="ความรู้"><i class="bi bi-book"></i><span class="nav-text">ความรู้</span></a>
+   <a class="nav-link" href="/route-planner" data-label="Route Planner"><i class="bi bi-map"></i><span class="nav-text">Route Planner</span></a>
+   <a class="nav-link" href="/sitemap" data-label="Site Map"><i class="bi bi-diagram-3"></i><span class="nav-text">Site Map</span></a>
+   <a class="nav-link" href="/howto" data-label="How To"><i class="bi bi-question-circle"></i><span class="nav-text">How To</span></a>
+   <a class="nav-link" href="/settings" data-label="ตั้งค่า"><i class="bi bi-gear"></i><span class="nav-text">ตั้งค่า</span></a>
   </div>
  </div>
  <div class="col-md-10 p-2 p-md-3" id="mainContent">
