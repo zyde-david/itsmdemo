@@ -510,6 +510,17 @@ def api_edit(tid):
         author = d.get('changed_by','System')
         note_text = f'มอบหมายให้: {new_assign} (เดิม: {old_assign})'
         c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,note_text,author,now_str))
+    # Auto-log asset change if asset_id changed
+    new_asset = d.get('asset_id')
+    if new_asset is not None and new_asset != '' and str(new_asset) != str(t['asset_id']):
+        old_asset = t['asset_id'] or 'ไม่มี'
+        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        author = d.get('changed_by','System')
+        # Fetch asset info for readable note
+        a_row = c.execute('SELECT asset_tag,name FROM assets WHERE id=?',(int(new_asset),)).fetchone()
+        asset_label = f"{a_row['asset_tag']} — {a_row['name']}" if a_row else str(new_asset)
+        note_text = f'เชื่อม Asset: {asset_label}'
+        c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,note_text,author,now_str))
     c.commit()
     return jsonify(success=True)
 
@@ -524,8 +535,18 @@ def api_delete(tid):
 def api_ticket_kb(tid):
     d=request.json;c=get_db()
     kb_id=d.get('kb_id',0)
+    old_kb = c.execute('SELECT kb_id FROM tickets WHERE id=?',(tid,)).fetchone()
+    old_kb_id = old_kb['kb_id'] if old_kb else 0
     c.execute('UPDATE tickets SET kb_id=? WHERE id=?',(kb_id,tid))
-    c.commit();
+    # Auto-log KB attach
+    if kb_id and kb_id != old_kb_id:
+        kb_row = c.execute('SELECT title FROM knowledge_base WHERE id=?',(kb_id,)).fetchone()
+        kb_title = kb_row['title'] if kb_row else f'#{kb_id}'
+        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        author = d.get('changed_by','System')
+        note_text = f'แนบ KB: {kb_title}'
+        c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,note_text,author,now_str))
+    c.commit()
     return jsonify(success=True)
 
 # ── Work Notes API ──

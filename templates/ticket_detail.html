@@ -76,6 +76,10 @@
                         <div class="bg-info text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-arrow-left-right"></i></div>
                         {% elif 'มอบหมายให้' in n.note %}
                         <div class="bg-warning text-dark rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-person-plus"></i></div>
+                        {% elif 'เชื่อม Asset' in n.note %}
+                        <div class="bg-success text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-box-seam"></i></div>
+                        {% elif 'แนบ KB' in n.note %}
+                        <div class="bg-primary text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-book"></i></div>
                         {% else %}
                         <div class="bg-light text-dark rounded-circle border" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-chat-dots"></i></div>
                         {% endif %}
@@ -83,7 +87,7 @@
                     </div>
                     <div>
                         <div class="bg-light rounded p-2 px-3 small">
-                            {% if 'เปลี่ยนสถานะ' in n.note or 'มอบหมายให้' in n.note %}
+                            {% if 'เปลี่ยนสถานะ' in n.note or 'มอบหมายให้' in n.note or 'เชื่อม Asset' in n.note or 'แนบ KB' in n.note %}
                             <strong><i class="bi bi-gear me-1"></i>ระบบ</strong> — {{ n.note }}
                             {% else %}
                             <strong>{{ n.created_by }}</strong>: {{ n.note }}
@@ -266,12 +270,14 @@ async function reassign(name){
 async function linkAsset(){
     const assetId = document.getElementById('assetSelect').value;
     if(!assetId)return;
-    await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:parseInt(assetId)})});
+    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:parseInt(assetId),changed_by:author})});
     location.reload();
 }
 function attachKbArticle(kbId){
     if(!kbId) return;
-    fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:kbId})}).then(function(){location.reload();});
+    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:kbId,changed_by:author})}).then(function(){location.reload();});
 }
 
 function openNewKbModal(){
