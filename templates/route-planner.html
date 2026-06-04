@@ -4,27 +4,42 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  #map { height: 500px; width: 100%; border-radius: 8px; border: 1px solid #ddd; }
-  .ticket-count {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 14px; color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  .route-map-shell{display:grid;grid-template-columns:minmax(260px,32%) 1fr;gap:16px;align-items:stretch;}
+  .route-rank-panel{max-height:600px;overflow:auto;border:1px solid rgba(0,0,0,.08);border-radius:10px;background:var(--bg-surface,#fff);}
+  #map{height:600px;width:100%;border-radius:10px;border:1px solid #ddd;}
+  .rank-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+  .rank-table th,.rank-table td{padding:8px 8px;border-bottom:1px solid rgba(0,0,0,.08);vertical-align:middle;}
+  .rank-table th{background:rgba(15,23,42,.04);font-weight:700;position:sticky;top:0;z-index:1;}
+  .rank-table tr{cursor:pointer;}
+  .rank-table tr:hover{background:rgba(13,110,253,.06);}
+  .ticket-count{
+    min-width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:14px;color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.4);
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
   }
-  .ticket-count.red { background: #dc2626; }
-  .ticket-count.orange { background: #f97316; }
-  .ticket-count.yellow { background: #f59e0b; }
-  .ticket-count.green { background: #16a34a; }
-  .info-panel { padding: 10px 14px; font-size: 14px; background: rgba(255,255,255,0.95); box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 6px; line-height: 1.6; border-left: 5px solid #2b5c8f; }
-  .info-panel h4 { margin: 0 0 5px; color: #2b5c8f; }
-  .legend-pill { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; font-size: .85rem; }
-  .legend-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
-  .route-step { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
-  .priority-high { background: #ffedd5; color: #9a3412; }
-  .priority-mid { background: #fef3c7; color: #92400e; }
-  .priority-low { background: #dcfce7; color: #166534; }
-  @media(max-width:767.98px){ .route-step{width:30px;height:30px;font-size:.85rem} }
+  .ticket-count.red{background:#dc2626;}
+  .ticket-count.orange{background:#f97316;}
+  .ticket-count.yellow{background:#f59e0b;}
+  .ticket-count.green{background:#16a34a;}
+  .ticket-count.none{background:#94a3b8;}
+  .map-ticket-label{display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;}
+  .map-ticket-name{background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.12);border-radius:999px;padding:1px 6px;font-size:10px;font-weight:700;color:#0f172a;box-shadow:0 1px 4px rgba(0,0,0,.12);}
+  .info-panel{padding:10px 14px;font-size:14px;background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(0,0,0,.15);border-radius:6px;line-height:1.6;border-left:5px solid #2b5c8f;}
+  .info-panel h4{margin:0 0 5px;color:#2b5c8f;}
+  .legend-pill{display:inline-flex;align-items:center;gap:6px;margin-right:10px;font-size:.85rem;}
+  .legend-dot{width:13px;height:13px;border-radius:50%;display:inline-block;}
+  .route-step{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
+  .priority-high{background:#ffedd5;color:#9a3412;}
+  .priority-mid{background:#fef3c7;color:#92400e;}
+  .priority-low{background:#dcfce7;color:#166534;}
+  @media(max-width:767.98px){
+    .route-map-shell{grid-template-columns:1fr;}
+    .route-rank-panel{max-height:300px;order:2;}
+    #map{height:420px;}
+    .route-step{width:30px;height:30px;font-size:.85rem;}
+  }
 </style>
 {% endblock %}
 
@@ -32,36 +47,57 @@
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
     <h4 class="mb-1"><i class="bi bi-signpost-split me-2"></i>Route Planner</h4>
-    <div class="text-muted small">แผนที่ Ticket ตามอำเภอ + ลำดับออกไซต์</div>
+    <div class="text-muted small">Page 4 · แผนที่ Ticket ตามอำเภอ + ตารางจัดอันดับจากหน้า Test รวมไว้หน้าเดียว</div>
   </div>
   <a href="{{ url_for('tickets_page') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-ticket-detailed me-1"></i>ดู Tickets</a>
 </div>
 
 <div class="row g-3 mb-3">
-  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Active Cases</div><div class="h4 mb-0 text-danger">{{ total_tickets }}</div></div></div></div>
-  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Critical</div><div class="h4 mb-0 text-danger">{{ total_critical }}</div></div></div></div>
-  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Sites</div><div class="h4 mb-0">{{ districts|length }}</div></div></div></div>
-  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary">{{ total_assets }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Active Cases</div><div class="h4 mb-0 text-danger">{{ total_tickets }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Critical</div><div class="h4 mb-0 text-danger">{{ total_critical }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Sites</div><div class="h4 mb-0">{{ districts|length }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary">{{ total_assets }}</div></div></div></div>
 </div>
 
-<!-- Leaflet Map -->
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <span><i class="bi bi-map me-2"></i>แผนที่ Ticket ตามอำเภอ</span>
-    <span class="small text-muted">เลื่อนเมาส์ชี้เพื่อดูรายละเอียด · รีเฟรชอัตโนมัติทุก 30 วินาที</span>
+    <span><i class="bi bi-map me-2"></i>แผนที่วางแผนเส้นทางและจัดอันดับข้อมูล</span>
+    <span class="small text-muted">คลิกแถวเพื่อซูมอำเภอ · รีเฟรชอัตโนมัติทุก 30 วินาที</span>
   </div>
   <div class="card-body">
-    <div id="map"></div>
-    <div class="mt-2">
-      <span class="legend-pill"><span class="legend-dot" style="background:#dc2626"></span>Critical</span>
-      <span class="legend-pill"><span class="legend-dot" style="background:#f97316"></span>High</span>
-      <span class="legend-pill"><span class="legend-dot" style="background:#f59e0b"></span>Medium</span>
-      <span class="legend-pill"><span class="legend-dot" style="background:#16a34a"></span>Low</span>
+    <div class="route-map-shell">
+      <div class="route-rank-panel">
+        <div class="p-3 border-bottom">
+          <div class="fw-bold"><i class="bi bi-list-ol me-1"></i>จัดอันดับตามจำนวน Ticket</div>
+          <div class="small text-muted">เรียงจากอำเภอที่มี Ticket มากไปน้อย</div>
+        </div>
+        <table class="rank-table">
+          <thead>
+            <tr>
+              <th style="width:48px">#</th>
+              <th>อำเภอ</th>
+              <th>จังหวัด</th>
+              <th class="text-end">Ticket</th>
+            </tr>
+          </thead>
+          <tbody id="rank-table">
+            <tr><td colspan="4" class="text-muted">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div id="map"></div>
+        <div class="mt-2">
+          <span class="legend-pill"><span class="legend-dot" style="background:#dc2626"></span>Critical</span>
+          <span class="legend-pill"><span class="legend-dot" style="background:#f97316"></span>High</span>
+          <span class="legend-pill"><span class="legend-dot" style="background:#f59e0b"></span>Medium</span>
+          <span class="legend-pill"><span class="legend-dot" style="background:#16a34a"></span>Low</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Route Table -->
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-dark text-white fw-bold" style="background:#0F172A!important"><i class="bi bi-route me-2"></i>ลำดับแนะนำสำหรับออกไซต์</div>
   <div class="card-body p-0">
@@ -80,7 +116,6 @@
   </div>
 </div>
 
-<!-- All Branches Table -->
 <div class="card shadow-sm">
   <div class="card-header bg-white fw-bold"><i class="bi bi-list-ol me-2"></i>ทุกสาขาเรียงตามความเร่งด่วน</div>
   <div class="card-body p-0">
@@ -118,27 +153,27 @@
     if (high > 0 || d > 3) return 'orange';
     if (d > 1) return 'yellow';
     if (d === 1) return 'green';
-    return '';
+    return 'none';
   }
 
   var info = L.control({position: 'topright'});
-  info.onAdd = function (map) {
+  info.onAdd = function () {
     this._div = L.DomUtil.create('div', 'info-panel');
     this.update();
     return this._div;
   };
   info.update = function (props) {
     if (!props) {
-      this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>เลื่อนเมาส์ชี้ที่อำเภอเพื่อดูตัวเลข';
+      this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>แตะ/คลิกอำเภอเพื่อดูตัวเลข';
       return;
     }
     var name = props.name;
     var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0};
     this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>' +
       '<b>จังหวัด:</b> ' + props.province +
-      '<br /><b>อำเภอ:</b> ' + name +
-      '<br /><b>Ticket ทั้งหมด:</b> <span style="font-size:16px; color:#084594; font-weight:bold;">' + d.tickets + '</span>' +
-      '<br /><span style="color:#dc2626;">Critical: ' + d.critical + '</span>' +
+      '<br><b>อำเภอ:</b> ' + name +
+      '<br><b>Ticket ทั้งหมด:</b> <span style="font-size:16px;color:#084594;font-weight:bold;">' + d.tickets + '</span>' +
+      '<br><span style="color:#dc2626;">Critical: ' + d.critical + '</span>' +
       ' · <span style="color:#f97316;">High: ' + d.high + '</span>' +
       ' · <span style="color:#f59e0b;">Medium: ' + d.medium + '</span>' +
       ' · <span style="color:#16a34a;">Low: ' + d.low + '</span>';
@@ -157,7 +192,11 @@
         ticketData = data;
         if (!geojsonLayer) { renderMap(); } else { refreshMap(); }
       })
-      .catch(err => console.error('Failed to load ticket data', err));
+      .catch(err => {
+        console.error('Failed to load ticket data', err);
+        var body = document.getElementById('rank-table');
+        if (body) body.innerHTML = '<tr><td colspan="4" class="text-muted">โหลดข้อมูล Ticket ไม่สำเร็จ</td></tr>';
+      });
   }
 
   function renderMap() {
@@ -179,20 +218,7 @@
         });
       }
     }).addTo(map);
-
-    southData.features.forEach(function(f) {
-      var name = f.properties.name;
-      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0};
-      if (d.tickets <= 0) return;
-      var centroid = L.geoJson(f).getBounds().getCenter();
-      var labelClass = getLabelClass(d.tickets, d.critical, d.high);
-      var icon = L.divIcon({
-        className: '',
-        html: '<div class="ticket-count ' + labelClass + '">' + d.tickets + '</div>',
-        iconSize: [32, 32], iconAnchor: [16, 16]
-      });
-      L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
-    });
+    refreshMap();
   }
 
   function refreshMap() {
@@ -210,10 +236,44 @@
       var labelClass = getLabelClass(d.tickets, d.critical, d.high);
       var icon = L.divIcon({
         className: '',
-        html: '<div class="ticket-count ' + labelClass + '">' + d.tickets + '</div>',
-        iconSize: [32, 32], iconAnchor: [16, 16]
+        html: '<div class="map-ticket-label"><div class="ticket-count ' + labelClass + '">' + d.tickets + '</div><div class="map-ticket-name">' + name + '</div></div>',
+        iconSize: [70, 44], iconAnchor: [35, 22]
       });
       L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
+    });
+    generateSidebarTable(southData.features);
+  }
+
+  function generateSidebarTable(features) {
+    var tableBody = document.getElementById('rank-table');
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+
+    var sortedList = features.map(function(f) {
+      var name = f.properties.name;
+      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0};
+      return {name: name, province: f.properties.province, tickets: d.tickets, critical: d.critical, high: d.high, value: d.tickets};
+    }).sort(function(a, b) { return b.value - a.value; });
+
+    sortedList.forEach(function(item, index) {
+      var row = document.createElement('tr');
+      row.innerHTML =
+        '<td><b>' + (index + 1) + '</b></td>' +
+        '<td>' + item.name + '</td>' +
+        '<td>' + item.province + '</td>' +
+        '<td class="text-end"><span class="badge" style="background-color:' + getColor(item.tickets) + '">' + item.tickets + '</span></td>';
+
+      row.addEventListener('click', function() {
+        geojsonLayer.eachLayer(function(layer) {
+          if (layer.feature.properties.name === item.name) {
+            map.panTo(layer.getBounds().getCenter());
+            layer.setStyle({ weight: 4, color: '#ef4444' });
+            info.update(layer.feature.properties);
+            setTimeout(function() { geojsonLayer.resetStyle(layer); }, 1500);
+          }
+        });
+      });
+      tableBody.appendChild(row);
     });
   }
 </script>
