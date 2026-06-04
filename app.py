@@ -43,6 +43,97 @@ def get_current_user():
     u = c.execute('SELECT * FROM users WHERE id=?', (session['user_id'],)).fetchone()
     return dict(u) if u else None
 
+ROLE_LABELS = {
+    'admin': 'Admin — สิทธิ์เต็มระบบ',
+    'manager': 'Manager — Service Manager / Resolver Lead',
+    'user': 'User — ผู้แจ้ง / Self-service',
+    'hr': 'HR — งานบุคคลและ HR tickets',
+}
+VALID_ROLES = tuple(ROLE_LABELS.keys())
+HR_KEYWORDS = ('HR', 'บุคคล', 'พนักงาน', 'ลา', 'สวัสดิการ', 'เงินเดือน')
+
+def current_role():
+    return session.get('role', 'user')
+
+def is_admin():
+    return current_role() == 'admin'
+
+def is_manager():
+    return current_role() in ('admin', 'manager')
+
+def is_hr_role():
+    return current_role() == 'hr'
+
+def can_manage_users():
+    return is_admin()
+
+def can_view_assets():
+    return current_role() in ('admin', 'manager')
+
+def can_view_staff():
+    return current_role() in ('admin', 'manager', 'hr')
+
+def can_manage_staff():
+    return is_admin()
+
+def can_manage_kb():
+    return current_role() in ('admin', 'manager')
+
+def is_hr_ticket(ticket):
+    if not ticket:
+        return False
+    text = ' '.join(str(ticket[k] or '') for k in ('category', 'title', 'description') if k in ticket.keys())
+    return any(k.lower() in text.lower() for k in HR_KEYWORDS)
+
+def can_access_ticket(ticket):
+    if not ticket:
+        return False
+    role = current_role()
+    username = session.get('username', '')
+    if role in ('admin', 'manager'):
+        return True
+    if role == 'hr' and (is_hr_ticket(ticket) or ticket['reported_by'] == username or ticket['assigned_to'] == username):
+        return True
+    return ticket['reported_by'] == username or ticket['assigned_to'] == username
+
+def can_manage_ticket(ticket=None):
+    role = current_role()
+    if role in ('admin', 'manager'):
+        return True
+    if role == 'hr' and ticket and is_hr_ticket(ticket):
+        return True
+    return False
+
+def ticket_scope_clause(prefix=''):
+    role = current_role()
+    username = session.get('username', '')
+    col = (lambda name: f"{prefix}.{name}" if prefix else name)
+    if role in ('admin', 'manager'):
+        return '', []
+    if role == 'hr':
+        hr_like = [f'%{k}%' for k in HR_KEYWORDS]
+        return (f"(({col('reported_by')}=? OR {col('assigned_to')}=?) OR "
+                f"({col('category')} LIKE ? OR {col('title')} LIKE ? OR {col('description')} LIKE ? OR "
+                f"{col('category')} LIKE ? OR {col('title')} LIKE ? OR {col('description')} LIKE ? OR "
+                f"{col('category')} LIKE ? OR {col('title')} LIKE ? OR {col('description')} LIKE ? OR "
+                f"{col('category')} LIKE ? OR {col('title')} LIKE ? OR {col('description')} LIKE ? OR "
+                f"{col('category')} LIKE ? OR {col('title')} LIKE ? OR {col('description')} LIKE ? OR "
+                f"{col('category')} LIKE ? OR {col('title')} LIKE ? OR {col('description')} LIKE ?))",
+                [username, username] + [v for pat in hr_like for v in (pat, pat, pat)])
+    return f"({col('reported_by')}=? OR {col('assigned_to')}=?)", [username, username]
+
+def forbidden_response(message='ไม่มีสิทธิ์เข้าถึง'):
+    if request.path.startswith('/api/'):
+        return jsonify(success=False, error=message), 403
+    return message, 403
+
+@app.context_processor
+def inject_rbac():
+    return dict(ROLE_LABELS=ROLE_LABELS, current_role=current_role(),
+                can_manage_users=can_manage_users(), can_view_assets=can_view_assets(),
+                can_view_staff=can_view_staff(), can_manage_staff=can_manage_staff(),
+                can_manage_kb=can_manage_kb(), is_manager=is_manager(), is_admin=is_admin())
+
 ALL_BRANCHES = [
  {"branch":"สาขาเมืองปัตตานี","district":"เมืองปัตตานี","province":"ปัตตานี","type":"main"},
  {"branch":"สาขาโคกโพธิ์","district":"โคกโพธิ์","province":"ปัตตานี","type":"branch"},
@@ -256,12 +347,13 @@ def init_db():
     cols_assets = [row[1] for row in c.execute('PRAGMA table_info(assets)')]
     if 'asset_tag' not in cols_assets:
         c.execute('ALTER TABLE assets ADD COLUMN asset_tag TEXT DEFAULT \'\'')
+    demo_hash = hashlib.sha256(b'demo2026').hexdigest()
+    demo_users = [('admin', 'admin'), ('manager', 'manager'), ('user', 'user'), ('hr', 'hr')]
+    for username, role in demo_users:
+        if c.execute('SELECT COUNT(*) FROM users WHERE username=?', (username,)).fetchone()[0] == 0:
+            c.execute('INSERT INTO users (username,password_hash,role) VALUES (?,?,?)', (username, demo_hash, role))
+    c.commit()
     if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
-        # Seed admin user if no users exist
-        if c.execute('SELECT COUNT(*) FROM users').fetchone()[0] == 0:
-            admin_hash = hashlib.sha256(b'demo2026').hexdigest()
-            c.execute('INSERT INTO users (username,password_hash,role) VALUES (?,?,?)', ('admin', admin_hash, 'admin'))
-            c.commit()
         return
     print('Seeding...')
     S=_staff();T=_tickets(S);A=_assets()
@@ -1000,8 +1092,12 @@ def route_planner_page():
     total_tickets = sum(d['tickets'] for d in districts)
     total_assets = sum(d['assets'] for d in districts)
     total_critical = sum(d['critical'] for d in districts)
+    import json as _json
+    geo = _json.loads(open(os.path.join(_BASE_DIR, 'static', 'districts-geo.json'), encoding='utf-8').read())
+    south = {"type": "FeatureCollection", "features": [f for f in geo['features'] if f.get('properties',{}).get('province') in ('ปัตตานี','ยะลา','นราธิวาส')]}
     return render_template('route-planner.html', districts=ranked, route_points=route_points, route_segments=route_segments, hq=hq,
-                           total_tickets=total_tickets, total_assets=total_assets, total_critical=total_critical)
+                           total_tickets=total_tickets, total_assets=total_assets, total_critical=total_critical,
+                           south_geojson=_json.dumps(south, ensure_ascii=False))
 
 def _start_init_db():
     """Run init_db in a background thread so it doesn't block gunicorn startup."""
