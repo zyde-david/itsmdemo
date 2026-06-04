@@ -241,6 +241,16 @@ document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
     document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
   }));
+  // Apply URL filter params (e.g. ?category=xxx from dashboard)
+  const urlParams = new URLSearchParams(window.location.search);
+  ['category','status','priority','branch','province'].forEach(function(param){
+    var val = urlParams.get(param);
+    if(val){
+      var el = document.getElementById('tFilter' + param.charAt(0).toUpperCase() + param.slice(1));
+      if(el){ el.value = val; }
+    }
+  });
+  applyTicketFilters();
 });
 
 function handleRowClick(e, url){
