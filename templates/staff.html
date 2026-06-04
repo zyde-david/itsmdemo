@@ -41,7 +41,7 @@
     <label class="form-label small mb-1">สาขา</label>
     <select class="form-select form-select-sm" id="sFilterBranch" onchange="applyStaffFilters()">
      <option value="">ทั้งหมด</option>
-     {% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}
+     {% for b in branches %}<option value="{{ b.branch }}">{{ b.short }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-2">
@@ -122,7 +122,7 @@
       </select>
      </div>
      <div class="col-6"><label class="form-label small">สาขา</label>
-      <select class="form-select form-select-sm" id="sBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.district }} ({{ b.province }})</option>{% endfor %}</select>
+      <select class="form-select form-select-sm" id="sBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.short }} ({{ b.province }})</option>{% endfor %}</select>
      </div>
     </div>
    </div>
@@ -144,7 +144,7 @@ function toggleStaffFilter(){
 }
 
 var branchToProvince = {{ branch_to_province|tojson }};
-var provinceToBranches = {{ province_to_branches|tojson }};
+var provinceToBranches = {{ province_to_branches_short|tojson }};
 
 function filterStaffBranchByProvince(province){
   var sel = document.getElementById('sFilterBranch');
@@ -161,7 +161,7 @@ function filterStaffBranchByProvince(province){
   } else {
     sel.appendChild(new Option(allOpts[0].t, allOpts[0].v));
     var branches = provinceToBranches[province] || [];
-    branches.forEach(function(b){ sel.appendChild(new Option(b.district, b.branch)); });
+    branches.forEach(function(b){ sel.appendChild(new Option(b.short || b.district, b.branch)); });
   }
   for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
 }

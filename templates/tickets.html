@@ -53,7 +53,7 @@
     <label class="form-label small mb-1">สาขา</label>
     <select class="form-select form-select-sm" id="tFilterBranch" onchange="applyTicketFilters()">
      <option value="">ทั้งหมด</option>
-     {% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}
+     {% for b in branches %}<option value="{{ b.branch }}">{{ b.short }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-2">
@@ -149,7 +149,7 @@
       </select>
      </div>
      <div class="col-md-3"><label class="form-label small">สาขา</label>
-      <select class="form-select form-select-sm" id="mBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}</select>
+      <select class="form-select form-select-sm" id="mBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.short }}</option>{% endfor %}</select>
      </div>
      <div class="col-md-3"><label class="form-label small">ผู้แจ้ง</label><input type="text" class="form-control form-control-sm" id="mReporter"></div>
      <div class="col-md-3"><label class="form-label small">มอบหมาย</label><input type="text" class="form-control form-control-sm" id="mAssignee"></div>
@@ -168,6 +168,7 @@
 </div>
 
 <script>
+const CURRENT_USER = '{{ current_user.username if current_user else "Admin" }}';
 function toggleTicketFilter(){
   const row = document.getElementById('tFilterRow');
   const chevron = document.getElementById('tFilterChevron');
@@ -199,7 +200,7 @@ function filterBranchByProvince(province){
     sel.appendChild(new Option(defaultOpt.t, defaultOpt.v));
     var branches = provinceToBranches[province] || [];
     branches.forEach(function(b){
-      sel.appendChild(new Option(b.district, b.branch));
+      sel.appendChild(new Option(b.short || b.district, b.branch));
     });
   }
   // Restore selection if still valid

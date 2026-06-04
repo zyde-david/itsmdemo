@@ -8,11 +8,13 @@
   <button class="btn btn-sm btn-primary" onclick="openNewAsset()"><i class="bi bi-plus-lg me-1"></i>New Asset</button>
  </div>
 </div>
+
+<!-- Stat Cards -->
 <div class="row g-2 mb-3">
- <div class="col-6 col-md-3"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทั้งหมด</h6><h4 class="mb-0 fw-bold text-primary">{{ total }}</h4></div></div></div>
- <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('active');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Active</h6><h4 class="mb-0 fw-bold text-success">{{ active }}</h4></div></div></a></div>
- <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('maintenance');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Maintenance</h6><h4 class="mb-0 fw-bold text-warning">{{ maintenance }}</h4></div></div></a></div>
- <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('retired');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">Retired</h6><h4 class="mb-0 fw-bold text-secondary">{{ retired }}</h4></div></div></a></div>
+ <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('');return false;" class="text-decoration-none"><div class="card card-stat p-2"><div class="text-center"><h6 class="text-muted small mb-1">ทั้งหมด</h6><h4 class="mb-0 fw-bold text-primary">{{ total }}</h4></div></div></a></div>
+ <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('active');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-success"><div class="text-center"><h6 class="text-muted small mb-1">Active</h6><h4 class="mb-0 fw-bold text-success">{{ active }}</h4></div></div></a></div>
+ <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('maintenance');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-warning"><div class="text-center"><h6 class="text-muted small mb-1">Maintenance</h6><h4 class="mb-0 fw-bold text-warning">{{ maintenance }}</h4></div></div></a></div>
+ <div class="col-6 col-md-3"><a href="#" onclick="filterAssetStatus('retired');return false;" class="text-decoration-none"><div class="card card-stat p-2 border-secondary"><div class="text-center"><h6 class="text-muted small mb-1">Retired</h6><h4 class="mb-0 fw-bold text-secondary">{{ retired }}</h4></div></div></a></div>
 </div>
 
 <!-- Filter Row -->
@@ -44,7 +46,7 @@
     <label class="form-label small mb-1">สาขา</label>
     <select class="form-select form-select-sm" id="aFilterBranch" onchange="applyAssetFilters()">
      <option value="">ทั้งหมด</option>
-     {% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}
+     {% for b in branches %}<option value="{{ b.branch }}">{{ b.short }}</option>{% endfor %}
     </select>
    </div>
    <div class="col-md-2">
@@ -58,7 +60,7 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
-    <input type="text" class="form-control form-control-sm" id="aFilterSearch" placeholder="รุ่น, serial..." oninput="applyAssetFilters()">
+    <input type="text" class="form-control form-control-sm" id="aFilterSearch" placeholder="รุ่ม, serial, tag..." oninput="applyAssetFilters()">
    </div>
   </div>
  </div>
@@ -68,14 +70,14 @@
 <table id="assetsTable" class="table table-hover mb-0" style="width:100%">
  <thead class="table-light"><tr>
   <th><input type="checkbox" id="selectAllAssets" onclick="toggleAllAssets(this)"></th>
-  <th>ID</th><th>สาขา</th><th>จังหวัด</th><th>ประเภท</th><th>รุ่น</th><th>Serial</th><th>สถานะ</th><th class="d-none d-md-table-cell">ตรวจล่าสุด</th><th class="d-none d-md-table-cell">ครั้งต่อไป</th><th></th>
+  <th>Tag</th><th>สาขา</th><th>จังหวัด</th><th>ประเภท</th><th>รุ่ม</th><th>Serial</th><th>สถานะ</th><th class="d-none d-md-table-cell">ตรวจล่าสุด</th><th class="d-none d-md-table-cell">ครั้งต่อไป</th><th></th>
  </tr></thead>
  <tbody>
   {% for a in assets %}
   <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}" onclick="handleRowClick(event, '/asset/{{ a.id }}')">
    <td><input type="checkbox" class="asset-check" value="{{ a.id }}"></td>
    <td><span class="id-badge">{{ a.asset_tag or a.asset_code or a.id }}</span></td>
-   <td><span class="branch-tag">{{ a.branch }}</span></td>
+   <td><span class="branch-tag">{{ a.short_branch }}</span></td>
    <td><small>{{ a.province }}</small></td>
    <td>{{ a.asset_type }}</td>
    <td>{{ a.name }}</td>
@@ -83,7 +85,7 @@
    <td>{% if a.status=='active' %}<span class="badge bg-success">Active</span>{% elif a.status=='maintenance' %}<span class="badge bg-warning text-dark">Maintenance</span>{% else %}<span class="badge bg-secondary">Retired</span>{% endif %}</td>
    <td class="d-none d-md-table-cell"><small>{{ a.last_check }}</small></td>
    <td class="d-none d-md-table-cell"><small class="text-muted">{{ a.next_check }}</small></td>
-   <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOneAsset({{ a.id }})"><i class="bi bi-trash"></i></button></td>
+   <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); editAsset({{ a.id }})"><i class="bi bi-pencil"></i></button></td>
   </tr>
   {% endfor %}
  </tbody>
@@ -98,10 +100,11 @@
    <div class="modal-body">
     <input type="hidden" id="mAssetId">
     <div class="row g-2 mb-2">
-     <div class="col-6"><label class="form-label small">รุ่น</label><input type="text" class="form-control form-control-sm" id="aName"></div>
-     <div class="col-6"><label class="form-label small">Serial</label><input type="text" class="form-control form-control-sm" id="aSerial"></div>
+     <div class="col-6"><label class="form-label small">Tag</label><input type="text" class="form-control form-control-sm" id="aTag" readonly></div>
+     <div class="col-6"><label class="form-label small">รุ่ม</label><input type="text" class="form-control form-control-sm" id="aName"></div>
     </div>
     <div class="row g-2 mb-2">
+     <div class="col-6"><label class="form-label small">Serial</label><input type="text" class="form-control form-control-sm" id="aSerial"></div>
      <div class="col-6"><label class="form-label small">ประเภท</label>
       <select class="form-select form-select-sm" id="aType">
        <option value="คอมพิวเตอร์">คอมพิวเตอร์</option>
@@ -112,13 +115,16 @@
        <option value="UPS">UPS</option>
       </select>
      </div>
+    </div>
+    <div class="row g-2 mb-2">
      <div class="col-6"><label class="form-label small">สถานะ</label>
       <select class="form-select form-select-sm" id="aStatus"><option value="active">Active</option><option value="maintenance">Maintenance</option><option value="retired">Retired</option></select>
      </div>
+     <div class="col-6"><label class="form-label small">สาขา</label><select class="form-select form-select-sm" id="aBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.short }}</option>{% endfor %}</select></div>
     </div>
     <div class="row g-2 mb-2">
-     <div class="col-6"><label class="form-label small">สาขา</label><select class="form-select form-select-sm" id="aBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.district }}</option>{% endfor %}</select></div>
      <div class="col-6"><label class="form-label small">ตรวจครั้งต่อไป</label><input type="date" class="form-control form-control-sm" id="aNext"></div>
+     <div class="col-6"><label class="form-label small">วันที่ตรวจล่าสุด</label><input type="date" class="form-control form-control-sm" id="aLastCheck" readonly></div>
     </div>
     <div class="mb-2"><label class="form-label small">หมายเหตุ</label><textarea class="form-control form-control-sm" id="aNotes" rows="2"></textarea></div>
    </div>
@@ -131,6 +137,7 @@
 </div>
 
 <script>
+const CURRENT_USER = '{{ current_user.username if current_user else "Admin" }}';
 function toggleAssetFilter(){
   const row = document.getElementById('aFilterRow');
   const chevron = document.getElementById('aFilterChevron');
@@ -142,7 +149,7 @@ function toggleAssetFilter(){
 function filterAssetStatus(s){document.getElementById('aFilterStatus').value=s;applyAssetFilters();}
 
 var branchToProvince = {{ branch_to_province|tojson }};
-var provinceToBranches = {{ province_to_branches|tojson }};
+var provinceToBranches = {{ province_to_branches_short|tojson }};
 
 function filterAssetBranchByProvince(province){
   var sel = document.getElementById('aFilterBranch');
@@ -159,13 +166,12 @@ function filterAssetBranchByProvince(province){
   } else {
     sel.appendChild(new Option(allOpts[0].t, allOpts[0].v));
     var branchesInProv = provinceToBranches[province] || [];
-    branchesInProv.forEach(function(b){ sel.appendChild(new Option(b.district, b.branch)); });
+    branchesInProv.forEach(function(b){ sel.appendChild(new Option(b.short || b.district, b.branch)); });
   }
-  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }}
 }
 
-// Persistent custom filter for assets — survives sorting and pagination
-// Uses data attributes on <tr> instead of cell text (cells contain HTML badges)
+// Persistent custom filter for assets — uses data attributes on <tr>
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   if(settings.nTable.id !== 'assetsTable') return true;
   var row = settings.aoData[dataIndex].nTr;
@@ -173,14 +179,15 @@ $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   var type = document.getElementById('aFilterType').value;
   var branch = document.getElementById('aFilterBranch').value;
   var province = document.getElementById('aFilterProvince').value;
-  // Cascade: branch → province
-  if(branch && branchToProvince[branch] && !province){
-    document.getElementById('aFilterProvince').value = branchToProvince[branch];
-  }
+  var search = document.getElementById('aFilterSearch').value.toLowerCase();
   if(status && row.getAttribute('data-status') !== status) return false;
   if(type && row.getAttribute('data-type') !== type) return false;
   if(branch && row.getAttribute('data-branch') !== branch) return false;
   if(province && row.getAttribute('data-province') !== province) return false;
+  if(search){
+    var rowText = row.textContent.toLowerCase();
+    if(rowText.indexOf(search) < 0) return false;
+  }
   return true;
 });
 
@@ -191,13 +198,6 @@ function applyAssetFilters(){
 function toggleAllAssets(cb){document.querySelectorAll('.asset-check').forEach(c=>c.checked=cb.checked);}
 function deleteOneAsset(id){if(!confirm('ลบ Asset?'))return;fetch('/api/asset/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
 function bulkDeleteAssets(){const ids=[...document.querySelectorAll('.asset-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' Asset?'))return;Promise.all(ids.map(id=>fetch('/api/asset/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
-
-document.addEventListener('DOMContentLoaded',function(){
-  window.assetTable = initTable('#assetsTable',{order:[[1,'asc']]});
-  document.querySelectorAll('.asset-check').forEach(cb=>cb.addEventListener('change',()=>{
-    document.getElementById('bulkDeleteAssetBtn').style.display=[...document.querySelectorAll('.asset-check:checked')].length?'inline-block':'none';
-  }));
-});
 
 function handleRowClick(e, url){
  if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
@@ -213,15 +213,18 @@ function editAsset(id){
    document.getElementById('aId').innerText=id;
    document.getElementById('aAction').innerText='แก้ไข';
    document.getElementById('aDeleteBtn').style.display='inline-block';
-   document.getElementById('aName').value=c[4].innerText.trim();
-   document.getElementById('aSerial').value=c[5].innerText.trim();
-   document.getElementById('aType').value=c[3].innerText.trim();
-   const st=c[6].innerText.trim()==='Active'?'active':c[6].innerText.trim()==='Maintenance'?'maintenance':'retired';
+   document.getElementById('aTag').value=c[1].innerText.trim();
+   document.getElementById('aName').value=c[5].innerText.trim();
+   document.getElementById('aSerial').value=c[6].innerText.trim();
+   document.getElementById('aType').value=c[4].innerText.trim();
+   const st=c[7].innerText.trim()==='Active'?'active':c[7].innerText.trim()==='Maintenance'?'maintenance':'retired';
    document.getElementById('aStatus').value=st;
-   document.getElementById('aNext').value=c[8].innerText.trim();
+   document.getElementById('aNext').value=c[9].innerText.trim();
+   document.getElementById('aLastCheck').value=c[8].innerText.trim();
    document.getElementById('aNotes').value='';
    const brSel=document.getElementById('aBranch');
-   for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].text.includes(c[2].innerText.trim().replace('สาขา',''))){brSel.selectedIndex=i;break}}
+   const branchFull=c[2].innerText.trim();
+   for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].value===branchFull||brSel.options[i].text===branchFull){brSel.selectedIndex=i;break}}
   }
  });
  new bootstrap.Modal(document.getElementById('assetModal')).show();
@@ -232,20 +235,29 @@ function openNewAsset(){
  document.getElementById('aId').innerText='NEW';
  document.getElementById('aAction').innerText='เพิ่ม';
  document.getElementById('aDeleteBtn').style.display='none';
+ document.getElementById('aTag').value='';
  document.getElementById('aName').value='';
  document.getElementById('aSerial').value='';
  document.getElementById('aType').value='คอมพิวเตอร์';
+ document.getElementById('aStatus').value='active';
  document.getElementById('aNotes').value='';
  document.getElementById('aNext').value='';
+ document.getElementById('aLastCheck').value='';
  new bootstrap.Modal(document.getElementById('assetModal')).show();
 }
 
 function saveAsset(){
  const id=document.getElementById('mAssetId').value;
- const data={name:document.getElementById('aName').value,serial:document.getElementById('aSerial').value,
-  asset_type:document.getElementById('aType').value,status:document.getElementById('aStatus').value,
-  branch:document.getElementById('aBranch').value,next_check:document.getElementById('aNext').value,
-  notes:document.getElementById('aNotes').value};
+ const data={
+  name:document.getElementById('aName').value,
+  serial:document.getElementById('aSerial').value,
+  asset_type:document.getElementById('aType').value,
+  status:document.getElementById('aStatus').value,
+  branch:document.getElementById('aBranch').value,
+  next_check:document.getElementById('aNext').value,
+  notes:document.getElementById('aNotes').value,
+  changed_by:CURRENT_USER
+ };
  const url=id?'/api/asset/'+id+'/edit':'/api/asset';
  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
  .then(r=>r.json()).then(d=>{if(d.success){bootstrap.Modal.getInstance(document.getElementById('assetModal')).hide();location.reload()}});
@@ -257,5 +269,13 @@ function deleteAsset(){
  fetch('/api/asset/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}})
  .then(r=>r.json()).then(d=>{if(d.success)location.reload()});
 }
+
+document.addEventListener('DOMContentLoaded',function(){
+  const CURRENT_USER = '{{ current_user.username if current_user else "Admin" }}';
+  window.assetTable = initTable('#assetsTable',{order:[[1,'asc']]});
+  document.querySelectorAll('.asset-check').forEach(cb=>cb.addEventListener('change',()=>{
+    document.getElementById('bulkDeleteAssetBtn').style.display=[...document.querySelectorAll('.asset-check:checked')].length?'inline-block':'none';
+  }));
+});
 </script>
 {% endblock %}

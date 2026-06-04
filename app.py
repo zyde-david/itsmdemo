@@ -96,6 +96,16 @@ for prov in ['ปัตตานี','ยะลา','นราธิวาส']:
 PROVINCE_CODES = {'ปัตตานี':'1','ยะลา':'2','นราธิวาส':'3'}
 PROVINCE_ABBR = {'ปัตตานี':'ตานี','ยะลา':'ยะลา','นราธิวาส':'นรา'}
 
+# Build short branch display: {province_num}{district} e.g. "2ยะหา"
+def _short_branch(branch_full):
+    """Convert 'สาขายะหา' → '2ยะหา' (province number + district)"""
+    for b in ALL_BRANCHES:
+        if b['branch'] == branch_full:
+            return PROVINCE_CODES.get(b['province'],'0') + b['district']
+    return branch_full.replace('สาขา','')
+
+SHORT_BRANCHES = {b['branch']: _short_branch(b['branch']) for b in ALL_BRANCHES}
+
 TICKET_CATS = {
  "ระบบ Core Banking":{"titles":["Core Banking ล่ม","เข้า Core ไม่ได้","บันทึกรายการไม่ได้","ถอนเงินผิดพลาด","ปิดรอบวันไม่ได้","พิมพ์ใบเสร็จไม่ได้","สินเชื่อดอกเบี้ยผิดปกติ","ระบบสมาชิก Error"],"priority":"critical","ai":"1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"},
  "เครือข่าย/อินเทอร์เน็ต":{"titles":["อินเทอร์เน็ตไม่ได้","อินเทอร์เน็ตช้า","WiFi ดรอป","WAN IP เปลี่ยน","DNS ไม่ resolve","Firewall Block","IP Camera ภาพไม่ขึ้น"],"priority":"high","ai":"1. เช็ค Router/Switch\n2. Ping Gateway\n3. เช็ค LAN\n4. รีสตาร์ท Modem"},
@@ -238,6 +248,7 @@ def init_db():
     c.execute('CREATE TABLE IF NOT EXISTS work_notes (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_code TEXT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,brand TEXT,spec TEXT,assigned_to TEXT,last_check DATE,next_check DATE,notes TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
+    c.execute('CREATE TABLE IF NOT EXISTS asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     # Migration: add kb_id to tickets if missing
     cols = [row[1] for row in c.execute('PRAGMA table_info(tickets)')]
     if 'kb_id' not in cols:
@@ -362,9 +373,10 @@ def tickets_page():
     closed_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0]
     critical_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     province_to_branches = PROVINCE_TO_BRANCHES
-    province_to_branches_short = {prov: [{'branch': b['branch'], 'district': PROVINCE_ABBR.get(prov, prov[:3]) + b['district']} for b in blist] for prov, blist in PROVINCE_TO_BRANCHES.items()}
+    province_to_branches_short = {prov: [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district']} for b in blist] for prov, blist in PROVINCE_TO_BRANCHES.items()}
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
-    branches_short = [{'branch': b['branch'], 'district': PROVINCE_ABBR.get(b['province'], b['province'][:3]) + b['district'], 'province': b['province']} for b in ALL_BRANCHES]
+    branches_short = [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district'], 'province': b['province']} for b in ALL_BRANCHES]
+    current_user = get_current_user()
     return render_template('tickets.html',tickets=rows,branches=branches_short,
         filter_status=status, filter_priority=priority, filter_branch=branch,
         filter_province=province, filter_category=category, filter_search=search,
@@ -373,7 +385,8 @@ def tickets_page():
         branch_to_province=branch_to_province,
         province_to_branches=province_to_branches,
         province_to_branches_short=province_to_branches_short,
-        critical_tickets=critical_tickets)
+        critical_tickets=critical_tickets,
+        current_user=current_user)
 
 @app.route('/ticket/<int:ticket_id>')
 @login_required
@@ -417,10 +430,14 @@ def assets_page():
     for r in rows:
         a = dict(r)
         a['province'] = branch_to_province.get(a['branch'], '-')
+        a['short_branch'] = SHORT_BRANCHES.get(a['branch'], a['branch'].replace('สาขา',''))
         assets_list.append(a)
     province_to_branches = PROVINCE_TO_BRANCHES
+    province_to_branches_short = {prov: [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district']} for b in blist] for prov, blist in PROVINCE_TO_BRANCHES.items()}
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
-    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=ALL_BRANCHES,asset_types=sorted(set(a['asset_type'] for a in assets_list)),branch_to_province=branch_to_province,province_to_branches=province_to_branches)
+    branches_short = [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district'], 'province': b['province']} for b in ALL_BRANCHES]
+    current_user = get_current_user()
+    return render_template('assets.html',assets=assets_list,total=total,active=active,maintenance=maint,retired=retired,branches=branches_short,asset_types=sorted(set(a['asset_type'] for a in assets_list)),branch_to_province=branch_to_province,province_to_branches=province_to_branches,province_to_branches_short=province_to_branches_short,current_user=current_user)
 
 @app.route('/staff')
 @login_required
@@ -433,7 +450,9 @@ def staff_page():
     roles = sorted(set(s['role'] for s in rows))
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     province_to_branches = PROVINCE_TO_BRANCHES
-    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=ALL_BRANCHES,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches,staff_by_province=staff_by_province)
+    province_to_branches_short = {prov: [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district']} for b in blist] for prov, blist in PROVINCE_TO_BRANCHES.items()}
+    branches_short = [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district'], 'province': b['province']} for b in ALL_BRANCHES]
+    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=branches_short,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches,province_to_branches_short=province_to_branches_short,staff_by_province=staff_by_province)
 
 @app.route('/knowledge')
 @login_required
@@ -629,9 +648,40 @@ def api_asset_create():
 @login_required
 def api_asset_edit(aid):
     d=request.json;c=get_db()
+    old = c.execute('SELECT * FROM assets WHERE id=?',(aid,)).fetchone()
+    if not old:
+        return jsonify(success=False,error='Not Found'),404
+    # Build change log
+    changes = []
+    STATUS_LABELS = {'active':'Active','maintenance':'Maintenance','retired':'Retired'}
+    field_labels = {'name':'รุ่ม','serial':'Serial','asset_type':'ประเภท','status':'สถานะ','branch':'สาขา','next_check':'ตรวจครั้งต่อไป','notes':'หมายเหตุ'}
+    for field, label in field_labels.items():
+        old_val = old[field] or ''
+        new_val = d.get('field', '')  # will check below
+    # Actually compare each field
+    for field in ('name','serial','asset_type','status','branch','next_check','notes'):
+        old_val = old[field] or ''
+        new_val = d.get(field, '') or ''
+        if str(old_val) != str(new_val):
+            label = field_labels.get(field, field)
+            if field == 'status':
+                old_val = STATUS_LABELS.get(old_val, old_val)
+                new_val = STATUS_LABELS.get(new_val, new_val)
+            elif field == 'branch':
+                old_val = SHORT_BRANCHES.get(old_val, old_val)
+                new_val = SHORT_BRANCHES.get(new_val, new_val)
+            changes.append(f'{label}: {old_val} → {new_val}')
+    
     c.execute('UPDATE assets SET name=?,serial=?,asset_type=?,status=?,branch=?,next_check=?,notes=? WHERE id=?',
               (d.get('name',''),d.get('serial',''),d.get('asset_type',''),d.get('status','active'),d.get('branch',''),d.get('next_check',''),d.get('notes',''),aid))
-    c.commit();
+    
+    # Log changes
+    if changes:
+        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        author = d.get('changed_by','System')
+        note_text = 'แก้ไข Asset: ' + ', '.join(changes)
+        c.execute('INSERT INTO asset_logs (asset_id,note,created_by,created_at) VALUES (?,?,?,?)',(aid,note_text,author,now_str))
+    c.commit()
     return jsonify(success=True)
 
 @app.route('/api/asset/<int:aid>/delete',methods=['POST'])
