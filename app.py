@@ -382,7 +382,7 @@ def ticket_detail(ticket_id):
     t=c.execute('SELECT * FROM tickets WHERE id=?',(ticket_id,)).fetchone()
     notes=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(ticket_id,)).fetchall()
     staff=c.execute('SELECT * FROM staff WHERE is_it=1 ORDER BY name').fetchall()
-    assets=c.execute('SELECT * FROM assets WHERE status="active" ORDER BY branch,serial').fetchall()
+    assets=c.execute('SELECT * FROM assets WHERE status="active" ORDER BY asset_tag,serial').fetchall()
     kb=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall()
     kb_linked=None
     if t and t['kb_id']:
@@ -468,12 +468,20 @@ def api_status(tid):
     st=request.json.get('status','')
     if st not in ('open','in_progress','pending','resolved','closed'):return jsonify(success=False,error='Invalid'),400
     c=get_db()
+    STATUS_LABELS = {'open':'เปิด','in_progress':'กำลังแก้','pending':'รอ','resolved':'เสร็จแล้ว','closed':'ปิด'}
+    old = c.execute('SELECT status,assigned_to FROM tickets WHERE id=?',(tid,)).fetchone()
+    old_label = STATUS_LABELS.get(old['status'],old['status']) if old else '?'
+    new_label = STATUS_LABELS.get(st,st)
+    now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     if st=='resolved':
-        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         c.execute('UPDATE tickets SET status=?,resolved_at=? WHERE id=?',(st,now_str,tid))
     else:
         c.execute('UPDATE tickets SET status=?,resolved_at=NULL WHERE id=?',(st,tid))
-    c.commit();
+    # Auto-log status change as work note
+    author = request.json.get('changed_by','System')
+    note_text = f'เปลี่ยนสถานะ: {old_label} → {new_label}'
+    c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,note_text,author,now_str))
+    c.commit()
     return jsonify(success=True)
 
 @app.route('/api/ticket/<int:tid>/edit',methods=['POST'])
@@ -483,7 +491,6 @@ def api_edit(tid):
     t=c.execute('SELECT * FROM tickets WHERE id=?',(tid,)).fetchone()
     if not t:
         return jsonify(success=False,error='Not Found'),404
-    # Only update fields that are provided and non-empty — prevents partial updates from wiping data
     sets = []
     vals = []
     for field in ('title','description','priority','status','assigned_to','branch','category','reported_by','asset_id','kb_id'):
@@ -495,7 +502,15 @@ def api_edit(tid):
         return jsonify(success=True)
     vals.append(tid)
     c.execute(f'UPDATE tickets SET {",".join(sets)} WHERE id=?', vals)
-    c.commit();
+    # Auto-log reassign if assigned_to changed
+    new_assign = d.get('assigned_to')
+    old_assign = t['assigned_to'] or 'ยังไม่มอบหมาย'
+    if new_assign is not None and new_assign != '' and new_assign != t['assigned_to']:
+        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        author = d.get('changed_by','System')
+        note_text = f'มอบหมายให้: {new_assign} (เดิม: {old_assign})'
+        c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,note_text,author,now_str))
+    c.commit()
     return jsonify(success=True)
 
 @app.route('/api/ticket/<int:tid>/delete',methods=['POST'])

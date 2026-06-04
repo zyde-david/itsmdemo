@@ -72,11 +72,23 @@
                 {% for n in notes %}
                 <div class="d-flex mb-3">
                     <div class="me-3 text-center" style="min-width:40px;">
+                        {% if 'เปลี่ยนสถานะ' in n.note %}
+                        <div class="bg-info text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-arrow-left-right"></i></div>
+                        {% elif 'มอบหมายให้' in n.note %}
+                        <div class="bg-warning text-dark rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-person-plus"></i></div>
+                        {% else %}
                         <div class="bg-light text-dark rounded-circle border" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-chat-dots"></i></div>
+                        {% endif %}
                         {% if not loop.last %}<div style="width:2px;height:30px;background:#ddd;margin:4px auto 0;"></div>{% endif %}
                     </div>
                     <div>
-                        <div class="bg-light rounded p-2 px-3 small"><strong>{{ n.created_by }}</strong>: {{ n.note }}</div>
+                        <div class="bg-light rounded p-2 px-3 small">
+                            {% if 'เปลี่ยนสถานะ' in n.note or 'มอบหมายให้' in n.note %}
+                            <strong><i class="bi bi-gear me-1"></i>ระบบ</strong> — {{ n.note }}
+                            {% else %}
+                            <strong>{{ n.created_by }}</strong>: {{ n.note }}
+                            {% endif %}
+                        </div>
                         <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ n.created_at }}</small>
                     </div>
                 </div>
@@ -150,8 +162,8 @@
                 <div class="input-group input-group-sm mb-2">
                     <select class="form-select form-select-sm" id="assetSelect" onchange="linkAsset()">
                         <option value="">-- เลือก Asset --</option>
-                        {% for a in asset_list %}
-                        <option value="{{ a.id }}" {% if ticket.asset_id == a.id %}selected{% endif %}>{{ a.serial }} — {{ a.name }} ({{ a.branch }})</option>
+                        {% for a in asset_list|sort(attribute='asset_tag') %}
+                        <option value="{{ a.id }}" {% if ticket.asset_id == a.id %}selected{% endif %}>{{ a.asset_tag or a.id }} — {{ a.name }} ({{ a.branch }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -162,16 +174,18 @@
         <div class="card mb-3">
             <div class="card-header bg-white fw-bold"><i class="bi bi-book me-2"></i>ความรู้ (KB)</div>
             <div class="card-body">
+                <small class="text-muted d-block mb-1">แนบ KB:</small>
                 <div class="input-group input-group-sm mb-2">
-                    <input type="text" class="form-control form-control-sm" id="kbSearch" placeholder="ค้นหา KB..." oninput="searchKb()">
+                    <select class="form-select form-select-sm" id="kbSelect" onchange="attachKbArticle(this.value)">
+                        <option value="">-- เลือก KB --</option>
+                        {% for k in kb_articles %}
+                        <option value="{{ k.id }}" {% if ticket.kb_id == k.id %}selected{% endif %}>{{ k.title }} ({{ k.category }})</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div id="kbResults" class="mb-2" style="max-height:200px;overflow-y:auto;"></div>
-                <div id="kbNoResult" class="text-center py-2 d-none">
-                    <small class="text-muted">ไม่พบ KB ที่เกี่ยวข้อง</small><br>
-                    <button class="btn btn-sm btn-outline-primary mt-1" onclick="openNewKbModal()"><i class="bi bi-plus-lg me-1"></i>สร้าง KB ใหม่ & แนบ</button>
-                </div>
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="openNewKbModal()"><i class="bi bi-plus-lg me-1"></i>สร้าง KB ใหม่ & แนบ</button>
                 {% if ticket.kb_id %}
-                <div class="alert alert-info py-1 px-2 mb-0 small">
+                <div class="alert alert-info py-1 px-2 mb-0 mt-2 small">
                     <i class="bi bi-check-circle me-1"></i>แนบ KB: <strong>{{ kb_linked.title }}</strong>
                     — <a href="/kb/{{ kb_linked.id }}" target="_blank">ดูบทความ</a>
                 </div>
@@ -238,13 +252,15 @@ async function addNote(){
 }
 async function quickStatus(st){
     if(!confirm('เปลี่ยนสถานะ?'))return;
-    await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st})});
+    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st,changed_by:author})});
     location.reload();
 }
 async function reassign(name){
     if(!name) name = document.getElementById('assignToSelect').value;
     if(!name) return;
-    await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_to:name})});
+    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_to:name,changed_by:author})});
     location.reload();
 }
 async function linkAsset(){
@@ -253,38 +269,14 @@ async function linkAsset(){
     await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:parseInt(assetId)})});
     location.reload();
 }
-var KB_ARTICLES = {{ kb_articles|tojson }};
-
-function searchKb(){
-    var q = document.getElementById('kbSearch').value.toLowerCase().trim();
-    var results = document.getElementById('kbResults');
-    var noResult = document.getElementById('kbNoResult');
-    results.innerHTML = '';
-    if(!q){ noResult.classList.add('d-none'); return; }
-    var matched = KB_ARTICLES.filter(function(kb){
-        return kb.title.toLowerCase().indexOf(q)>=0 || kb.category.toLowerCase().indexOf(q)>=0;
-    });
-    if(matched.length === 0){
-        noResult.classList.remove('d-none');
-    } else {
-        noResult.classList.add('d-none');
-        matched.forEach(function(kb){
-            var div = document.createElement('div');
-            div.className = 'd-flex justify-content-between align-items-center p-2 border-bottom small';
-            div.innerHTML = '<span><strong>'+kb.title+'</strong> <span class="text-muted">('+kb.category+')</span></span><button class="btn btn-sm btn-outline-primary" onclick="attachKbArticle('+kb.id+')">แนบ</button>';
-            results.appendChild(div);
-        });
-    }
-}
-
 function attachKbArticle(kbId){
+    if(!kbId) return;
     fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:kbId})}).then(function(){location.reload();});
 }
 
 function openNewKbModal(){
-    document.getElementById('kbSearch').value = '';
-    document.getElementById('kbResults').innerHTML = '';
-    document.getElementById('kbNoResult').classList.add('d-none');
+    document.getElementById('newKbTitle').value = '';
+    document.getElementById('newKbContent').value = '';
     new bootstrap.Modal(document.getElementById('newKbModal')).show();
 }
 
