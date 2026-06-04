@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import hashlib
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, g
 import sqlite3, random, os, logging
 from datetime import datetime, timedelta
 from functools import wraps
@@ -41,7 +41,6 @@ def get_current_user():
         return None
     c = get_db()
     u = c.execute('SELECT * FROM users WHERE id=?', (session['user_id'],)).fetchone()
-    c.close()
     return dict(u) if u else None
 
 ALL_BRANCHES = [
@@ -220,9 +219,16 @@ KB = [
 ]
 
 def get_db():
-    c = sqlite3.connect(DB_PATH, check_same_thread=False)
-    c.row_factory = sqlite3.Row
-    return c
+    if 'db' not in g:
+        g.db = sqlite3.connect(DB_PATH, check_same_thread=False)
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
+@app.teardown_appcontext
+def close_db(exception):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 def init_db():
     c=get_db()
@@ -245,14 +251,14 @@ def init_db():
             admin_hash = hashlib.sha256(b'demo2026').hexdigest()
             c.execute('INSERT INTO users (username,password_hash,role) VALUES (?,?,?)', ('admin', admin_hash, 'admin'))
             c.commit()
-        c.close();return
+        return
     print('Seeding...')
     S=_staff();T=_tickets(S);A=_assets()
     for s in S:c.execute('INSERT INTO staff (name,role,branch,province,is_it) VALUES (?,?,?,?,?)',(s['name'],s['role'],s['branch'],s['province'],1 if s['is_it'] else 0))
     for t in T:c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,resolved_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(t.get('ticket_code',''),t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t.get('asset_id',0),t['created_at'],t.get('reported_at',''),t['resolved_at'],t['ai_suggestion'],t['ai_confidence']))
     for a in A:c.execute('INSERT INTO assets (asset_code,branch,asset_type,name,serial,status,brand,spec,assigned_to,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',(a.get('asset_code',''),a['branch'],a['asset_type'],a['name'],a['serial'],a['status'],a.get('brand',''),a.get('spec',''),a.get('assigned_to',''),a['last_check'],a['next_check'],a['notes']))
     for k in KB:c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,?)',(k['title'],k['cat'],k['content'],k['v']))
-    c.commit();c.close()
+    c.commit();
     print(f'Seeded: {len(S)} staff, {len(T)} tickets, {len(A)} assets')
 
 @app.route('/howto-public')
@@ -266,7 +272,6 @@ def login():
         password = request.form.get('password','')
         c = get_db()
         u = c.execute('SELECT * FROM users WHERE username=?', (username,)).fetchone()
-        c.close()
         if u and check_pw(password, u['password_hash']):
             session['user_id'] = u['id']
             session['username'] = u['username']
@@ -298,7 +303,6 @@ def dashboard():
     aa=c.execute("SELECT COUNT(*) FROM assets WHERE status='active'").fetchone()[0]
     itc=c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0]
     nk=c.execute('SELECT COUNT(*) FROM knowledge_base').fetchone()[0]
-    c.close()
     cl=[r['category'] for r in bc];cc=[r['cnt'] for r in bc]
     tp=round(bc[0]['cnt']/total*100) if bc and total>0 else 0
     return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,in_progress=prog,pending=pend,critical=critical,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
@@ -346,7 +350,6 @@ def tickets_page():
     resolved=c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0]
     closed_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0]
     critical_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
-    c.close()
     province_to_branches = PROVINCE_TO_BRANCHES
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES,
@@ -370,7 +373,6 @@ def ticket_detail(ticket_id):
     kb_linked=None
     if t and t['kb_id']:
         kb_linked=c.execute('SELECT * FROM knowledge_base WHERE id=?',(t['kb_id'],)).fetchone()
-    c.close()
     if not t:return 'Not found',404
     return render_template('ticket_detail.html',ticket=t,notes=notes,
         staff_list=staff,asset_list=assets,kb_articles=kb,kb_linked=kb_linked)
@@ -380,9 +382,8 @@ def ticket_detail(ticket_id):
 def asset_detail(asset_id):
     c=get_db()
     a=c.execute('SELECT * FROM assets WHERE id=?',(asset_id,)).fetchone()
-    if not a: c.close(); return 'Not found',404
+    if not a:  return 'Not found',404
     linked=c.execute('SELECT * FROM tickets WHERE asset_id=? ORDER BY created_at DESC',(asset_id,)).fetchall()
-    c.close()
     return render_template('asset_detail.html',asset=a,linked_tickets=linked)
 
 @app.route('/assets')
@@ -394,7 +395,6 @@ def assets_page():
     active=c.execute("SELECT COUNT(*) FROM assets WHERE status='active'").fetchone()[0]
     maint=c.execute("SELECT COUNT(*) FROM assets WHERE status='maintenance'").fetchone()[0]
     retired=c.execute("SELECT COUNT(*) FROM assets WHERE status='retired'").fetchone()[0]
-    c.close()
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     branch_to_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
     assets_list = []
@@ -413,7 +413,6 @@ def staff_page():
     total=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
     itc=c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0]
     staff_by_province = c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN is_it=1 THEN 1 ELSE 0 END) as it_cnt FROM staff GROUP BY province').fetchall()
-    c.close()
     provinces = sorted(set(s['province'] for s in rows))
     roles = sorted(set(s['role'] for s in rows))
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
@@ -423,7 +422,7 @@ def staff_page():
 @app.route('/knowledge')
 @login_required
 def kb_page():
-    c=get_db();rows=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall();c.close()
+    c=get_db();rows=c.execute('SELECT * FROM knowledge_base ORDER BY views DESC').fetchall();
     cats = sorted(set(r['category'] for r in rows))
     return render_template('knowledge.html',articles=rows,kb_categories=cats)
 
@@ -433,7 +432,6 @@ def kb_detail(kb_id):
     c=get_db()
     a=c.execute('SELECT * FROM knowledge_base WHERE id=?',(kb_id,)).fetchone()
     if a:c.execute('UPDATE knowledge_base SET views=views+1 WHERE id=?',(kb_id,));c.commit()
-    c.close()
     if not a:return 'Not found',404
     return render_template('kb_detail.html',article=a)
 
@@ -447,7 +445,7 @@ def api_create():
     c=get_db()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',(d.get('branch',''),d.get('province',''),cat,d.get('title',''),d.get('description',''),pri,'open',d.get('reported_by',''),'',now_str,now_str,ai,round(random.uniform(0.7,0.98),2)))
-    c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,ticket_id=tid)
 
 @app.route('/api/ticket/<int:tid>/status',methods=['POST'])
@@ -461,7 +459,7 @@ def api_status(tid):
         c.execute('UPDATE tickets SET status=?,resolved_at=? WHERE id=?',(st,now_str,tid))
     else:
         c.execute('UPDATE tickets SET status=?,resolved_at=NULL WHERE id=?',(st,tid))
-    c.commit();c.close()
+    c.commit();
     return jsonify(success=True)
 
 @app.route('/api/ticket/<int:tid>/edit',methods=['POST'])
@@ -470,7 +468,6 @@ def api_edit(tid):
     d=request.json;c=get_db()
     t=c.execute('SELECT * FROM tickets WHERE id=?',(tid,)).fetchone()
     if not t:
-        c.close()
         return jsonify(success=False,error='Not Found'),404
     # Only update fields that are provided and non-empty — prevents partial updates from wiping data
     sets = []
@@ -481,17 +478,16 @@ def api_edit(tid):
             sets.append(f'{field}=?')
             vals.append(val)
     if not sets:
-        c.close()
         return jsonify(success=True)
     vals.append(tid)
     c.execute(f'UPDATE tickets SET {",".join(sets)} WHERE id=?', vals)
-    c.commit();c.close()
+    c.commit();
     return jsonify(success=True)
 
 @app.route('/api/ticket/<int:tid>/delete',methods=['POST'])
 @login_required
 def api_delete(tid):
-    c=get_db();c.execute('DELETE FROM tickets WHERE id=?',(tid,));c.commit();c.close()
+    c=get_db();c.execute('DELETE FROM tickets WHERE id=?',(tid,));c.commit();
     return jsonify(success=True)
 
 @app.route('/api/ticket/<int:tid>/kb',methods=['POST'])
@@ -500,14 +496,14 @@ def api_ticket_kb(tid):
     d=request.json;c=get_db()
     kb_id=d.get('kb_id',0)
     c.execute('UPDATE tickets SET kb_id=? WHERE id=?',(kb_id,tid))
-    c.commit();c.close()
+    c.commit();
     return jsonify(success=True)
 
 # ── Work Notes API ──
 @app.route('/api/ticket/<int:tid>/notes',methods=['GET'])
 @login_required
 def api_notes_get(tid):
-    c=get_db();rows=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(tid,)).fetchall();c.close()
+    c=get_db();rows=c.execute('SELECT * FROM work_notes WHERE ticket_id=? ORDER BY created_at ASC',(tid,)).fetchall();
     return jsonify(notes=[dict(r) for r in rows])
 
 @app.route('/api/ticket/<int:tid>/notes',methods=['POST'])
@@ -516,7 +512,7 @@ def api_notes_add(tid):
     d=request.json;c=get_db()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,d.get('note',''),d.get('created_by','Admin'),now_str))
-    c.commit();nid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    c.commit();nid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,id=nid)
 
 @app.route('/api/chatbot',methods=['POST'])
@@ -545,16 +541,16 @@ def api_asset_search():
     serial=request.args.get('serial','');c=get_db()
     a=c.execute('SELECT * FROM assets WHERE serial LIKE ?',('%'+serial+'%',)).fetchone()
     if not a: return jsonify(asset=None)
-    cnt=c.execute('SELECT COUNT(*) FROM tickets WHERE asset_id=?',(a['id'],)).fetchone()[0];c.close()
+    cnt=c.execute('SELECT COUNT(*) FROM tickets WHERE asset_id=?',(a['id'],)).fetchone()[0];
     return jsonify(asset=dict(a),ticket_count=cnt)
 
 @app.route('/api/asset/<int:aid>',methods=['GET'])
 @login_required
 def api_asset_get(aid):
     c=get_db();a=c.execute('SELECT * FROM assets WHERE id=?',(aid,)).fetchone()
-    if not a: c.close();return jsonify(asset=None)
+    if not a: return jsonify(asset=None)
     cnt=c.execute('SELECT COUNT(*) FROM tickets WHERE asset_id=?',(aid,)).fetchone()[0]
-    c.close();return jsonify(asset=dict(a),ticket_count=cnt)
+    return jsonify(asset=dict(a),ticket_count=cnt)
 
 @app.route('/api/asset',methods=['POST'])
 @login_required
@@ -562,7 +558,7 @@ def api_asset_create():
     d=request.json;c=get_db()
     c.execute('INSERT INTO assets (branch,asset_type,name,serial,status,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?)',
               (d.get('branch',''),d.get('asset_type',''),d.get('name',''),d.get('serial',''),d.get('status','active'),d.get('last_check',''),d.get('next_check',''),d.get('notes','')))
-    c.commit();aid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    c.commit();aid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,id=aid)
 
 @app.route('/api/asset/<int:aid>/edit',methods=['POST'])
@@ -571,13 +567,13 @@ def api_asset_edit(aid):
     d=request.json;c=get_db()
     c.execute('UPDATE assets SET name=?,serial=?,asset_type=?,status=?,branch=?,next_check=?,notes=? WHERE id=?',
               (d.get('name',''),d.get('serial',''),d.get('asset_type',''),d.get('status','active'),d.get('branch',''),d.get('next_check',''),d.get('notes',''),aid))
-    c.commit();c.close()
+    c.commit();
     return jsonify(success=True)
 
 @app.route('/api/asset/<int:aid>/delete',methods=['POST'])
 @login_required
 def api_asset_delete(aid):
-    c=get_db();c.execute('DELETE FROM assets WHERE id=?',(aid,));c.commit();c.close()
+    c=get_db();c.execute('DELETE FROM assets WHERE id=?',(aid,));c.commit();
     return jsonify(success=True)
 
 # ── Settings & User Management ──
@@ -587,7 +583,6 @@ def settings_page():
     user = get_current_user()
     c = get_db()
     users = c.execute('SELECT id, username, role, created_at FROM users ORDER BY id').fetchall()
-    c.close()
     return render_template('settings.html', user=user, users=users)
 
 @app.route('/api/user', methods=['POST'])
@@ -601,10 +596,8 @@ def api_user_create():
                   (d['username'], pw_hash, d.get('role', 'user')))
         c.commit()
         uid = c.execute('SELECT last_insert_rowid()').fetchone()[0]
-        c.close()
         return jsonify(success=True, id=uid)
     except Exception as e:
-        c.close()
         return jsonify(success=False, error=str(e)), 400
 
 @app.route('/api/user/<int:uid>/role', methods=['POST'])
@@ -614,7 +607,6 @@ def api_user_role(uid):
     c = get_db()
     c.execute('UPDATE users SET role=? WHERE id=?', (d['role'], uid))
     c.commit()
-    c.close()
     return jsonify(success=True)
 
 @app.route('/api/user/<int:uid>/delete', methods=['POST'])
@@ -625,7 +617,6 @@ def api_user_delete(uid):
     c = get_db()
     c.execute('DELETE FROM users WHERE id=?', (uid,))
     c.commit()
-    c.close()
     return jsonify(success=True)
 
 @app.route('/api/user/password', methods=['POST'])
@@ -635,12 +626,10 @@ def api_change_password():
     c = get_db()
     u = c.execute('SELECT * FROM users WHERE id=?', (session['user_id'],)).fetchone()
     if not check_pw(d.get('current', ''), u['password_hash']):
-        c.close()
         return jsonify(success=False, error='รหัสผ่านปัจจุบันไม่ถูกต้อง'), 400
     new_hash = hashlib.sha256(d['new'].encode()).hexdigest()
     c.execute('UPDATE users SET password_hash=? WHERE id=?', (new_hash, session['user_id']))
     c.commit()
-    c.close()
     return jsonify(success=True)
 
 
@@ -651,7 +640,7 @@ def api_staff_create():
     d=request.json;c=get_db()
     c.execute('INSERT INTO staff (name,role,branch,province,is_it) VALUES (?,?,?,?,?)',
               (d.get('name',''),d.get('role',''),d.get('branch',''),d.get('province',''),d.get('is_it',0)))
-    c.commit();sid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    c.commit();sid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,id=sid)
 
 @app.route('/api/staff/<int:sid>/edit',methods=['POST'])
@@ -660,13 +649,13 @@ def api_staff_edit(sid):
     d=request.json;c=get_db()
     c.execute('UPDATE staff SET name=?,role=?,is_it=?,branch=?,province=? WHERE id=?',
               (d.get('name',''),d.get('role',''),d.get('is_it',0),d.get('branch',''),d.get('province',''),sid))
-    c.commit();c.close()
+    c.commit();
     return jsonify(success=True)
 
 @app.route('/api/staff/<int:sid>/delete',methods=['POST'])
 @login_required
 def api_staff_delete(sid):
-    c=get_db();c.execute('DELETE FROM staff WHERE id=?',(sid,));c.commit();c.close()
+    c=get_db();c.execute('DELETE FROM staff WHERE id=?',(sid,));c.commit();
     return jsonify(success=True)
 
 # ── KB API ──
@@ -676,7 +665,7 @@ def api_kb_create():
     d=request.json;c=get_db()
     c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,?)',
               (d.get('title',''),d.get('category',''),d.get('content',''),d.get('views',0)))
-    c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];c.close()
+    c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,id=tid)
 
 @app.route('/api/kb/<int:kid>/edit',methods=['POST'])
@@ -685,13 +674,13 @@ def api_kb_edit(kid):
     d=request.json;c=get_db()
     c.execute('UPDATE knowledge_base SET title=?,category=?,content=?,views=? WHERE id=?',
               (d.get('title',''),d.get('category',''),d.get('content',''),d.get('views',0),kid))
-    c.commit();c.close()
+    c.commit();
     return jsonify(success=True)
 
 @app.route('/api/kb/<int:kid>/delete',methods=['POST'])
 @login_required
 def api_kb_delete(kid):
-    c=get_db();c.execute('DELETE FROM knowledge_base WHERE id=?',(kid,));c.commit();c.close()
+    c=get_db();c.execute('DELETE FROM knowledge_base WHERE id=?',(kid,));c.commit();
     return jsonify(success=True)
 
 
@@ -719,9 +708,6 @@ def api_district_data():
         d = branch_district.get(r['branch'], '')
         if d:
             asset_counts[d] = asset_counts.get(d, 0) + r['cnt']
-
-    c.close()
-
     # Build result for all 33 districts
     result = []
     for b in ALL_BRANCHES:
@@ -744,7 +730,6 @@ def sitemap_page():
     total_assets = c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
     total_staff = c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
     total_kb = c.execute('SELECT COUNT(*) FROM knowledge_base').fetchone()[0]
-    c.close()
     return render_template('sitemap.html', total_tickets=total_tickets, total_assets=total_assets, total_staff=total_staff, total_kb=total_kb)
 
 @app.route('/howto')
@@ -765,7 +750,6 @@ def _start_init_db():
         ns = c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
         nt = c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
         na = c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
-        c.close()
         print(f'[INIT OK] {ns} staff, {nt} tickets, {na} assets')
     except Exception as e:
         print(f'[INIT ERR] {e}')
