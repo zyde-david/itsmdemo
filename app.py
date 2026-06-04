@@ -907,10 +907,39 @@ def route_planner_page():
             'priority': 'สูง' if score >= 10 else ('กลาง' if score >= 5 else 'ต่ำ')
         })
 
+    # Approximate real-world coordinates for the 3 southern provinces.
+    # Used only for the lightweight SVG route map; ranking is based on live ticket/asset data.
+    district_coords = {
+        'เมืองปัตตานี': (6.8690, 101.2500), 'โคกโพธิ์': (6.7200, 101.0900), 'หนองจิก': (6.8400, 101.1800),
+        'ปะนาเระ': (6.8600, 101.4900), 'มายอ': (6.7200, 101.4100), 'ทุ่งยางแดง': (6.6200, 101.4300),
+        'สายบุรี': (6.7000, 101.6200), 'ไม้แก่น': (6.6200, 101.6800), 'ยะหริ่ง': (6.8700, 101.3600),
+        'ยะรัง': (6.7600, 101.2900), 'กะพ้อ': (6.5900, 101.5400), 'แม่ลาน': (6.6700, 101.2400),
+        'เมืองยะลา': (6.5400, 101.2800), 'เบตง': (5.7700, 101.0700), 'บันนังสตา': (6.2700, 101.2700),
+        'ธารโต': (6.0800, 101.1800), 'ยะหา': (6.4800, 101.1300), 'รามัน': (6.4800, 101.4300),
+        'กาบัง': (6.4200, 101.0200), 'กรงปินัง': (6.4100, 101.2800),
+        'เมืองนราธิวาส': (6.4200, 101.8200), 'ตากใบ': (6.2600, 102.0500), 'บาเจาะ': (6.5200, 101.6500),
+        'ยี่งอ': (6.3900, 101.7100), 'ระแงะ': (6.3000, 101.7200), 'รือเสาะ': (6.3900, 101.5200),
+        'ศรีสาคร': (6.2400, 101.5000), 'แว้ง': (5.9300, 101.8900), 'สุคิริน': (5.9400, 101.7700),
+        'สุไหงโก-ลก': (6.0300, 101.9700), 'สุไหงปาดี': (6.0800, 101.8700), 'จะแนะ': (6.0900, 101.6400),
+        'เจาะไอร้อง': (6.2300, 101.8000),
+    }
+    for d in districts:
+        d['lat'], d['lng'] = district_coords.get(d['name'], (6.45, 101.45))
+
     districts.sort(key=lambda x: (x['score'], x['tickets'], x['assets']), reverse=True)
+
+    # Build top route points for SVG: normalize lon/lat to a 1000x520 viewport.
+    route_points = districts[:12]
+    min_lat, max_lat = 5.70, 6.95
+    min_lng, max_lng = 100.95, 102.10
+    for i, d in enumerate(route_points, start=1):
+        d['route_no'] = i
+        d['x'] = 60 + ((d['lng'] - min_lng) / (max_lng - min_lng)) * 880
+        d['y'] = 470 - ((d['lat'] - min_lat) / (max_lat - min_lat)) * 400
+
     total_tickets = sum(d['tickets'] for d in districts)
     total_assets = sum(d['assets'] for d in districts)
-    return render_template('route-planner.html', districts=districts, total_tickets=total_tickets, total_assets=total_assets)
+    return render_template('route-planner.html', districts=districts, route_points=route_points, total_tickets=total_tickets, total_assets=total_assets)
 
 def _start_init_db():
     """Run init_db in a background thread so it doesn't block gunicorn startup."""
