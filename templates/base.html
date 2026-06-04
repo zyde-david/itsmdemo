@@ -63,7 +63,14 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 body[data-theme="dark"] .sidebar-pin-btn,
 body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:var(--text-elevated);border:1px solid var(--border-dark)}
 
-/* Mobile sidebar overlay */
+/* Sidebar hover-expand on desktop when collapsed */
+@media(min-width:768px){
+  .sidebar-collapsed .sidebar:hover{width:220px!important;min-width:220px!important;max-width:220px!important;overflow:visible;box-shadow:4px 0 16px rgba(0,0,0,.12);z-index:1060}
+  .sidebar-collapsed .sidebar:hover .nav-text{display:inline!important}
+  .sidebar-collapsed .sidebar:hover .nav-link{justify-content:flex-start;padding:10px 16px}
+  .sidebar-collapsed .sidebar:hover .nav-link i{margin-right:8px!important;font-size:1rem}
+  .sidebar-collapsed .sidebar:hover .sidebar-pin-btn{right:-14px;transform:rotate(180deg)}
+}
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1040}
 .sidebar-overlay.show{display:block}
 
