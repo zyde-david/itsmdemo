@@ -952,7 +952,7 @@ def route_planner_page():
             'name': d, 'short_branch': _short_branch(b['branch']), 'branch': b['branch'], 'province': b['province'],
             'tickets': active, 'assets': assets, 'critical': p.get('critical',0), 'high': p.get('high',0),
             'medium': p.get('medium',0), 'low': p.get('low',0), 'score': dispatch_score,
-            'priority': 'สูง' if color == 'red' else ('กลาง' if color == 'yellow' else ('ต่ำ' if color == 'green' else '-')),
+            'priority': 'สูง' if color == 'orange' else ('กลาง' if color == 'yellow' else ('ต่ำ' if color == 'green' else '-')),
             'color': color, 'lat': lat, 'lng': lng, 'distance_from_hq': distance_km((hq['lat'], hq['lng']), (lat, lng))
         })
 
@@ -982,10 +982,19 @@ def route_planner_page():
     for d in districts:
         d['x'], d['y'] = xy(d['lat'], d['lng'])
 
+    route_segments = []
+    prev = hq
+    for d in route_points:
+        route_segments.append({
+            'x1': prev['x'], 'y1': prev['y'], 'x2': d['x'], 'y2': d['y'],
+            'km': d['leg_km'], 'mx': (prev['x'] + d['x']) / 2, 'my': (prev['y'] + d['y']) / 2
+        })
+        prev = d
+
     total_tickets = sum(d['tickets'] for d in districts)
     total_assets = sum(d['assets'] for d in districts)
     total_critical = sum(d['critical'] for d in districts)
-    return render_template('route-planner.html', districts=ranked, route_points=route_points, hq=hq,
+    return render_template('route-planner.html', districts=ranked, route_points=route_points, route_segments=route_segments, hq=hq,
                            total_tickets=total_tickets, total_assets=total_assets, total_critical=total_critical)
 
 def _start_init_db():
