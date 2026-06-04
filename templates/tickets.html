@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
  <h4 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>IT Tickets</h4>
  <div class="d-flex gap-2">
-  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteTicketBtn" onclick="bulkDeleteTickets()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก</button>
+  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteTicketBtn" onclick="bulkDeleteTickets()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก <span class="badge bg-light text-danger ms-1" id="bulkDeleteTicketCount">0</span></button>
   <button class="btn btn-sm btn-primary" onclick="openNewTicket()"><i class="bi bi-plus-lg me-1"></i>New Ticket</button>
  </div>
 </div>
@@ -91,8 +91,8 @@
  <tbody>
   {% for t in tickets %}
   <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-province="{{ t.province }}" data-category="{{ t.category }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
-   <td><input type="checkbox" class="ticket-check" value="{{ t.id }}"></td>
-   <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
+   <td><input type="checkbox" class="ticket-check" value="{{ t.id }}" onclick="event.stopPropagation()"></td>
+   <td data-order="{{ t.id }}"><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
    <td><span class="branch-tag">{{ t.short_branch or t.branch }}</span></td>
    <td><small>{{ t.province }}</small></td>
    <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>
@@ -248,11 +248,28 @@ function filterTicketStatus(s) {
   return false;
 }
 
+function updateTicketSelection(){
+  const count = document.querySelectorAll('.ticket-check:checked').length;
+  const btn = document.getElementById('bulkDeleteTicketBtn');
+  const badge = document.getElementById('bulkDeleteTicketCount');
+  btn.style.display = count ? 'inline-block' : 'none';
+  if(badge) badge.textContent = count;
+  const all = document.getElementById('selectAllTickets');
+  const boxes = document.querySelectorAll('.ticket-check');
+  if(all){
+    all.checked = boxes.length > 0 && count === boxes.length;
+    all.indeterminate = count > 0 && count < boxes.length;
+  }
+}
+function toggleAllTickets(cb){
+  document.querySelectorAll('.ticket-check').forEach(c=>c.checked=cb.checked);
+  updateTicketSelection();
+}
+
 document.addEventListener('DOMContentLoaded',function(){
-  ticketsTable = initTable('#ticketsTable',{order:[[11,'desc']]});
-  document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',()=>{
-    document.getElementById('bulkDeleteTicketBtn').style.display=[...document.querySelectorAll('.ticket-check:checked')].length?'inline-block':'none';
-  }));
+  ticketsTable = initTable('#ticketsTable',{order:[[1,'desc']]});
+  document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',updateTicketSelection));
+  if(ticketsTable) ticketsTable.on('draw', updateTicketSelection);
   // Apply URL filter params (e.g. ?category=xxx from dashboard)
   const urlParams = new URLSearchParams(window.location.search);
   ['category','status','priority','branch','province'].forEach(function(param){

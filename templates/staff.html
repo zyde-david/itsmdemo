@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
  <h4 class="mb-0"><i class="bi bi-people me-2"></i>ทีมงาน ทั้งหมด</h4>
  <div class="d-flex gap-2">
-  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteStaffBtn" onclick="bulkDeleteStaff()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก</button>
+  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteStaffBtn" onclick="bulkDeleteStaff()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก <span class="badge bg-light text-danger ms-1" id="bulkDeleteStaffCount">0</span></button>
   <button class="btn btn-sm btn-primary" onclick="openNewStaff()"><i class="bi bi-plus-lg me-1"></i>เพิ่มพนักงาน</button>
  </div>
 </div>
@@ -84,7 +84,7 @@
    {% for s in staff %}
    <tr data-id="{{ s.id }}" data-branch="{{ s.branch }}" data-province="{{ s.province }}" data-role="{{ s.role }}" data-is-it="{{ s.is_it }}" onclick="handleRowClick(event, null, {{ s.id }})">
     <td><input type="checkbox" class="staff-check" value="{{ s.id }}"></td>
-    <td>{{ loop.index }}</td>
+    <td data-order="{{ s.id }}">{{ loop.index }}</td>
     <td><strong>{{ s.name }}</strong></td>
     <td>{% if s.is_it %}<span class="badge bg-success">{{ s.role }}</span>{% elif 'ผู้จัดการ' in s.role %}<span class="badge bg-primary">{{ s.role }}</span>{% else %}<span class="badge bg-secondary">{{ s.role }}</span>{% endif %}</td>
     <td><span class="branch-tag">{{ s.branch }}</span></td>
@@ -205,15 +205,27 @@ function debounceStaffSearch(){
   }, 300);
 }
 
-function toggleAllStaff(cb){document.querySelectorAll('.staff-check').forEach(c=>c.checked=cb.checked);}
+function updateStaffSelection(){
+  const count = document.querySelectorAll('.staff-check:checked').length;
+  const btn = document.getElementById('bulkDeleteStaffBtn');
+  const badge = document.getElementById('bulkDeleteStaffCount');
+  btn.style.display = count ? 'inline-block' : 'none';
+  if(badge) badge.textContent = count;
+  const all = document.getElementById('selectAllStaff');
+  const boxes = document.querySelectorAll('.staff-check');
+  if(all){
+    all.checked = boxes.length > 0 && count === boxes.length;
+    all.indeterminate = count > 0 && count < boxes.length;
+  }
+}
+function toggleAllStaff(cb){document.querySelectorAll('.staff-check').forEach(c=>c.checked=cb.checked);updateStaffSelection();}
 function deleteOneStaff(id){if(!confirm('ลบพนักงาน?'))return;fetch('/api/staff/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
 function bulkDeleteStaff(){const ids=[...document.querySelectorAll('.staff-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' พนักงาน?'))return;Promise.all(ids.map(id=>fetch('/api/staff/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
 
 document.addEventListener('DOMContentLoaded',function(){
-  window.staffTable = initTable('#staffTable',{order:[[5,'desc'],[4,'asc'],[1,'asc']]});
-  document.querySelectorAll('.staff-check').forEach(cb=>cb.addEventListener('change',()=>{
-    document.getElementById('bulkDeleteStaffBtn').style.display=[...document.querySelectorAll('.staff-check:checked')].length?'inline-block':'none';
-  }));
+  window.staffTable = initTable('#staffTable',{order:[[1,'asc']]});
+  document.querySelectorAll('.staff-check').forEach(cb=>cb.addEventListener('change',updateStaffSelection));
+  if(window.staffTable) window.staffTable.on('draw', updateStaffSelection);
 });
 
 function handleRowClick(e, url, staffId){

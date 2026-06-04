@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
  <h4 class="mb-0"><i class="bi bi-box-seam me-2"></i>IT Assets</h4>
  <div class="d-flex gap-2">
-  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteAssetBtn" onclick="bulkDeleteAssets()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก</button>
+  <button class="btn btn-sm btn-outline-danger" id="bulkDeleteAssetBtn" onclick="bulkDeleteAssets()" style="display:none"><i class="bi bi-trash me-1"></i>ลบที่เลือก <span class="badge bg-light text-danger ms-1" id="bulkDeleteAssetCount">0</span></button>
   <button class="btn btn-sm btn-primary" onclick="openNewAsset()"><i class="bi bi-plus-lg me-1"></i>New Asset</button>
  </div>
 </div>
@@ -74,9 +74,9 @@
  </tr></thead>
  <tbody>
   {% for a in assets %}
-  <tr data-id="{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}" onclick="handleRowClick(event, '/asset/{{ a.id }}')">
-   <td><input type="checkbox" class="asset-check" value="{{ a.id }}"></td>
-   <td><span class="id-badge">{{ a.asset_tag or a.asset_code or a.id }}</span></td>
+  <tr class="asset-row" data-id="{{ a.id }}" data-href="/asset/{{ a.id }}" data-status="{{ a.status }}" data-type="{{ a.asset_type }}" data-category="{{ a.asset_type }}" data-branch="{{ a.branch }}" data-province="{{ a.province }}">
+   <td><input type="checkbox" class="asset-check" value="{{ a.id }}" onclick="event.stopPropagation()"></td>
+   <td data-order="{{ a.id }}"><span class="id-badge">{{ a.asset_tag or a.asset_code or a.id }}</span></td>
    <td><span class="branch-tag">{{ a.short_branch }}</span></td>
    <td><small>{{ a.province }}</small></td>
    <td>{{ a.asset_type }}</td>
@@ -85,7 +85,7 @@
    <td>{% if a.status=='active' %}<span class="badge bg-success">Active</span>{% elif a.status=='maintenance' %}<span class="badge bg-warning text-dark">Maintenance</span>{% else %}<span class="badge bg-secondary">Retired</span>{% endif %}</td>
    <td class="d-none d-md-table-cell"><small>{{ a.last_check }}</small></td>
    <td class="d-none d-md-table-cell"><small class="text-muted">{{ a.next_check }}</small></td>
-   <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); editAsset({{ a.id }})"><i class="bi bi-pencil"></i></button></td>
+   <td><button type="button" class="btn btn-sm btn-outline-primary asset-edit-btn" data-id="{{ a.id }}" onclick="event.stopPropagation(); editAsset({{ a.id }}); return false;" title="แก้ไข"><i class="bi bi-pencil"></i></button></td>
   </tr>
   {% endfor %}
  </tbody>
@@ -168,7 +168,7 @@ function filterAssetBranchByProvince(province){
     var branchesInProv = provinceToBranches[province] || [];
     branchesInProv.forEach(function(b){ sel.appendChild(new Option(b.short || b.district, b.branch)); });
   }
-  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }}
+  for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
 }
 
 // Persistent custom filter for assets — uses data attributes on <tr>
@@ -195,12 +195,31 @@ function applyAssetFilters(){
   if(window.assetTable) window.assetTable.draw();
 }
 
-function toggleAllAssets(cb){document.querySelectorAll('.asset-check').forEach(c=>c.checked=cb.checked);}
+function updateAssetSelection(){
+  const count = document.querySelectorAll('.asset-check:checked').length;
+  const btn = document.getElementById('bulkDeleteAssetBtn');
+  const badge = document.getElementById('bulkDeleteAssetCount');
+  btn.style.display = count ? 'inline-block' : 'none';
+  if(badge) badge.textContent = count;
+  const all = document.getElementById('selectAllAssets');
+  const boxes = document.querySelectorAll('.asset-check');
+  if(all){
+    all.checked = boxes.length > 0 && count === boxes.length;
+    all.indeterminate = count > 0 && count < boxes.length;
+  }
+}
+function toggleAllAssets(cb){document.querySelectorAll('.asset-check').forEach(c=>c.checked=cb.checked);updateAssetSelection();}
 function deleteOneAsset(id){if(!confirm('ลบ Asset?'))return;fetch('/api/asset/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(d=>{if(d.success)location.reload()});}
 function bulkDeleteAssets(){const ids=[...document.querySelectorAll('.asset-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' Asset?'))return;Promise.all(ids.map(id=>fetch('/api/asset/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
 
+function handleAssetRowClick(e){
+ if(e.target.closest('a, button, input, select, textarea, .btn, .asset-check, .asset-edit-btn')) return;
+ var row=e.target.closest('tr.asset-row');
+ if(row && row.dataset.href) location.href=row.dataset.href;
+}
+
 function handleRowClick(e, url){
- if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
+ if(e.target.closest('a, button, input, select, textarea, .btn, input[type=checkbox]')) return;
  location.href=url;
 }
 
@@ -223,7 +242,7 @@ function editAsset(id){
    document.getElementById('aLastCheck').value=c[8].innerText.trim();
    document.getElementById('aNotes').value='';
    const brSel=document.getElementById('aBranch');
-   const branchFull=c[2].innerText.trim();
+   const branchFull=r.getAttribute('data-branch') || c[2].innerText.trim();
    for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].value===branchFull||brSel.options[i].text===branchFull){brSel.selectedIndex=i;break}}
   }
  });
@@ -273,9 +292,21 @@ function deleteAsset(){
 document.addEventListener('DOMContentLoaded',function(){
   const CURRENT_USER = '{{ current_user.username if current_user else "Admin" }}';
   window.assetTable = initTable('#assetsTable',{order:[[1,'asc']]});
-  document.querySelectorAll('.asset-check').forEach(cb=>cb.addEventListener('change',()=>{
-    document.getElementById('bulkDeleteAssetBtn').style.display=[...document.querySelectorAll('.asset-check:checked')].length?'inline-block':'none';
-  }));
+  document.querySelector('#assetsTable tbody').addEventListener('click',function(e){
+    var editBtn=e.target.closest('.asset-edit-btn');
+    if(editBtn){
+      e.preventDefault();
+      e.stopPropagation();
+      editAsset(editBtn.dataset.id);
+      return;
+    }
+    handleAssetRowClick(e);
+  });
+  document.querySelectorAll('.asset-check').forEach(cb=>{
+    cb.addEventListener('click',e=>e.stopPropagation());
+    cb.addEventListener('change',updateAssetSelection);
+  });
+  if(window.assetTable) window.assetTable.on('draw', updateAssetSelection);
 });
 </script>
 {% endblock %}
