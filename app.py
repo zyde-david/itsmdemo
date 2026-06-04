@@ -875,40 +875,10 @@ def howto_page():
 def route_planner_page():
     c = get_db()
     branch_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
+    branch_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+    district_branch = {b['district']: b['branch'] for b in ALL_BRANCHES}
 
-    ticket_counts = {}
-    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM tickets GROUP BY branch').fetchall()
-    for r in rows:
-        d = branch_district.get(r['branch'], '')
-        if d:
-            ticket_counts[d] = ticket_counts.get(d, 0) + r['cnt']
-
-    asset_counts = {}
-    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM assets GROUP BY branch').fetchall()
-    for r in rows:
-        d = branch_district.get(r['branch'], '')
-        if d:
-            asset_counts[d] = asset_counts.get(d, 0) + r['cnt']
-
-    districts = []
-    for b in ALL_BRANCHES:
-        d = b['district']
-        tickets = ticket_counts.get(d, 0)
-        assets = asset_counts.get(d, 0)
-        score = tickets * 2 + assets
-        districts.append({
-            'name': d,
-            'short_branch': _short_branch(b['branch']),
-            'branch': b['branch'],
-            'province': b['province'],
-            'tickets': tickets,
-            'assets': assets,
-            'score': score,
-            'priority': 'สูง' if score >= 10 else ('กลาง' if score >= 5 else 'ต่ำ')
-        })
-
-    # Approximate real-world coordinates for the 3 southern provinces.
-    # Used only for the lightweight SVG route map; ranking is based on live ticket/asset data.
+    # Approximate district center points for dispatch planning map.
     district_coords = {
         'เมืองปัตตานี': (6.8690, 101.2500), 'โคกโพธิ์': (6.7200, 101.0900), 'หนองจิก': (6.8400, 101.1800),
         'ปะนาเระ': (6.8600, 101.4900), 'มายอ': (6.7200, 101.4100), 'ทุ่งยางแดง': (6.6200, 101.4300),
@@ -923,23 +893,100 @@ def route_planner_page():
         'สุไหงโก-ลก': (6.0300, 101.9700), 'สุไหงปาดี': (6.0800, 101.8700), 'จะแนะ': (6.0900, 101.6400),
         'เจาะไอร้อง': (6.2300, 101.8000),
     }
-    for d in districts:
-        d['lat'], d['lng'] = district_coords.get(d['name'], (6.45, 101.45))
 
-    districts.sort(key=lambda x: (x['score'], x['tickets'], x['assets']), reverse=True)
+    priority_counts = {}
+    rows = c.execute("""
+        SELECT branch, priority, COUNT(*) as cnt
+        FROM tickets
+        WHERE status NOT IN ('resolved','closed')
+        GROUP BY branch, priority
+    """).fetchall()
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if not d:
+            continue
+        priority_counts.setdefault(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
+        priority_counts[d][r['priority']] = priority_counts[d].get(r['priority'], 0) + r['cnt']
 
-    # Build top route points for SVG: normalize lon/lat to a 1000x520 viewport.
-    route_points = districts[:12]
+    ticket_counts = {}
+    rows = c.execute("SELECT branch, COUNT(*) as cnt FROM tickets WHERE status NOT IN ('resolved','closed') GROUP BY branch").fetchall()
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if d:
+            ticket_counts[d] = ticket_counts.get(d, 0) + r['cnt']
+
+    asset_counts = {}
+    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM assets GROUP BY branch').fetchall()
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if d:
+            asset_counts[d] = asset_counts.get(d, 0) + r['cnt']
+
+    def distance_km(a, b):
+        import math
+        lat1, lon1 = a; lat2, lon2 = b
+        r = 6371
+        p1, p2 = math.radians(lat1), math.radians(lat2)
+        dp = math.radians(lat2-lat1); dl = math.radians(lon2-lon1)
+        h = math.sin(dp/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
+        return 2*r*math.asin(math.sqrt(h))
+
+    hq = {'name': 'HQ เมืองปัตตานี', 'short_branch': 'HQ', 'lat': 6.8690, 'lng': 101.2500, 'x': 0, 'y': 0}
+    districts = []
+    for b in ALL_BRANCHES:
+        d = b['district']
+        p = priority_counts.get(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
+        active = ticket_counts.get(d, 0)
+        assets = asset_counts.get(d, 0)
+        dispatch_score = p.get('critical',0)*100 + p.get('high',0)*40 + p.get('medium',0)*12 + p.get('low',0)*5 + active*2
+        lat, lng = district_coords.get(d, (6.45, 101.45))
+        if active <= 0:
+            color = 'none'
+        elif p.get('critical',0) > 0 or dispatch_score >= 100:
+            color = 'red'
+        elif p.get('high',0) > 0 or dispatch_score >= 40:
+            color = 'yellow'
+        else:
+            color = 'green'
+        districts.append({
+            'name': d, 'short_branch': _short_branch(b['branch']), 'branch': b['branch'], 'province': b['province'],
+            'tickets': active, 'assets': assets, 'critical': p.get('critical',0), 'high': p.get('high',0),
+            'medium': p.get('medium',0), 'low': p.get('low',0), 'score': dispatch_score,
+            'priority': 'สูง' if color == 'red' else ('กลาง' if color == 'yellow' else ('ต่ำ' if color == 'green' else '-')),
+            'color': color, 'lat': lat, 'lng': lng, 'distance_from_hq': distance_km((hq['lat'], hq['lng']), (lat, lng))
+        })
+
+    active_sites = [d for d in districts if d['tickets'] > 0]
+    ranked = sorted(districts, key=lambda x: (x['score'], -x['distance_from_hq']), reverse=True)
+
+    # Dispatch route: start HQ, choose most urgent next; when urgency ties, choose nearer current site.
+    remaining = active_sites[:]
+    route_points = []
+    current = (hq['lat'], hq['lng'])
+    while remaining and len(route_points) < 12:
+        remaining.sort(key=lambda d: (d['score'], -distance_km(current, (d['lat'], d['lng']))), reverse=True)
+        chosen = remaining.pop(0)
+        chosen['leg_km'] = round(distance_km(current, (chosen['lat'], chosen['lng'])), 1)
+        route_points.append(chosen)
+        current = (chosen['lat'], chosen['lng'])
+
     min_lat, max_lat = 5.70, 6.95
     min_lng, max_lng = 100.95, 102.10
+    def xy(lat, lng):
+        return (60 + ((lng - min_lng) / (max_lng - min_lng)) * 880,
+                470 - ((lat - min_lat) / (max_lat - min_lat)) * 400)
+    hq['x'], hq['y'] = xy(hq['lat'], hq['lng'])
     for i, d in enumerate(route_points, start=1):
         d['route_no'] = i
-        d['x'] = 60 + ((d['lng'] - min_lng) / (max_lng - min_lng)) * 880
-        d['y'] = 470 - ((d['lat'] - min_lat) / (max_lat - min_lat)) * 400
+        d['x'], d['y'] = xy(d['lat'], d['lng'])
+    for d in districts:
+        d['x'], d['y'] = xy(d['lat'], d['lng'])
 
     total_tickets = sum(d['tickets'] for d in districts)
     total_assets = sum(d['assets'] for d in districts)
-    return render_template('route-planner.html', districts=districts, route_points=route_points, total_tickets=total_tickets, total_assets=total_assets)
+    total_critical = sum(d['critical'] for d in districts)
+    return render_template('route-planner.html', districts=ranked, route_points=route_points, hq=hq,
+                           total_tickets=total_tickets, total_assets=total_assets, total_critical=total_critical)
 
 def _start_init_db():
     """Run init_db in a background thread so it doesn't block gunicorn startup."""

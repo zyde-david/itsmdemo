@@ -2,21 +2,26 @@
 {% block title %}Route Planner — ITSM Demo{% endblock %}
 {% block extra_head %}
 <style>
-.route-card { border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
-.route-step { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items:center; justify-content:center; font-weight:700; }
+.dispatch-map { background:#fff; border:1px solid #d1d5db; border-radius:16px; overflow:hidden; }
+.map-outline { fill:none; stroke:#64748b; stroke-width:2.2; stroke-linejoin:round; }
+.map-district { fill:none; stroke:#cbd5e1; stroke-width:1.4; stroke-dasharray:4 4; }
+.route-line { fill:none; stroke:#0f172a; stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:9 7; opacity:.75; }
+.hq-dot { fill:#111827; stroke:#fff; stroke-width:4; filter:drop-shadow(0 3px 7px rgba(0,0,0,.35)); }
+.site-dot { fill:#fff; stroke:#94a3b8; stroke-width:2; }
+.case-badge { stroke:#fff; stroke-width:3; filter:drop-shadow(0 2px 5px rgba(15,23,42,.25)); }
+.case-red { fill:#dc2626; }
+.case-yellow { fill:#f59e0b; }
+.case-green { fill:#16a34a; }
+.badge-text { fill:#fff; font-size:16px; font-weight:800; text-anchor:middle; dominant-baseline:central; }
+.branch-name { fill:#0f172a; font-size:15px; font-weight:700; paint-order:stroke; stroke:#fff; stroke-width:4; stroke-linejoin:round; }
+.route-no { fill:#fff; font-size:11px; font-weight:800; text-anchor:middle; dominant-baseline:central; }
+.legend-pill { display:inline-flex; align-items:center; gap:6px; margin-right:10px; font-size:.85rem; }
+.legend-dot { width:13px; height:13px; border-radius:50%; display:inline-block; }
+.route-step { width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:700; }
 .priority-high { background:#fee2e2; color:#991b1b; }
 .priority-mid { background:#fef3c7; color:#92400e; }
 .priority-low { background:#dcfce7; color:#166534; }
-.route-arrow { color:#94a3b8; font-size:1.2rem; }
-.svg-map-wrap { background: linear-gradient(135deg,#eff6ff,#f8fafc); border-radius:16px; border:1px solid #dbeafe; overflow:hidden; }
-.route-line { fill:none; stroke:#2563eb; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:10 9; opacity:.8; }
-.province-zone { fill:rgba(148,163,184,.16); stroke:#cbd5e1; stroke-width:2; stroke-dasharray:8 8; }
-.point-ring { fill:#fff; stroke:#2563eb; stroke-width:4; filter: drop-shadow(0 3px 5px rgba(15,23,42,.25)); }
-.point-top { fill:#dc2626; stroke:#fff; stroke-width:3; filter: drop-shadow(0 3px 7px rgba(220,38,38,.35)); }
-.point-label { font-size:18px; font-weight:800; fill:#fff; text-anchor:middle; dominant-baseline:central; }
-.map-name { font-size:18px; font-weight:700; fill:#0f172a; paint-order:stroke; stroke:#fff; stroke-width:5; stroke-linejoin:round; }
-.map-score { font-size:14px; fill:#475569; paint-order:stroke; stroke:#fff; stroke-width:4; }
-@media(max-width:767.98px){ .route-step { width:30px; height:30px; font-size:.85rem; } .map-name{font-size:15px}.map-score{font-size:12px} }
+@media(max-width:767.98px){ .branch-name{font-size:12px}.badge-text{font-size:13px}.route-step{width:30px;height:30px;font-size:.85rem} }
 </style>
 {% endblock %}
 
@@ -24,63 +29,92 @@
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
     <h4 class="mb-1"><i class="bi bi-signpost-split me-2"></i>Route Planner</h4>
-    <div class="text-muted small">แผนที่จุดต่อจุด + ลำดับเข้าเยี่ยมจาก Ticket และ Asset</div>
+    <div class="text-muted small">Dispatch map จาก HQ เมืองปัตตานี: จุดแดงไปก่อน, เหลืองรองลงมา, เขียวต่ำ</div>
   </div>
   <a href="{{ url_for('tickets_page') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-ticket-detailed me-1"></i>ดู Tickets</a>
 </div>
 
 <div class="row g-3 mb-3">
-  <div class="col-4"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">อำเภอ/สาขา</div><div class="h4 mb-0">{{ districts|length }}</div></div></div></div>
-  <div class="col-4"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Tickets</div><div class="h4 mb-0 text-danger">{{ total_tickets }}</div></div></div></div>
-  <div class="col-4"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary">{{ total_assets }}</div></div></div></div>
+  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Active Cases</div><div class="h4 mb-0 text-danger">{{ total_tickets }}</div></div></div></div>
+  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Critical</div><div class="h4 mb-0 text-danger">{{ total_critical }}</div></div></div></div>
+  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Sites</div><div class="h4 mb-0">{{ districts|length }}</div></div></div></div>
+  <div class="col-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary">{{ total_assets }}</div></div></div></div>
 </div>
 
 <div class="card shadow-sm mb-3">
-  <div class="card-header bg-white fw-bold"><i class="bi bi-map me-2"></i>แผนที่เส้นทางจุดต่อจุด</div>
+  <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span><i class="bi bi-map me-2"></i>แผนที่ Dispatch แบบเส้นขอบ</span>
+    <span class="small text-muted">HQ → จุดที่ควรไปก่อน</span>
+  </div>
   <div class="card-body">
-    <div class="svg-map-wrap">
-      <svg viewBox="0 0 1000 540" width="100%" role="img" aria-label="Route planner point to point map">
-        <rect x="0" y="0" width="1000" height="540" fill="transparent"/>
-        <ellipse class="province-zone" cx="290" cy="155" rx="235" ry="105"/>
-        <ellipse class="province-zone" cx="350" cy="360" rx="195" ry="125"/>
-        <ellipse class="province-zone" cx="735" cy="315" rx="240" ry="160"/>
-        <text x="130" y="75" class="map-score">ปัตตานี</text>
-        <text x="210" y="505" class="map-score">ยะลา</text>
-        <text x="725" y="510" class="map-score">นราธิวาส</text>
-        <polyline class="route-line" points="{% for p in route_points %}{{ '%.1f'|format(p.x) }},{{ '%.1f'|format(p.y) }} {% endfor %}"/>
+    <div class="dispatch-map">
+      <svg viewBox="0 0 1000 540" width="100%" role="img" aria-label="Border-only IT dispatch route map">
+        <rect x="0" y="0" width="1000" height="540" fill="#fff"/>
+        <!-- simple border-only province silhouettes -->
+        <path class="map-outline" d="M80,120 C135,45 275,40 405,70 C500,92 555,150 510,210 C455,285 290,275 160,250 C75,235 40,180 80,120 Z"/>
+        <path class="map-outline" d="M170,290 C255,230 410,250 500,330 C560,385 500,505 335,505 C220,505 130,450 125,365 C122,330 140,308 170,290 Z"/>
+        <path class="map-outline" d="M520,170 C640,95 845,130 925,245 C990,340 905,500 735,500 C590,500 500,425 500,315 C500,255 485,205 520,170 Z"/>
+        <!-- internal border hints, no fills -->
+        <path class="map-district" d="M160,92 L240,250 M270,58 L290,270 M385,75 L335,265 M470,125 L420,260 M145,345 L505,345 M210,290 L250,505 M340,260 L360,505 M475,335 L420,495 M565,190 L750,500 M690,130 L640,500 M820,160 L745,500 M920,270 L520,335"/>
+        <polyline class="route-line" points="{{ '%.1f'|format(hq.x) }},{{ '%.1f'|format(hq.y) }} {% for p in route_points %}{{ '%.1f'|format(p.x) }},{{ '%.1f'|format(p.y) }} {% endfor %}"/>
+        <!-- all branch names as reference -->
+        {% for d in districts %}
+          <circle class="site-dot" cx="{{ '%.1f'|format(d.x) }}" cy="{{ '%.1f'|format(d.y) }}" r="4"/>
+          {% if d.tickets == 0 %}<text class="branch-name" x="{{ '%.1f'|format(d.x + 7) }}" y="{{ '%.1f'|format(d.y - 6) }}">{{ d.short_branch }}</text>{% endif %}
+        {% endfor %}
+        <!-- HQ -->
+        <circle class="hq-dot" cx="{{ '%.1f'|format(hq.x) }}" cy="{{ '%.1f'|format(hq.y) }}" r="15"/>
+        <text class="badge-text" x="{{ '%.1f'|format(hq.x) }}" y="{{ '%.1f'|format(hq.y) }}">H</text>
+        <text class="branch-name" x="{{ '%.1f'|format(hq.x + 18) }}" y="{{ '%.1f'|format(hq.y - 12) }}">HQ เมืองปัตตานี</text>
+        <!-- active case badges -->
         {% for p in route_points %}
           <g>
-            {% if loop.index <= 3 %}<circle class="point-top" cx="{{ '%.1f'|format(p.x) }}" cy="{{ '%.1f'|format(p.y) }}" r="18"/>{% else %}<circle class="point-ring" cx="{{ '%.1f'|format(p.x) }}" cy="{{ '%.1f'|format(p.y) }}" r="16"/><circle cx="{{ '%.1f'|format(p.x) }}" cy="{{ '%.1f'|format(p.y) }}" r="13" fill="#2563eb"/>{% endif %}
-            <text class="point-label" x="{{ '%.1f'|format(p.x) }}" y="{{ '%.1f'|format(p.y) }}">{{ loop.index }}</text>
-            <text class="map-name" x="{{ '%.1f'|format(p.x + 22) }}" y="{{ '%.1f'|format(p.y - 8) }}">{{ p.short_branch }}</text>
-            <text class="map-score" x="{{ '%.1f'|format(p.x + 22) }}" y="{{ '%.1f'|format(p.y + 13) }}">{{ p.score }} คะแนน</text>
+            <circle class="case-badge {% if p.color == 'red' %}case-red{% elif p.color == 'yellow' %}case-yellow{% else %}case-green{% endif %}" cx="{{ '%.1f'|format(p.x) }}" cy="{{ '%.1f'|format(p.y) }}" r="18"/>
+            <text class="badge-text" x="{{ '%.1f'|format(p.x) }}" y="{{ '%.1f'|format(p.y) }}">{{ p.tickets }}</text>
+            <circle cx="{{ '%.1f'|format(p.x - 13) }}" cy="{{ '%.1f'|format(p.y - 13) }}" r="8" fill="#0f172a"/>
+            <text class="route-no" x="{{ '%.1f'|format(p.x - 13) }}" y="{{ '%.1f'|format(p.y - 13) }}">{{ loop.index }}</text>
+            <text class="branch-name" x="{{ '%.1f'|format(p.x + 23) }}" y="{{ '%.1f'|format(p.y - 8) }}">{{ p.short_branch }}</text>
           </g>
         {% endfor %}
       </svg>
     </div>
-    <div class="text-muted small mt-2">แสดง Top 12 ตามคะแนน: Ticket × 2 + Asset. จุดสีแดงคือ 3 จุดแรกที่ควรเข้าเยี่ยมก่อน</div>
+    <div class="mt-2">
+      <span class="legend-pill"><span class="legend-dot" style="background:#dc2626"></span>Critical/สูงสุด ไปก่อน</span>
+      <span class="legend-pill"><span class="legend-dot" style="background:#f59e0b"></span>High/กลาง</span>
+      <span class="legend-pill"><span class="legend-dot" style="background:#16a34a"></span>Low/ต่ำ</span>
+      <span class="legend-pill"><span class="legend-dot" style="background:#111827"></span>HQ เมืองปัตตานี</span>
+    </div>
   </div>
 </div>
 
 <div class="card shadow-sm mb-3">
-  <div class="card-header bg-dark text-white fw-bold" style="background:#0F172A!important"><i class="bi bi-list-ol me-2"></i>ลำดับการเข้าเยี่ยมแนะนำ</div>
+  <div class="card-header bg-dark text-white fw-bold" style="background:#0F172A!important"><i class="bi bi-route me-2"></i>ลำดับ Dispatch แนะนำจาก HQ</div>
   <div class="card-body p-0">
-    {% for d in districts %}
+    {% for d in route_points %}
     <div class="d-flex align-items-center gap-3 px-3 py-3 border-bottom">
-      <span class="route-step {% if d.priority == 'สูง' %}priority-high{% elif d.priority == 'กลาง' %}priority-mid{% else %}priority-low{% endif %}">{{ loop.index }}</span>
-      <div class="flex-grow-1"><div class="fw-bold">{{ d.short_branch }} — {{ d.name }}</div><div class="small text-muted">{{ d.province }} · {{ d.branch }}</div></div>
-      <div class="text-end small"><div><span class="badge bg-danger">{{ d.tickets }} Ticket</span></div><div class="mt-1"><span class="badge bg-primary">{{ d.assets }} Asset</span></div></div>
-      <div class="text-end d-none d-md-block" style="min-width:70px"><div class="fw-bold">{{ d.score }}</div><div class="small text-muted">คะแนน</div></div>
+      <span class="route-step {% if d.color == 'red' %}priority-high{% elif d.color == 'yellow' %}priority-mid{% else %}priority-low{% endif %}">{{ loop.index }}</span>
+      <div class="flex-grow-1">
+        <div class="fw-bold">{{ d.short_branch }} — {{ d.name }}</div>
+        <div class="small text-muted">ระยะจากจุดก่อนหน้า ~{{ d.leg_km }} กม. · Critical {{ d.critical }} · High {{ d.high }}</div>
+      </div>
+      <div class="text-end small"><span class="badge bg-danger">{{ d.tickets }} Case</span><div class="mt-1">คะแนน {{ d.score }}</div></div>
     </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">ไม่มี active case สำหรับวางแผน dispatch</div>
     {% endfor %}
   </div>
 </div>
 
 <div class="card shadow-sm">
-  <div class="card-header bg-white fw-bold"><i class="bi bi-route me-2"></i>เส้นทางแบบเร็ว</div>
-  <div class="card-body small">
-    {% for d in districts[:10] %}<span class="badge rounded-pill {% if loop.index <= 3 %}bg-danger{% elif loop.index <= 6 %}bg-warning text-dark{% else %}bg-secondary{% endif %} me-1 mb-2">{{ loop.index }}. {{ d.short_branch }}</span>{% if not loop.last %}<span class="route-arrow me-1">→</span>{% endif %}{% endfor %}
-    <div class="text-muted mt-2">ใช้สำหรับวางแผนเข้าเยี่ยมก่อน-หลังในวันเดียว โดยเน้นจุดที่มีงานค้างและทรัพย์สินมากที่สุด</div>
+  <div class="card-header bg-white fw-bold"><i class="bi bi-list-ol me-2"></i>ทุกสาขาเรียงตามความเร่งด่วน</div>
+  <div class="card-body p-0">
+    {% for d in districts %}
+    <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom small">
+      <span class="badge {% if d.color == 'red' %}bg-danger{% elif d.color == 'yellow' %}bg-warning text-dark{% elif d.color == 'green' %}bg-success{% else %}bg-secondary{% endif %}" style="width:54px">{{ d.tickets }}</span>
+      <div class="flex-grow-1"><b>{{ d.short_branch }}</b> — {{ d.name }} <span class="text-muted">{{ d.province }}</span></div>
+      <div class="text-end text-muted">C{{ d.critical }} / H{{ d.high }} / M{{ d.medium }} / L{{ d.low }}</div>
+    </div>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}
