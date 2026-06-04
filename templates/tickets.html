@@ -241,6 +241,11 @@ function filterTicketPriority(p) {
   applyTicketFilters();
   return false;
 }
+function filterTicketStatus(s) {
+  document.getElementById('tFilterStatus').value = s;
+  applyTicketFilters();
+  return false;
+}
 
 document.addEventListener('DOMContentLoaded',function(){
   ticketsTable = initTable('#ticketsTable',{order:[[11,'desc']]});
