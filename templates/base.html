@@ -65,8 +65,8 @@ body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:v
 
 /* Sidebar hover-expand on desktop when collapsed */
 @media(min-width:768px){
-  .sidebar-collapsed .sidebar:hover{width:220px!important;min-width:220px!important;max-width:220px!important;overflow:visible;box-shadow:4px 0 16px rgba(0,0,0,.12);z-index:1060}
-  .sidebar-collapsed .sidebar:hover .nav-text{display:inline!important}
+  .sidebar-collapsed .sidebar:hover{position:absolute;left:0;top:0;bottom:0;width:220px!important;min-width:220px!important;max-width:220px!important;overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.15);z-index:1060;transition:width .2s ease}
+  .sidebar-collapsed .sidebar:hover .nav-text{display:inline!important;transition:opacity .15s ease}
   .sidebar-collapsed .sidebar:hover .nav-link{justify-content:flex-start;padding:10px 16px}
   .sidebar-collapsed .sidebar:hover .nav-link i{margin-right:8px!important;font-size:1rem}
   .sidebar-collapsed .sidebar:hover .sidebar-pin-btn{right:-14px;transform:rotate(180deg)}
