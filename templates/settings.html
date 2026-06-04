@@ -173,102 +173,8 @@ async function deleteUser(uid, username) {
   else alert(d.error);
 }
 
-// ── Custom Theme System ──
-// WCAG Relative Luminance → auto-invert text for any custom color
-function hexToRgb(hex){
-  hex = hex.replace('#','');
-  if(hex.length===3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
-  return [parseInt(hex.substr(0,2),16), parseInt(hex.substr(2,2),16), parseInt(hex.substr(4,2),16)];
-}
-function relativeLuminance(hex){
-  var rgb = hexToRgb(hex).map(function(c){ c/=255; return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4); });
-  return 0.2126*rgb[0]+0.7152*rgb[1]+0.0722*rgb[2];
-}
-function isDark(hex){ return relativeLuminance(hex) < 0.179; }
-function contrastRatio(hex1, hex2){
-  var l1=relativeLuminance(hex1), l2=relativeLuminance(hex2);
-  var lighter=Math.max(l1,l2), darker=Math.min(l1,l2);
-  return (lighter+0.05)/(darker+0.05);
-}
-
-// Apply custom color with auto-inverted text tokens
-function applyCustomColor(hex){
-  hex = hex.startsWith('#') ? hex : '#'+hex;
-  if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
-  var dark = isDark(hex);
-  var surface = dark ? lighten(hex,12) : '#ffffff';
-  var elevated = dark ? lighten(hex,18) : '#f8f9fa';
-  var textBody = dark ? '#e0e0e0' : '#212529';
-  var textSurface = dark ? '#e0e0e0' : '#212529';
-  var textMuted = dark ? '#8899aa' : '#888888';
-  var textLabel = dark ? '#b0b0b0' : '#555555';
-  var borderSubtle = dark ? 'rgba(255,255,255,0.06)' : '#e0e0e0';
-  var borderDark = dark ? 'rgba(255,255,255,0.1)' : '#dee2e6';
-  var bgInput = dark ? lighten(hex,8) : '#ffffff';
-  var textInput = dark ? '#e0e0e0' : '#212529';
-  var shadowColor = dark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)';
-  var linkColor = dark ? '#5dade2' : '#1a5276';
-  var idBadgeBg = dark ? 'rgba(255,255,255,0.08)' : '#e8f4fd';
-  var idBadgeText = dark ? '#5dade2' : '#1a5276';
-  var aiBadgeBg = dark ? 'rgba(41,128,185,.25)' : 'linear-gradient(135deg,#667eea,#764ba2)';
-  var aiBadgeText = dark ? '#5dade2' : '#ffffff';
-  var btnPageBg = dark ? lighten(hex,10) : 'transparent';
-  var btnPageText = dark ? '#e0e0e0' : '#1a5276';
-  var btnPageBorder = dark ? 'rgba(255,255,255,0.1)' : '#dee2e6';
-
-  var b = document.body;
-  b.setAttribute('data-theme','custom');
-  b.style.setProperty('--bg-body', hex);
-  b.style.setProperty('--bg-surface', surface);
-  b.style.setProperty('--bg-elevated', elevated);
-  b.style.setProperty('--text-body', textBody);
-  b.style.setProperty('--text-surface', textSurface);
-  b.style.setProperty('--text-muted', textMuted);
-  b.style.setProperty('--text-label', textLabel);
-  b.style.setProperty('--border-subtle', borderSubtle);
-  b.style.setProperty('--border-dark', borderDark);
-  b.style.setProperty('--bg-input', bgInput);
-  b.style.setProperty('--text-input', textInput);
-  b.style.setProperty('--shadow-color', shadowColor);
-  b.style.setProperty('--link-color', linkColor);
-  b.style.setProperty('--id-badge-bg', idBadgeBg);
-  b.style.setProperty('--id-badge-text', idBadgeText);
-  b.style.setProperty('--ai-badge-bg', aiBadgeBg);
-  b.style.setProperty('--ai-badge-text', aiBadgeText);
-  b.style.setProperty('--btn-page-bg', btnPageBg);
-  b.style.setProperty('--btn-page-text', btnPageText);
-  b.style.setProperty('--btn-page-border', btnPageBorder);
-  b.style.setProperty('--bg-chat', dark ? hex : '#f8f9fa');
-  b.style.setProperty('--text-chat', dark ? textBody : '#212529');
-  b.style.setProperty('--bg-banner', dark ? lighten(hex,5) : '#ffecd2');
-  b.style.setProperty('--text-banner', dark ? textBody : '#333333');
-  b.style.setProperty('--bg-footer', 'transparent');
-  b.style.setProperty('--text-footer', dark ? '#667788' : '#95a5a6');
-  b.style.setProperty('--bg-sidebar', dark ? lighten(hex,5) : '#ffffff');
-  b.style.setProperty('--text-sidebar', dark ? '#b0b0b0' : '#555555');
-  b.style.setProperty('--bg-table', '#ffffff');
-  b.style.setProperty('--text-table', '#212529');
-  b.style.setProperty('--bg-nav', dark ? lighten(hex,8) : '#1a5276');
-  b.style.setProperty('--text-nav', dark ? '#e0e0e0' : '#ffffff');
-
-  // Update UI
-  document.getElementById('customColorPicker').value = hex;
-  document.getElementById('customColorHex').value = hex;
-  updateContrastBadge(hex);
-  updateActiveSwatch(hex);
-  localStorage.setItem('theme','custom');
-  localStorage.setItem('customColor', hex);
-  updateModeButtons('custom');
-}
-
-function lighten(hex, percent){
-  var rgb = hexToRgb(hex);
-  var r = Math.min(255, rgb[0] + Math.round(2.55*percent));
-  var g = Math.min(255, rgb[1] + Math.round(2.55*percent));
-  var b = Math.min(255, rgb[2] + Math.round(2.55*percent));
-  return '#'+[r,g,b].map(function(c){return c.toString(16).padStart(2,'0');}).join('');
-}
-
+// ── Theme settings UI ──
+// Theme engine lives globally in base.html. This page only updates controls.
 function updateContrastBadge(hex){
   var dark = isDark(hex);
   var textColor = dark ? '#e0e0e0' : '#212529';
@@ -295,23 +201,36 @@ function updateModeButtons(mode){
 function setThemeMode(mode){
   if(mode==='light'){
     document.body.setAttribute('data-theme','light');
-    document.body.removeAttribute('style');
+    if(typeof revertCustomVars === 'function') revertCustomVars();
     localStorage.setItem('theme','light');
     updateModeButtons('light');
+    updateThemeIcon();
   } else if(mode==='dark'){
     document.body.setAttribute('data-theme','dark');
-    document.body.removeAttribute('style');
+    if(typeof revertCustomVars === 'function') revertCustomVars();
     localStorage.setItem('theme','dark');
     updateModeButtons('dark');
+    updateThemeIcon();
   } else {
     var saved = localStorage.getItem('customColor') || '#1a1a2e';
     applyCustomColor(saved);
+    updateContrastBadge(saved);
+    updateActiveSwatch(saved);
+    updateModeButtons('custom');
+    updateThemeIcon();
   }
 }
 
 // Swatch click handlers
 document.querySelectorAll('.color-swatch').forEach(function(btn){
-  btn.addEventListener('click', function(){ applyCustomColor(this.dataset.color); });
+  btn.addEventListener('click', function(){
+    var color = this.dataset.color;
+    applyCustomColor(color);
+    updateContrastBadge(color);
+    updateActiveSwatch(color);
+    updateModeButtons('custom');
+    updateThemeIcon();
+  });
 });
 
 // Restore on page load
@@ -320,6 +239,9 @@ document.querySelectorAll('.color-swatch').forEach(function(btn){
   if(mode==='custom'){
     var color = localStorage.getItem('customColor') || '#1a1a2e';
     applyCustomColor(color);
+    updateContrastBadge(color);
+    updateActiveSwatch(color);
+    updateModeButtons('custom');
   } else {
     setThemeMode(mode);
   }
