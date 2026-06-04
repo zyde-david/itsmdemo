@@ -186,7 +186,7 @@ def _assets():
             prov_code = PROVINCE_CODES.get(b['province'],'0')
             br_code = BRANCH_CODES.get(b['branch'],'0')
             cat_code = CATEGORY_CODES.get(at,'XX')
-            asset_tag = f"{prov_code}{br_code}-{cat_code}{seq:02d}"
+            asset_tag = f"{prov_code}{br_code}{cat_code}{seq:02d}"
             st=random.choices(["active","active","active","active","maintenance","retired"],weights=[65,12,8,5,5,5],k=1)[0]
             lc=datetime.now()-timedelta(days=random.randint(3,60))
             nx=lc+timedelta(days=90)
@@ -555,10 +555,21 @@ def api_asset_get(aid):
 @login_required
 def api_asset_create():
     d=request.json;c=get_db()
-    c.execute('INSERT INTO assets (branch,asset_type,name,serial,status,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?)',
-              (d.get('branch',''),d.get('asset_type',''),d.get('name',''),d.get('serial',''),d.get('status','active'),d.get('last_check',''),d.get('next_check',''),d.get('notes','')))
-    c.commit();aid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
-    return jsonify(success=True,id=aid)
+    branch=d.get('branch','')
+    asset_type=d.get('asset_type','')
+    # Auto-generate asset_tag: prov_code + br_code + cat_code + seq
+    prov_code = PROVINCE_CODES.get(next((b['province'] for b in ALL_BRANCHES if b['branch']==branch),'0'),'0')
+    br_code = BRANCH_CODES.get(branch,'0')
+    cat_code = CATEGORY_CODES.get(asset_type,'XX')
+    # Count existing assets of this type in this branch for sequence
+    existing = c.execute('SELECT COUNT(*) FROM assets WHERE branch=? AND asset_type=?',(branch,asset_type)).fetchone()[0]
+    seq = existing + 1
+    asset_tag = f"{prov_code}{br_code}{cat_code}{seq:02d}"
+    asset_code = f"{branch_num.get(branch,1):02d}{CATEGORY_CODES.get(asset_type,'XX')}{seq:02d}"
+    c.execute('INSERT INTO assets (asset_tag,asset_code,branch,asset_type,name,serial,status,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?,?,?)',
+              (asset_tag,asset_code,branch,asset_type,d.get('name',''),d.get('serial',''),d.get('status','active'),d.get('last_check',''),d.get('next_check',''),d.get('notes','')))
+    c.commit();aid=c.execute('SELECT last_insert_rowid()').fetchone()[0]
+    return jsonify(success=True,id=aid,asset_tag=asset_tag)
 
 @app.route('/api/asset/<int:aid>/edit',methods=['POST'])
 @login_required

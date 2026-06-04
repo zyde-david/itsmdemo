@@ -102,7 +102,16 @@
      <div class="col-6"><label class="form-label small">Serial</label><input type="text" class="form-control form-control-sm" id="aSerial"></div>
     </div>
     <div class="row g-2 mb-2">
-     <div class="col-6"><label class="form-label small">ประเภท</label><input type="text" class="form-control form-control-sm" id="aType"></div>
+     <div class="col-6"><label class="form-label small">ประเภท</label>
+      <select class="form-select form-select-sm" id="aType">
+       <option value="คอมพิวเตอร์">คอมพิวเตอร์</option>
+       <option value="เครื่องพิมพ์">เครื่องพิมพ์</option>
+       <option value="Scanner">Scanner</option>
+       <option value="Router">Router</option>
+       <option value="Switch">Switch</option>
+       <option value="UPS">UPS</option>
+      </select>
+     </div>
      <div class="col-6"><label class="form-label small">สถานะ</label>
       <select class="form-select form-select-sm" id="aStatus"><option value="active">Active</option><option value="maintenance">Maintenance</option><option value="retired">Retired</option></select>
      </div>
@@ -225,7 +234,7 @@ function openNewAsset(){
  document.getElementById('aDeleteBtn').style.display='none';
  document.getElementById('aName').value='';
  document.getElementById('aSerial').value='';
- document.getElementById('aType').value='';
+ document.getElementById('aType').value='คอมพิวเตอร์';
  document.getElementById('aNotes').value='';
  document.getElementById('aNext').value='';
  new bootstrap.Modal(document.getElementById('assetModal')).show();
