@@ -123,7 +123,8 @@
                 <div class="mt-3 pt-3 border-top">
                     <div class="d-flex gap-2 mb-2">
                         <input type="text" class="form-control form-control-sm flex-grow-1" id="noteInput" placeholder="เพิ่ม work note..." onkeypress="if(event.key==='Enter')addNote()">
-                        <input type="text" class="form-control form-control-sm" id="noteAuthor" placeholder="ชื่อ" style="max-width:150px;" value="Admin">
+                        <span class="form-control form-control-sm d-flex align-items-center bg-light" style="max-width:150px;" id="noteAuthorDisplay">{{ current_user.username if current_user else 'Admin' }}</span>
+                        <input type="hidden" id="noteAuthor" value="{{ current_user.username if current_user else 'Admin' }}">
                         <button class="btn btn-sm btn-primary" onclick="addNote()"><i class="bi bi-send"></i></button>
                     </div>
                 </div>
@@ -238,10 +239,11 @@
 
 <script>
 const TICKET_ID={{ ticket.id }};
+const CURRENT_USER = '{{ current_user.username if current_user else "Admin" }}';
 document.getElementById('noteInput').addEventListener('keypress',e=>{if(e.key==='Enter')addNote()});
 async function addNote(){
     const note=document.getElementById('noteInput').value.trim();
-    const author=document.getElementById('noteAuthor').value.trim()||'IT Admin';
+    const author=document.getElementById('noteAuthor').value.trim()||CURRENT_USER;
     const reassignTo=document.getElementById('reassignInput').value.trim();
     if(!note&&!reassignTo)return;
     if(note){
@@ -256,27 +258,27 @@ async function addNote(){
 }
 async function quickStatus(st){
     if(!confirm('เปลี่ยนสถานะ?'))return;
-    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    const author = CURRENT_USER;
     await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st,changed_by:author})});
     location.reload();
 }
 async function reassign(name){
     if(!name) name = document.getElementById('assignToSelect').value;
     if(!name) return;
-    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    const author = CURRENT_USER;
     await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_to:name,changed_by:author})});
     location.reload();
 }
 async function linkAsset(){
     const assetId = document.getElementById('assetSelect').value;
     if(!assetId)return;
-    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    const author = CURRENT_USER;
     await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asset_id:parseInt(assetId),changed_by:author})});
     location.reload();
 }
 function attachKbArticle(kbId){
     if(!kbId) return;
-    const author = document.getElementById('noteAuthor') ? document.getElementById('noteAuthor').value.trim() || 'IT Admin' : 'IT Admin';
+    const author = CURRENT_USER;
     fetch('/api/ticket/'+TICKET_ID+'/kb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kb_id:kbId,changed_by:author})}).then(function(){location.reload();});
 }
 

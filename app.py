@@ -388,8 +388,10 @@ def ticket_detail(ticket_id):
     if t and t['kb_id']:
         kb_linked=c.execute('SELECT * FROM knowledge_base WHERE id=?',(t['kb_id'],)).fetchone()
     if not t:return 'Not found',404
+    current_user = get_current_user()
     return render_template('ticket_detail.html',ticket=dict(t),notes=[dict(n) for n in notes],
-        staff_list=[dict(s) for s in staff],asset_list=[dict(a) for a in assets],kb_articles=[dict(k) for k in kb],kb_linked=dict(kb_linked) if kb_linked else None)
+        staff_list=[dict(s) for s in staff],asset_list=[dict(a) for a in assets],kb_articles=[dict(k) for k in kb],kb_linked=dict(kb_linked) if kb_linked else None,
+        current_user=current_user)
 
 @app.route('/asset/<int:asset_id>')
 @login_required
