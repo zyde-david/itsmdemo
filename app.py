@@ -968,6 +968,11 @@ def sitemap_page():
 def howto_page():
     return render_template('howto.html')
 
+@app.route('/leave')
+@login_required
+def leave_page():
+    return render_template('leave.html', current_user=get_current_user(), can_approve=is_manager())
+
 @app.route('/route-planner')
 @login_required
 def route_planner_page():
