@@ -1028,8 +1028,12 @@ else:
     t.start()
 
 @app.route('/test')
+@login_required
 def test_page():
-    return render_template('test.html')
+    import json as _json
+    geo = _json.loads(open(os.path.join(_BASE_DIR, 'static', 'districts-geo.json'), encoding='utf-8').read())
+    south = {"type": "FeatureCollection", "features": [f for f in geo['features'] if f.get('properties',{}).get('province') in ('ปัตตานี','ยะลา','นราธิวาส')]}
+    return render_template('test.html', south_geojson=_json.dumps(south, ensure_ascii=False))
 
 
 @app.route('/api/district-tickets')

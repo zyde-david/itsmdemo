@@ -111,10 +111,10 @@
                 this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>เลื่อนเมาส์ชี้ที่อำเภอเพื่อดูตัวเลข';
                 return;
             }
-            var name = 'อำเภอ' + props.ap_tn;
+            var name = props.name;
             var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0};
             this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>' +
-                '<b>จังหวัด:</b> ' + props.pv_tn +
+                '<b>จังหวัด:</b> ' + props.province +
                 '<br /><b>อำเภอ:</b> ' + name +
                 '<br /><b>Ticket ทั้งหมด:</b> <span style="font-size:16px; color:#084594; font-weight:bold;">' + d.tickets + '</span>' +
                 '<br /><span style="color:#dc2626;">Critical: ' + d.critical + '</span>' +
@@ -127,76 +127,66 @@
         var geojsonLayer;
         var labelLayer = L.layerGroup().addTo(map);
 
-        // Fetch real ticket data first, then load map
+        // Embedded GeoJSON for 3 southern provinces (no external fetch needed)
+        var southData = {{ south_geojson|safe }};
+
+        // Fetch real ticket data, then render map
         fetch('/api/district-tickets')
             .then(res => res.json())
             .then(data => {
                 ticketData = data;
-                loadMap();
+                renderMap();
             })
             .catch(err => {
                 console.error('Failed to load ticket data', err);
                 document.getElementById('rank-table').innerHTML = '<tr><td colspan="4" style="color:#999;">โหลดข้อมูล Ticket ไม่สำเร็จ</td></tr>';
-                loadMap();
+                renderMap();
             });
 
-        function loadMap() {
-            fetch('https://raw.githubusercontent.com/hasand99/thailand-amphoe-geojson/main/thailand-amphoe.json')
-                .then(res => res.json())
-                .then(geoData => {
-                    var southData = {
-                        type: "FeatureCollection",
-                        features: geoData.features.filter(f => ['ปัตตานี', 'ยะลา', 'นราธิวาส'].includes(f.properties.pv_tn))
+        function renderMap() {
+            geojsonLayer = L.geoJson(southData, {
+                style: function(feature) {
+                    var name = feature.properties.name;
+                    var d = ticketData[name] ? ticketData[name].tickets : 0;
+                    return {
+                        fillColor: getColor(d),
+                        weight: 1.5,
+                        opacity: 1,
+                        color: 'white',
+                        fillOpacity: 0.85
                     };
-
-                    geojsonLayer = L.geoJson(southData, {
-                        style: function(feature) {
-                            var name = 'อำเภอ' + feature.properties.ap_tn;
-                            var d = ticketData[name] ? ticketData[name].tickets : 0;
-                            return {
-                                fillColor: getColor(d),
-                                weight: 1.5,
-                                opacity: 1,
-                                color: 'white',
-                                fillOpacity: 0.85
-                            };
+                },
+                onEachFeature: function(feature, layer) {
+                    layer.on({
+                        mouseover: function(e) {
+                            var l = e.target;
+                            l.setStyle({ weight: 3, color: '#333', fillOpacity: 0.95 });
+                            info.update(l.feature.properties);
                         },
-                        onEachFeature: function(feature, layer) {
-                            layer.on({
-                                mouseover: function(e) {
-                                    var l = e.target;
-                                    l.setStyle({ weight: 3, color: '#333', fillOpacity: 0.95 });
-                                    info.update(l.feature.properties);
-                                },
-                                mouseout: function(e) {
-                                    geojsonLayer.resetStyle(e.target);
-                                    info.update();
-                                }
-                            });
+                        mouseout: function(e) {
+                            geojsonLayer.resetStyle(e.target);
+                            info.update();
                         }
-                    }).addTo(map);
-
-                    // Add ticket count labels at district centroids
-                    southData.features.forEach(function(f) {
-                        var name = 'อำเภอ' + f.properties.ap_tn;
-                        var d = ticketData[name] || {tickets: 0, critical: 0, high: 0};
-                        var centroid = L.geoJson(f).getBounds().getCenter();
-                        var labelClass = getLabelClass(d.tickets, d.critical, d.high);
-                        var icon = L.divIcon({
-                            className: '',
-                            html: '<div class="ticket-label ' + labelClass + '">' + d.tickets + '</div>',
-                            iconSize: [36, 36],
-                            iconAnchor: [18, 18]
-                        });
-                        L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
                     });
+                }
+            }).addTo(map);
 
-                    generateSidebarTable(southData.features);
-                })
-                .catch(err => {
-                    console.error('Failed to load GeoJSON', err);
-                    document.getElementById('rank-table').innerHTML = '<tr><td colspan="4" style="color:#999;">โหลดข้อมูลแผนที่ไม่สำเร็จ</td></tr>';
+            // Add ticket count labels at district centroids
+            southData.features.forEach(function(f) {
+                var name = f.properties.name;
+                var d = ticketData[name] || {tickets: 0, critical: 0, high: 0};
+                var centroid = L.geoJson(f).getBounds().getCenter();
+                var labelClass = getLabelClass(d.tickets, d.critical, d.high);
+                var icon = L.divIcon({
+                    className: '',
+                    html: '<div class="ticket-label ' + labelClass + '">' + d.tickets + '</div>',
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18]
                 });
+                L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
+            });
+
+            generateSidebarTable(southData.features);
         }
 
         function generateSidebarTable(features) {
@@ -204,11 +194,11 @@
             tableBody.innerHTML = '';
 
             var sortedList = features.map(f => {
-                var name = 'อำเภอ' + f.properties.ap_tn;
+                var name = f.properties.name;
                 var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0};
                 return {
                     name: name,
-                    province: f.properties.pv_tn,
+                    province: f.properties.province,
                     tickets: d.tickets,
                     critical: d.critical,
                     high: d.high,
@@ -227,7 +217,7 @@
 
                 row.addEventListener('click', () => {
                     geojsonLayer.eachLayer(function(layer) {
-                        if ('อำเภอ' + layer.feature.properties.ap_tn === item.name) {
+                        if (layer.feature.properties.name === item.name) {
                             map.panTo(layer.getBounds().getCenter());
                             layer.setStyle({ weight: 4, color: '#ff0000' });
                             setTimeout(() => geojsonLayer.resetStyle(layer), 1500);
