@@ -13,7 +13,14 @@
 <style>
 :root{--primary:#1a5276;--accent:#27ae60;--warning:#e67e22;--danger:#c0392b}
 body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
-.navbar{background:linear-gradient(135deg,var(--primary),#2c3e50)}
+.navbar{background:linear-gradient(135deg,var(--primary),#2c3e50);position:sticky;top:0;z-index:1030}
+.navbar .container-fluid{justify-content:center!important;position:relative}
+.navbar .navbar-brand{position:absolute;left:50%;transform:translateX(-50%);margin:0}
+.navbar .nav-quick-dial{position:absolute;left:16px;top:50%;transform:translateY(-50%)}
+.navbar .nav-user-section{position:absolute;right:16px;top:50%;transform:translateY(-50%)}
+.quick-dial-btn{background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);color:#2ecc71;font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;transition:background .15s}
+.quick-dial-btn:hover{background:rgba(46,204,113,.3);color:#fff;text-decoration:none}
+.quick-dial-btn i{margin-right:4px}
 .card{border:none;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .card-stat{transition:transform .2s}.card-stat:hover{transform:translateY(-3px)}
 .stat-icon{font-size:2rem;opacity:.8}
@@ -43,6 +50,18 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 .dataTables_filter input,.dataTables_length select{font-size:0.85rem;padding:4px 8px}
 .page-link{font-size:0.85rem}
 .small-stat{font-size:0.7rem;color:#888}
+
+/* Sidebar PIN button */
+.sidebar-pin-btn{position:absolute;top:8px;right:-14px;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;z-index:1060;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:transform .2s,background .15s;font-size:.7rem}
+.sidebar-pin-btn:hover{background:#2980b9;transform:scale(1.1)}
+.sidebar-collapsed .sidebar{width:56px!important;min-width:56px!important;max-width:56px!important;overflow:hidden}
+.sidebar-collapsed .sidebar .nav-text{display:none!important}
+.sidebar-collapsed .sidebar .nav-link{justify-content:center;padding:10px 0}
+.sidebar-collapsed .sidebar .nav-link i{margin:0!important;font-size:1.1rem}
+.sidebar-collapsed .sidebar-pin-btn{right:-14px;transform:rotate(180deg)}
+.sidebar-collapsed #mainContent{flex:0 0 calc(100% - 56px)!important;max-width:calc(100% - 56px)!important}
+body[data-theme="dark"] .sidebar-pin-btn,
+body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:var(--text-elevated);border:1px solid var(--border-dark)}
 
 /* Mobile sidebar overlay */
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1040}
@@ -235,9 +254,15 @@ small,.small{color:var(--text-muted)}
 <div class="demo-banner">🚀 DEMO — สร้างโดย Zyde สำหรับการสัมภาษณ์งาน | ข้อมูลเป็นข้อมูลจำลอง</div>
 <nav class="navbar navbar-dark">
  <div class="container-fluid px-3">
-  <button class="btn btn-sm btn-outline-light d-md-none me-2" type="button" id="sidebarToggle"><i class="bi bi-list"></i></button>
+  <!-- Left: Quick Dial -->
+  <div class="nav-quick-dial d-none d-md-flex">
+   <a href="tel:888" class="quick-dial-btn"><i class="bi bi-telephone-fill"></i>IT Hotline 888</a>
+  </div>
+  <!-- Center: Brand -->
   <a href="/" class="navbar-brand mb-0 h5 text-white text-decoration-none"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo <span class="small fw-normal opacity-75">v0.11</span></a>
-  <div class="d-flex align-items-center gap-2">
+  <!-- Right: User + Logout -->
+  <div class="nav-user-section d-flex align-items-center gap-2">
+   <button class="btn btn-sm btn-outline-light d-md-none me-1" type="button" id="sidebarToggle"><i class="bi bi-list"></i></button>
    <span class="text-white small d-none d-lg-inline"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</span>
    <span class="ai-badge d-none d-sm-inline"><i class="bi bi-stars me-1"></i>AI-Powered</span>
    <a href="/logout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i></a>
@@ -250,7 +275,10 @@ small,.small{color:var(--text-muted)}
 
 <div class="row g-0">
  <div class="col-md-2 sidebar" id="sidebar">
-  <div class="py-2">
+  <div class="sidebar-pin-btn d-none d-md-flex" id="sidebarPinBtn" onclick="toggleSidebarPin()" title="ยุบ/ขยาย Sidebar">
+   <i class="bi bi-chevron-left" id="sidebarPinIcon"></i>
+  </div>
+  <div class="py-2" id="sidebarNav">
    <a class="nav-link" href="/"><i class="bi bi-speedometer2"></i><span class="nav-text">Dashboard</span></a>
    <a class="nav-link" href="/tickets"><i class="bi bi-ticket-detailed"></i><span class="nav-text">Tickets</span></a>
    <a class="nav-link" href="/assets"><i class="bi bi-box-seam"></i><span class="nav-text">Assets</span></a>
@@ -262,7 +290,7 @@ small,.small{color:var(--text-muted)}
    <a class="nav-link" href="/settings"><i class="bi bi-gear"></i><span class="nav-text">ตั้งค่า</span></a>
   </div>
  </div>
- <div class="col-md-10 p-2 p-md-3">
+ <div class="col-md-10 p-2 p-md-3" id="mainContent">
   {% block content %}{% endblock %}
  </div>
 </div>
@@ -282,6 +310,8 @@ small,.small{color:var(--text-muted)}
  </div>
 </div>
 <button class="btn btn-primary btn-sm position-fixed" style="bottom:20px;right:20px;border-radius:50%;width:48px;height:48px;z-index:998" onclick="toggleChat()"><i class="bi bi-chat-dots-fill"></i></button>
+<!-- Mobile Quick Dial FAB -->
+<a href="tel:888" class="btn btn-success btn-sm position-fixed d-md-none" style="bottom:80px;right:20px;border-radius:50%;width:48px;height:48px;z-index:998;display:flex;align-items:center;justify-content:center" title="IT Hotline 888"><i class="bi bi-telephone-fill"></i></a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -339,6 +369,8 @@ function initTable(selector,opts={}){
 {% block extra_scripts %}{% endblock %}
 <div class="footer text-center py-3" style="color:#95a5a6;font-size:.7rem">
   ITSM Demo v0.11 | <span class="id-badge" style="font-size:.65rem">a133e14</span> | Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
+  <span class="d-none d-md-inline mx-2">|</span>
+  <a href="tel:888" class="d-none d-md-inline" style="color:#2ecc71;font-size:.7rem;text-decoration:none"><i class="bi bi-telephone-fill me-1"></i>IT Hotline 888</a>
 </div>
 </body>
 </html>

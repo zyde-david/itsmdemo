@@ -41,6 +41,7 @@
 .status-badge{position:absolute;top:12px;right:12px;font-size:.6rem;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .status-badge.done{background:#e8f8f0;color:var(--r-accent)}
 .status-badge.future{background:#f5f5f5;color:var(--r-text-sub)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 
 /* Real System Notes */
 .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,fr));gap:12px}
@@ -202,6 +203,12 @@
           <tr><td>Week 4</td><td>Multi-User Authentication</td><td>users table, username+password login, role-based sessions (admin/manager/user/hr)</td></tr>
           <tr><td>Week 4</td><td>Settings Page + User Management</td><td>Admin: เพิ่ม/ลบผู้ใช้, เปลี่ยน role; ทุกคน: เปลี่ยนรหัสผ่าน, สลับธีม</td></tr>
           <tr><td>Week 4</td><td>ITSM Roadmap + Production Plan</td><td>วางแผน Phase 1-5 พร้อม production readiness notes</td></tr>
+          <tr><td>Week 5</td><td>Dark Mode + Custom Color Picker</td><td>CSS custom property token system — 34 tokens ทุกคู่ bg+text เลือกสีได้ไม่จำกัด WCAG auto-inversion</td></tr>
+          <tr><td>Week 5</td><td>PIN Sidebar + Quick Dial 888</td><td>Sidebar คงอยู่ desktop ยุบ/ขยายได้ — Quick Dial IT Hotline 888 บน top bar + mobile FAB</td></tr>
+          <tr><td>Week 5</td><td>Centered Navbar + Layout</td><td>Navbar centered + sticky — hamburger menu บน mobile รวมถึง footer quick dial link</td></tr>
+          <tr><td>Week 5</td><td>SQLite Fix for Fly.io</td><td>get_db() → Flask g object pattern ลบ c.close() 44 จุด — แก้ ISE บน Fly.io</td></tr>
+          <tr><td>Week 5</td><td>Live Development Log</td><td>เพิ่มส่วน Development Log แบบ real-time บน howto page — ดูความคืบหน้าได้ทันที</td></tr>
+          <tr><td>Week 5</td><td>Auto-Logout on Location Leave</td><td>Geolocation API + geo-fencing — ออกนอกรัศมีสาขา = logout อัตโนมัติ (In Progress)</td></tr>
         </tbody>
       </table>
     </div>
@@ -218,8 +225,81 @@
     <div class="roadmap-stats">
       <div class="roadmap-stat"><span class="num">2</span><span class="label">Phase เสร็จแล้ว</span></div>
       <div class="roadmap-stat"><span class="num">5</span><span class="label">Phase วางแผน</span></div>
-      <div class="roadmap-stat"><span class="num">12</span><span class="label">Features ทั้งหมด</span></div>
-      <div class="roadmap-stat"><span class="num">~8</span><span class="label">วันที่คาดว่าจะเสร็จ</span></div>
+      <div class="roadmap-stat"><span class="num">15</span><span class="label">Features ทั้งหมด</span></div>
+      <div class="roadmap-stat"><span class="num" id="devProgressPct">40%</span><span class="label">ความคืบหน้า</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- LIVE DEVELOPMENT PROGRESS — Real-time Log -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="phase-section" style="margin-bottom:24px">
+    <div class="phase-header">
+      <span class="phase-badge" style="background:linear-gradient(135deg,#e74c3c,#c0392b);animation:pulse 2s infinite">🔴 Live</span>
+      <div>
+        <p class="phase-title">📡 Development Log — สิ่งที่กำลังทำ / ทำเสร็จล่าสุด</p>
+        <p class="phase-sub">อัพเดตตามความเป็นจริง — ดูได้ว่าระบบกำลังถูกสร้างขึ้นมาทีละขั้นตอน</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🎨</div>
+        <h6>Custom Color Picker Theme</h6>
+        <p>เลือกสีพื้นหลังได้ไม่จำกัด — WCAG auto-inversion คำนวณ contrast ratio อัตโนมัติ ถ้าสีเข้ม → ตัวหนังสือสว่าง ถ้าสีอ่อน → ตัวหนังสือมืด รองรับ dark/light/custom 3 โหมด</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Theme</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">📌</div>
+        <h6>PIN Sidebar + Collapse</h6>
+        <p>Sidebar คงอยู่ตลอดเวลาบน desktop — กดปุ่ม chevron เพื่อยุบ/ขยาย บนมือถือเป็น hamburger menu + overlay</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Layout</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">📞</div>
+        <h6>Quick Dial IT Hotline 888</h6>
+        <p>ปุ่มโทรศัพท์ IT Hotline 888 — อยู่บน top bar (desktop) และ floating FAB (mobile) กดแล้วโทรออกทันที รวมถึง footer link</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Support</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🔧</div>
+        <h6>SQLite Fix for Fly.io</h6>
+        <p>แก้ ISE (Internal Server Error) บน Fly.io — เปลี่ยน get_db() เป็น Flask g object pattern ลบ manual c.close() ทั้งหมด 44 จุด</p>
+        <div class="feature-tags"><span class="tag security">Fix</span><span class="tag itil">Deploy</span></div>
+      </div>
+      <div class="feature-card" style="border-left:4px solid #e67e22">
+        <span class="status-badge" style="background:#fff3e0;color:#e67e22">In Progress</span>
+        <div class="feature-card-icon">📍</div>
+        <h6>Auto-Logout on Location Leave</h6>
+        <p>ออกนอกรัศมีสาขา = logout อัตโนมัติ — ใช้ Geolocation API ตรวจสอบตำแหน่งต่อเนื่อง ถ้าออกนอกรัศมีที่กำหนด → session timeout ทันที ป้องกันคนอื่นใช้เครื่องทิ้งไว้</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag future-tag">In Progress</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Next</span>
+        <div class="feature-card-icon">📋</div>
+        <h6>Change Management (ITIL)</h6>
+        <p>คำร้องเปลี่ยนแปลงระบบ — approval workflow, change log, rollback plan</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span><span class="tag future-tag">Phase 2</span></div>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div style="margin-top:16px">
+      <div class="d-flex justify-content-between small text-muted mb-1">
+        <span>ความคืบหน้าโดยรวม</span>
+        <span id="progressText">~40% เสร็จแล้ว</span>
+      </div>
+      <div style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden">
+        <div id="progressBar" style="height:100%;width:40%;background:linear-gradient(90deg,#27ae60,#2ecc71);border-radius:4px;transition:width .5s"></div>
+      </div>
+      <div class="d-flex justify-content-between mt-2 flex-wrap gap-2">
+        <span class="badge bg-success">✓ Phase 1 Done</span>
+        <span class="badge bg-success">✓ Theme System Done</span>
+        <span class="badge bg-warning text-dark">⏳ Geo-Auth In Progress</span>
+        <span class="badge bg-secondary">○ Phase 2-5 Planned</span>
+      </div>
     </div>
   </div>
 
@@ -228,8 +308,8 @@
     <div class="phase-header">
       <span class="phase-badge done">Phase 1 — Done</span>
       <div>
-        <p class="phase-title">🔐 Foundation — Multi-User &amp; Settings</p>
-        <p class="phase-sub">Authentication, Authorization, User Management, Theme</p>
+        <p class="phase-title">🔐 Foundation — Multi-User, Settings & UI</p>
+        <p class="phase-sub">Authentication, Authorization, User Management, Theme, Layout, Quick Dial</p>
       </div>
     </div>
     <div class="feature-grid">
@@ -243,9 +323,23 @@
       <div class="feature-card done">
         <span class="status-badge done">✓ Done</span>
         <div class="feature-card-icon">⚙️</div>
-        <h6>Settings Page + Theme Switcher</h6>
-        <p>User management (admin), change password (all users), light/dark theme toggle</p>
+        <h6>Settings Page + User Management</h6>
+        <p>Admin: เพิ่ม/ลบผู้ใช้, เปลี่ยน role; ทุกคน: เปลี่ยนรหัสผ่าน, สลับธีม</p>
         <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Foundation</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🎨</div>
+        <h6>Custom Color Picker Theme</h6>
+        <p>3-mode (Light/Dark/Custom) — เลือกสีได้ไม่จำกัด WCAG auto-inversion contrast ratio อัตโนมัติ</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Theme</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">📌</div>
+        <h6>PIN Sidebar + Quick Dial 888</h6>
+        <p>Sidebar คงอยู่ desktop ยุบ/ขยายได้ — Quick Dial IT Hotline บน top bar + mobile FAB + footer</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Layout</span></div>
       </div>
     </div>
   </div>
@@ -359,7 +453,7 @@
         <span class="status-badge future">Research</span>
         <div class="feature-card-icon">🔴</div>
         <h6>Auto-Logout on Location Leave</h6>
-        <p>ออกนอกรัศมีสาขา = logout อัตโนมัติ — ความปลอดภัย ป้องกันคนอื่นใช้เครื่องทิ้งไว้</p>
+        <p>ออกนอกรัศมีสาขา = logout อัตโนมัติ — ความปลอดภัย ป้องกันคนอื่นใช้เครื่องทิ้งไว้ ใช้ Geolocation API ตรวจสอบตำแหน่งต่อเนื่อง ถ้าออกนอกรัศมีที่กำหนด (เช่น 500m จากสาขา) → session timeout ทันที คล้ายระบบ attendance geo-tag แต่เป็น security guard</p>
         <div class="feature-tags"><span class="tag security">Security</span><span class="tag future-tag">Research</span></div>
       </div>
       <div class="feature-card future">
