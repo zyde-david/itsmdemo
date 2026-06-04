@@ -1030,3 +1030,26 @@ else:
 @app.route('/test')
 def test_page():
     return render_template('test.html')
+
+
+@app.route('/api/district-tickets')
+@login_required
+def api_district_tickets():
+    c = get_db()
+    branch_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
+    rows = c.execute("""
+        SELECT branch, priority, COUNT(*) as cnt
+        FROM tickets
+        WHERE status NOT IN ('resolved','closed')
+        GROUP BY branch, priority
+    """).fetchall()
+    result = {}
+    for r in rows:
+        d = branch_district.get(r['branch'], '')
+        if not d:
+            continue
+        result.setdefault(d, {'tickets': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
+        result[d]['tickets'] += r['cnt']
+        result[d][r['priority']] = result[d].get(r['priority'], 0) + r['cnt']
+    return jsonify(result)
+
