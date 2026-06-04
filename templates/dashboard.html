@@ -183,7 +183,7 @@
             <thead class="table-light">
                 <tr>
                     <th>ID</th><th>สาขา</th><th>ปัญหา</th><th class="d-none d-md-table-cell">หมวด</th>
-                    <th>ความสำคัญ</th><th>สถานะ</th><th class="d-none d-md-table-cell">AI</th>
+                    <th>ความสำคัญ</th><th>สถานะ</th><th class="d-none d-md-table-cell">วันที่</th>
                 </tr>
             </thead>
             <tbody>
@@ -207,7 +207,7 @@
                         <span class="badge bg-dark">ปิด</span>
                         {% endif %}
                     </td>
-                    <td class="d-none d-md-table-cell">{% if t.ai_suggestion %}<span class="ai-badge">AI แนะนำ</span>{% endif %}</td>
+                    <td class="d-none d-md-table-cell"><small>{{ t.created_at[:10] if t.created_at else '-' }}</small></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -255,9 +255,9 @@
             let html = '';
             chartLabels.forEach((label, i)=>{
                 const pct = total > 0 ? Math.round(chartValues[i]/total*100) : 0;
-                html += '<div class="d-flex justify-content-between align-items-center mb-1" style="font-size:0.75rem">' +
+                html += '<a href="/tickets?category=' + encodeURIComponent(label) + '" class="d-flex justify-content-between align-items-center mb-1 text-decoration-none" style="font-size:0.75rem;color:inherit;padding:3px 6px;border-radius:4px;transition:background .15s" onmouseover="this.style.background=\'#f0f0ff\'" onmouseout="this.style.background=\'\'">' +
                     '<span><span style="display:inline-block;width:10px;height:10px;background:' + catColors[i%catColors.length] + ';border-radius:2px;margin-right:4px"></span>' + label + '</span>' +
-                    '<span class="fw-bold">' + chartValues[i] + ' (' + pct + '%)</span></div>';
+                    '<span class="fw-bold">' + chartValues[i] + ' (' + pct + '%)</span></a>';
             });
             legendDiv.innerHTML = html;
         }
