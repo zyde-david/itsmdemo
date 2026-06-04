@@ -226,9 +226,11 @@ async function addNote(){
     const author=document.getElementById('noteAuthor').value.trim()||'IT Admin';
     const reassignTo=document.getElementById('reassignInput').value.trim();
     if(!note&&!reassignTo)return;
-    let fullNote=note;
-    if(reassignTo)fullNote+=(fullNote?'\n':'')+'🔄 มอบหมายให้: '+reassignTo;
-    if(note){await fetch('/api/ticket/'+TICKET_ID+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:fullNote,created_by:author})});}
+    if(note){
+        let fullNote=note;
+        if(reassignTo)fullNote+='\n🔄 มอบหมายให้: '+reassignTo;
+        await fetch('/api/ticket/'+TICKET_ID+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:fullNote,created_by:author})});
+    }
     document.getElementById('noteInput').value='';
     document.getElementById('reassignInput').value='';
     if(reassignTo)await reassign(reassignTo);
@@ -239,8 +241,9 @@ async function quickStatus(st){
     await fetch('/api/ticket/'+TICKET_ID+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st})});
     location.reload();
 }
-async function reassign(){
-    const name = document.getElementById('assignToSelect').value;
+async function reassign(name){
+    if(!name) name = document.getElementById('assignToSelect').value;
+    if(!name) return;
     await fetch('/api/ticket/'+TICKET_ID+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_to:name})});
     location.reload();
 }

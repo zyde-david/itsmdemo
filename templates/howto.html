@@ -578,23 +578,31 @@
       <table class="table table-sm table-hover mb-0">
         <thead class="table-light"><tr><th>Date</th><th>Time</th><th>Feature</th><th>Notes</th></tr></thead>
         <tbody class="small">
-          <tr><td>4 Jun</td><td>09:00</td><td>Core System</td><td>Flask + SQLite + DataTables + Bootstrap 5</td></tr>
-          <tr><td>4 Jun</td><td>09:30</td><td>Ticket Module</td><td>CRUD, server-side filter, yearly code TK-YY-NNNN</td></tr>
-          <tr><td>4 Jun</td><td>10:00</td><td>Asset Module</td><td>Smart tag 1BPC01, retire score</td></tr>
-          <tr><td>4 Jun</td><td>10:30</td><td>Staff + Dashboard</td><td>Province cards, IT filter, cascade dropdowns</td></tr>
-          <tr><td>4 Jun</td><td>11:00</td><td>DataTables filter fix</td><td>Filter อ่าน cell text → แก้ด้วย data[N] attribute</td></tr>
-          <tr><td>4 Jun</td><td>11:30</td><td>KB + Route Planner</td><td>Search/create/attach KB, Leaflet choropleth map</td></tr>
-          <tr><td>4 Jun</td><td>12:00</td><td>Site Map + How To</td><td>System overview + user guide</td></tr>
-          <tr><td>4 Jun</td><td>13:00</td><td>Multi-User Auth</td><td>users table, role-based sessions (admin/manager/user/hr)</td></tr>
-          <tr><td>4 Jun</td><td>14:00</td><td>Settings + Roadmap</td><td>User management, theme switcher, ITSM Phase 1-5 plan</td></tr>
-          <tr><td>4 Jun</td><td>15:00</td><td>Dark Mode + Color Picker</td><td>CSS token system, 34 paired bg/text tokens, WCAG AA</td></tr>
-          <tr><td>4 Jun</td><td>15:30</td><td>PIN Sidebar + Quick Dial</td><td>Sidebar collapse/expand, IT Hotline 888 button</td></tr>
-          <tr><td>4 Jun</td><td>16:00</td><td>Centered Navbar</td><td>Sticky navbar, hamburger mobile menu</td></tr>
-          <tr><td>4 Jun</td><td>16:30</td><td>SQLite Fix Fly.io</td><td>get_db() → Flask g object pattern, removed 44 c.close()</td></tr>
-          <tr><td>4 Jun</td><td>17:00</td><td>Live Dev Log</td><td>Real-time progress section on How To page</td></tr>
-          <tr><td>4 Jun</td><td>17:30</td><td>Filter + Sort Fix</td><td>Staff/asset filter survives sorting (data-* attributes)</td></tr>
-          <tr><td>4 Jun</td><td>18:00</td><td>Asset Tag + Dropdown</td><td>1BPC01 format, type dropdown on create form</td></tr>
-          <tr><td>4 Jun</td><td>18:30</td><td>Route Planner Fix</td><td>Fixed block name (scripts → extra_scripts)</td></tr>
+          <tr><td>31 May</td><td>09:00</td><td>Project Start</td><td>Flask + SQLite setup, DB schema, seed data</td></tr>
+          <tr><td>31 May</td><td>10:00</td><td>Ticket Module</td><td>CRUD, server-side filter, yearly code TK-YY-NNNN</td></tr>
+          <tr><td>31 May</td><td>11:00</td><td>Asset Module</td><td>Asset list, detail page, basic tag system</td></tr>
+          <tr><td>31 May</td><td>12:00</td><td>Staff + Dashboard</td><td>Staff list, province cards, IT filter</td></tr>
+          <tr><td>31 May</td><td>13:00</td><td>Knowledge Base</td><td>KB list, search, category filter</td></tr>
+          <tr><td>31 May</td><td>14:00</td><td>DataTables filter fix</td><td>Filter reads cell text → fixed with data-* attributes</td></tr>
+          <tr><td>31 May</td><td>15:00</td><td>Cascade Dropdowns</td><td>Branch↔Province bidirectional filtering</td></tr>
+          <tr><td>31 May</td><td>16:00</td><td>Asset Tag System</td><td>Smart tag 1B-PC001 format with province/branch/category codes</td></tr>
+          <tr><td>31 May</td><td>17:00</td><td>KB Attach on Ticket</td><td>Search/create/attach KB from ticket detail</td></tr>
+          <tr><td>1 Jun</td><td>09:00</td><td>Route Planner</td><td>Leaflet choropleth map, 33 districts, priority ranking</td></tr>
+          <tr><td>1 Jun</td><td>10:00</td><td>Site Map + How To</td><td>System overview + user guide pages</td></tr>
+          <tr><td>1 Jun</td><td>11:00</td><td>Multi-User Auth</td><td>Users table, role-based sessions (admin/manager/user/hr)</td></tr>
+          <tr><td>1 Jun</td><td>12:00</td><td>Settings Page</td><td>User management, theme switcher, ITSM roadmap</td></tr>
+          <tr><td>1 Jun</td><td>13:00</td><td>UI/UX Pro Max</td><td>Fira Sans fonts, card hover effects, border-left accents</td></tr>
+          <tr><td>1 Jun</td><td>14:00</td><td>Dark Mode</td><td>CSS token system, 34 paired bg/text tokens, WCAG AA</td></tr>
+          <tr><td>2 Jun</td><td>09:00</td><td>Color Picker</td><td>Custom theme color on all pages</td></tr>
+          <tr><td>2 Jun</td><td>10:00</td><td>PIN Sidebar</td><td>Sidebar collapse/expand on desktop</td></tr>
+          <tr><td>2 Jun</td><td>11:00</td><td>Quick Dial 888</td><td>IT Hotline button, FAB, top bar</td></tr>
+          <tr><td>2 Jun</td><td>12:00</td><td>Centered Navbar</td><td>Sticky navbar, hamburger mobile menu</td></tr>
+          <tr><td>2 Jun</td><td>13:00</td><td>SQLite Fix Fly.io</td><td>get_db() → Flask g object pattern, connection per request</td></tr>
+          <tr><td>2 Jun</td><td>14:00</td><td>Filter + Sort Fix</td><td>Staff/asset filter survives sorting (permanent data-* filter)</td></tr>
+          <tr><td>3 Jun</td><td>09:00</td><td>Asset Tag Update</td><td>1BPC01 format (no dash), type dropdown on create</td></tr>
+          <tr><td>3 Jun</td><td>10:00</td><td>Route Planner Fix</td><td>Fixed block name (scripts → extra_scripts)</td></tr>
+          <tr><td>3 Jun</td><td>11:00</td><td>Live Dev Log</td><td>Real-time progress section on How To page</td></tr>
+          <tr><td>4 Jun</td><td>09:00</td><td>Ticket Detail Fix</td><td>Reassign function, work notes, status update</td></tr>
         </tbody>
       </table>
     </div>
