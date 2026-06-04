@@ -74,7 +74,7 @@
                     <div class="me-3 text-center" style="min-width:40px;">
                         {% if 'เปลี่ยนสถานะ' in n.note %}
                         <div class="bg-info text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-arrow-left-right"></i></div>
-                        {% elif 'มอบหมายให้' in n.note %}
+                        {% elif 'มอบหมาย:' in n.note %}
                         <div class="bg-warning text-dark rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-person-plus"></i></div>
                         {% elif 'เชื่อม Asset' in n.note %}
                         <div class="bg-success text-white rounded-circle" style="width:36px;height:36px;line-height:36px;"><i class="bi bi-box-seam"></i></div>
@@ -87,7 +87,7 @@
                     </div>
                     <div>
                         <div class="bg-light rounded p-2 px-3 small">
-                            {% if 'เปลี่ยนสถานะ' in n.note or 'มอบหมายให้' in n.note or 'เชื่อม Asset' in n.note or 'แนบ KB' in n.note %}
+                            {% if 'เปลี่ยนสถานะ' in n.note or 'มอบหมาย:' in n.note or 'เชื่อม Asset' in n.note or 'แนบ KB' in n.note %}
                             <strong><i class="bi bi-gear me-1"></i>ระบบ</strong> — {{ n.note }}
                             {% else %}
                             <strong>{{ n.created_by }}</strong>: {{ n.note }}
@@ -246,7 +246,7 @@ async function addNote(){
     if(!note&&!reassignTo)return;
     if(note){
         let fullNote=note;
-        if(reassignTo)fullNote+='\n🔄 มอบหมายให้: '+reassignTo;
+        if(reassignTo)fullNote+='\n🔄 มอบหมาย: '+reassignTo;
         await fetch('/api/ticket/'+TICKET_ID+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:fullNote,created_by:author})});
     }
     document.getElementById('noteInput').value='';

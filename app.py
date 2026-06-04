@@ -508,7 +508,7 @@ def api_edit(tid):
     if new_assign is not None and new_assign != '' and new_assign != t['assigned_to']:
         now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         author = d.get('changed_by','System')
-        note_text = f'มอบหมายให้: {new_assign} (เดิม: {old_assign})'
+        note_text = f'มอบหมาย: {new_assign} (เดิม: {old_assign})'
         c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,note_text,author,now_str))
     # Auto-log asset change if asset_id changed
     new_asset = d.get('asset_id')
