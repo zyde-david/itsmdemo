@@ -183,11 +183,11 @@ def _assets():
             c2 = AC[at]; mdl=random.choice(c2["m"]); p=c2["p"]; sp=c2["spec"]
             sc[p]=sc.get(p,100)+1
             seq = sc[p] - 100
-            asset_code=f"{bn:02d}{p}{seq:02d}"
             prov_code = PROVINCE_CODES.get(b['province'],'0')
             br_code = BRANCH_CODES.get(b['branch'],'0')
             cat_code = CATEGORY_CODES.get(at,'XX')
             asset_tag = f"{prov_code}{br_code}{cat_code}{seq:02d}"
+            asset_code = asset_tag  # use same 1BPC01 format
             st=random.choices(["active","active","active","active","maintenance","retired"],weights=[65,12,8,5,5,5],k=1)[0]
             lc=datetime.now()-timedelta(days=random.randint(3,60))
             nx=lc+timedelta(days=90)
