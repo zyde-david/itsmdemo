@@ -3,82 +3,84 @@
 {% block content %}
 <!-- Stat Cards — clickable -->
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <a href="/tickets" class="text-decoration-none text-dark">
-        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-1">Tickets ทั้งหมด</h6>
-                    <h3 class="mb-0 fw-bold text-primary">{{ total }}</h3>
-                </div>
-                <i class="bi bi-ticket-perforated stat-icon text-primary"></i>
-            </div>
-        </div></a>
-    </div>
-    <div class="col-6 col-md-3">
-        <a href="/tickets?status=open" class="text-decoration-none">
-        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-1">เปิด</h6>
-                    <h3 class="mb-0 fw-bold text-warning">{{ open_tickets }}</h3>
-                </div>
-                <i class="bi bi-hourglass-split stat-icon text-warning"></i>
-            </div>
-        </div></a>
-    </div>
-    <div class="col-6 col-md-3">
-        <a href="/tickets?status=resolved" class="text-decoration-none">
-        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-1">เสร็จแล้ว</h6>
-                    <h3 class="mb-0 fw-bold text-success">{{ resolved }}</h3>
-                </div>
-                <i class="bi bi-check-circle stat-icon text-success"></i>
-            </div>
-        </div></a>
-    </div>
-    <div class="col-6 col-md-3">
-        <a href="/tickets?status=in_progress" class="text-decoration-none">
-        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-1">🔧 กำลังดำเนินการ</h6>
-                    <h3 class="mb-0 fw-bold text-info">{{ in_progress }}</h3>
-                </div>
-                <i class="bi bi-gear stat-icon text-info"></i>
-            </div>
-        </div></a>
-    </div>
-    <div class="col-6 col-md-3">
-        <a href="/tickets?status=pending" class="text-decoration-none">
-        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-1">รอดำเนินการ</h6>
-                    <h3 class="mb-0 fw-bold text-secondary">{{ pending }}</h3>
-                </div>
-                <i class="bi bi-pause-circle stat-icon text-secondary"></i>
-            </div>
-        </div></a>
-    </div>
-    <div class="col-6 col-md-3">
+    <!-- Row 1: Critical, Open, In Progress, Pending, Resolved, Total -->
+    <div class="col-6 col-md-2">
         <a href="/tickets?priority=critical" class="text-decoration-none">
-        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
+        <div class="card card-stat p-2 p-md-3 border-danger" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-muted mb-1">🚨 Critical</h6>
+                    <h6 class="text-muted mb-1">ด่วน</h6>
                     <h3 class="mb-0 fw-bold text-danger">{{ critical }}</h3>
                 </div>
                 <i class="bi bi-exclamation-octagon stat-icon text-danger"></i>
             </div>
         </div></a>
     </div>
+    <div class="col-6 col-md-2">
+        <a href="/tickets?status=open" class="text-decoration-none">
+        <div class="card card-stat p-2 p-md-3 border-success" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">เปิด</h6>
+                    <h3 class="mb-0 fw-bold text-success">{{ open_tickets }}</h3>
+                </div>
+                <i class="bi bi-hourglass-split stat-icon text-success"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-2">
+        <a href="/tickets?status=in_progress" class="text-decoration-none">
+        <div class="card card-stat p-2 p-md-3 border-info" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">กำลังดำเนินการ</h6>
+                    <h3 class="mb-0 fw-bold text-info">{{ in_progress }}</h3>
+                </div>
+                <i class="bi bi-gear stat-icon text-info"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-2">
+        <a href="/tickets?status=pending" class="text-decoration-none">
+        <div class="card card-stat p-2 p-md-3 border-warning" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">รอ</h6>
+                    <h3 class="mb-0 fw-bold text-warning">{{ pending }}</h3>
+                </div>
+                <i class="bi bi-pause-circle stat-icon text-warning"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-2">
+        <a href="/tickets?status=resolved" class="text-decoration-none">
+        <div class="card card-stat p-2 p-md-3 border-success" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">เรียบร้อย</h6>
+                    <h3 class="mb-0 fw-bold text-success">{{ resolved }}</h3>
+                </div>
+                <i class="bi bi-check-circle stat-icon text-success"></i>
+            </div>
+        </div></a>
+    </div>
+    <div class="col-6 col-md-2">
+        <a href="/tickets" class="text-decoration-none text-dark">
+        <div class="card card-stat p-2 p-md-3 border-primary" style="cursor:pointer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-muted mb-1">ทั้งหมด</h6>
+                    <h3 class="mb-0 fw-bold text-primary">{{ total }}</h3>
+                </div>
+                <i class="bi bi-ticket-perforated stat-icon text-primary"></i>
+            </div>
+        </div></a>
+    </div>
 </div>
 
+<!-- Row 2: Assets, Staff, KB -->
 <div class="row g-3 mt-2">
-    <div class="col-6 col-md-3">
+    <div class="col-4">
         <a href="/assets" class="text-decoration-none">
         <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
@@ -90,19 +92,7 @@
             </div>
         </div></a>
     </div>
-    <div class="col-6 col-md-3">
-        <a href="/assets?status=active" class="text-decoration-none">
-        <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-muted mb-1">Active</h6>
-                    <h3 class="mb-0 fw-bold text-success">{{ active_assets }}</h3>
-                </div>
-                <i class="bi bi-check-circle stat-icon text-success"></i>
-            </div>
-        </div></a>
-    </div>
-    <div class="col-6 col-md-3">
+    <div class="col-4">
         <a href="/staff" class="text-decoration-none">
         <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
@@ -114,7 +104,7 @@
             </div>
         </div></a>
     </div>
-    <div class="col-6 col-md-3">
+    <div class="col-4">
         <a href="/knowledge" class="text-decoration-none">
         <div class="card card-stat p-2 p-md-3" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
