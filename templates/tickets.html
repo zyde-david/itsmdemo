@@ -93,7 +93,7 @@
   <tr data-id="{{ t.id }}" data-status="{{ t.status }}" data-priority="{{ t.priority }}" data-branch="{{ t.branch }}" data-province="{{ t.province }}" data-category="{{ t.category }}" onclick="handleRowClick(event, '/ticket/{{ t.id }}')">
    <td><input type="checkbox" class="ticket-check" value="{{ t.id }}"></td>
    <td><strong>{{ t.ticket_code or 'TK-26-' ~ '%04d'|format(t.id) }}</strong></td>
-   <td><span class="branch-tag">{{ t.branch }}</span></td>
+   <td><span class="branch-tag">{{ t.short_branch or t.branch }}</span></td>
    <td><small>{{ t.province }}</small></td>
    <td><a href="/ticket/{{ t.id }}" onclick="event.stopPropagation()">{{ t.title }}</a></td>
    <td><small>{{ t.category }}</small></td>
@@ -177,7 +177,7 @@ function toggleTicketFilter(){
 }
 
 var branchToProvince = {{ branch_to_province|tojson }};
-var provinceToBranches = {{ province_to_branches|tojson }};
+var provinceToBranches = {{ province_to_branches_short|tojson }};
 
 function filterBranchByProvince(province){
   var sel = document.getElementById('tFilterBranch');

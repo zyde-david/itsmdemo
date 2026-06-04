@@ -94,6 +94,7 @@ for prov in ['ปัตตานี','ยะลา','นราธิวาส']:
         code = str(i+1) if i < 9 else chr(ord('A') + i - 9)
         BRANCH_CODES[b['branch']] = code
 PROVINCE_CODES = {'ปัตตานี':'1','ยะลา':'2','นราธิวาส':'3'}
+PROVINCE_ABBR = {'ปัตตานี':'ตานี','ยะลา':'ยะลา','นราธิวาส':'นรา'}
 
 TICKET_CATS = {
  "ระบบ Core Banking":{"titles":["Core Banking ล่ม","เข้า Core ไม่ได้","บันทึกรายการไม่ได้","ถอนเงินผิดพลาด","ปิดรอบวันไม่ได้","พิมพ์ใบเสร็จไม่ได้","สินเชื่อดอกเบี้ยผิดปกติ","ระบบสมาชิก Error"],"priority":"critical","ai":"1. VPN Tunnel สำคัญ!\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที"},
@@ -295,6 +296,11 @@ def dashboard():
     pend=c.execute("SELECT COUNT(*) FROM tickets WHERE status='pending'").fetchone()[0]
     critical=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     recent=c.execute('SELECT * FROM tickets ORDER BY created_at DESC LIMIT 10').fetchall()
+    _branch_short = {}
+    for b in ALL_BRANCHES:
+        abbr = PROVINCE_ABBR.get(b['province'], b['province'][:3])
+        _branch_short[b['branch']] = abbr + b['district']
+    recent = [dict(r, short_branch=_branch_short.get(r['branch'], r['branch'])) for r in recent]
     bp=c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as open_cnt FROM tickets GROUP BY province').fetchall()
     bc=c.execute('SELECT category,COUNT(*) as cnt FROM tickets GROUP BY category ORDER BY cnt DESC').fetchall()
     ns=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
@@ -342,6 +348,12 @@ def tickets_page():
         q += ' WHERE ' + ' AND '.join(where)
     q += ' ORDER BY created_at DESC'
     rows=c.execute(q, params).fetchall()
+    # Build short_branch lookup: {branch_name: abbr+district}
+    _branch_short = {}
+    for b in ALL_BRANCHES:
+        abbr = PROVINCE_ABBR.get(b['province'], b['province'][:3])
+        _branch_short[b['branch']] = abbr + b['district']
+    rows = [dict(r, short_branch=_branch_short.get(r['branch'], r['branch'])) for r in rows]
     total=c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
     open_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0]
     in_progress=c.execute("SELECT COUNT(*) FROM tickets WHERE status='in_progress'").fetchone()[0]
@@ -350,14 +362,17 @@ def tickets_page():
     closed_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0]
     critical_tickets=c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
     province_to_branches = PROVINCE_TO_BRANCHES
+    province_to_branches_short = {prov: [{'branch': b['branch'], 'district': PROVINCE_ABBR.get(prov, prov[:3]) + b['district']} for b in blist] for prov, blist in PROVINCE_TO_BRANCHES.items()}
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
-    return render_template('tickets.html',tickets=rows,branches=ALL_BRANCHES,
+    branches_short = [{'branch': b['branch'], 'district': PROVINCE_ABBR.get(b['province'], b['province'][:3]) + b['district'], 'province': b['province']} for b in ALL_BRANCHES]
+    return render_template('tickets.html',tickets=rows,branches=branches_short,
         filter_status=status, filter_priority=priority, filter_branch=branch,
         filter_province=province, filter_category=category, filter_search=search,
         total=total, open_tickets=open_tickets, in_progress=in_progress,
         pending=pending, resolved=resolved, closed_tickets=closed_tickets,
         branch_to_province=branch_to_province,
         province_to_branches=province_to_branches,
+        province_to_branches_short=province_to_branches_short,
         critical_tickets=critical_tickets)
 
 @app.route('/ticket/<int:ticket_id>')
