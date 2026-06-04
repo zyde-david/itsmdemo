@@ -212,42 +212,6 @@
   </div>
 </div>
 
-<!-- Development Log -->
-<h5 class="mb-3"><i class="bi bi-code-slash me-2"></i>Development Log</h5>
-<div class="card mb-4">
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-sm table-hover mb-0">
-        <thead class="table-light"><tr><th>สัปดาห์</th><th>สิ่งที่ทำ</th><th>เหตุผล / ปัญหาที่แก้</th></tr></thead>
-        <tbody class="small">
-          <tr><td>Week 1</td><td>Core Flask app + DataTables + SQLite</td><td>เริ่มจาก CRUD พื้นฐาน ใช้ DataTables สำหรับ table + filter ฝั่ง client</td></tr>
-          <tr><td>Week 1</td><td>Ticket Module — CRUD, server-side filter</td><td>ผู้ใช้แจ้งปัญหา IT จากสาขา กรองตามสถานะ/สาขา/จังหวัด</td></tr>
-          <tr><td>Week 1</td><td>Asset Module — numeric asset code</td><td>เก็บข้อมูลคอมพิวเตอร์/อุปกรณ์ เชื่อมกับ ticket</td></tr>
-          <tr><td>Week 1</td><td>Staff Module + Dashboard</td><td>จัดการทีมงาน ดูสรุปภาพรวม</td></tr>
-          <tr><td>Week 2</td><td>DataTables filter bug fix</td><td>Filter อ่าน cell text (ไทย) แต่ dropdown เป็น English → แก้ด้วย node.dataset → data[N]</td></tr>
-          <tr><td>Week 2</td><td>Cascade dropdowns: สาขา ↔ จังหวัด</td><td>เลือกสาขาแล้วจังหวัดเติม, เลือกจังหวัดแล้วสาขากรอง</td></tr>
-          <tr><td>Week 2</td><td>Asset smart tag: 1B-PC01</td><td>เปลี่ยนจากรหัสตัวเงินเป็นรหัสที่อ่านเข้าใจได้: จังหวัด+สาขา+ประเภท+ลำดับ</td></tr>
-          <tr><td>Week 2</td><td>Ticket yearly code: TK-YY-NNNN</td><td>เปลี่ยนจาก TK-26-0001 เป็น dynamic year — reset ทุกปีใหม่</td></tr>
-          <tr><td>Week 2</td><td>KB Search + Create & Attach</td><td>ค้นหา KB จาก ticket detail สร้างใหม่ได้ถ้าไม่พบ</td></tr>
-          <tr><td>Week 2</td><td>IT-only assign dropdown</td><td>แสดงเฉพาะทีม IT ใน dropdown มอบหมาย</td></tr>
-          <tr><td>Week 3</td><td>Dashboard fix + stat cards</td><td>แก้ province query alias, เพิ่ม asset/staff/KB cards</td></tr>
-          <tr><td>Week 3</td><td>Route Planner (Leaflet map)</td><td>Choropleth 33 อำเภอ, 3 จังหวัด, priority ranking</td></tr>
-          <tr><td>Week 3</td><td>Site Map + How To</td><td>หน้าสรุประบบ + วิธีใช้ + dev log</td></tr>
-          <tr><td>Week 4</td><td>Multi-User Authentication</td><td>users table, username+password login, role-based sessions (admin/manager/user/hr)</td></tr>
-          <tr><td>Week 4</td><td>Settings Page + User Management</td><td>Admin: เพิ่ม/ลบผู้ใช้, เปลี่ยน role; ทุกคน: เปลี่ยนรหัสผ่าน, สลับธีม</td></tr>
-          <tr><td>Week 4</td><td>ITSM Roadmap + Production Plan</td><td>วางแผน Phase 1-5 พร้อม production readiness notes</td></tr>
-          <tr><td>Week 5</td><td>Dark Mode + Custom Color Picker</td><td>CSS custom property token system — 34 tokens ทุกคู่ bg+text เลือกสีได้ไม่จำกัด WCAG auto-inversion</td></tr>
-          <tr><td>Week 5</td><td>PIN Sidebar + Quick Dial 888</td><td>Sidebar คงอยู่ desktop ยุบ/ขยายได้ — Quick Dial IT Hotline 888 บน top bar + mobile FAB</td></tr>
-          <tr><td>Week 5</td><td>Centered Navbar + Layout</td><td>Navbar centered + sticky — hamburger menu บน mobile รวมถึง footer quick dial link</td></tr>
-          <tr><td>Week 5</td><td>SQLite Fix for Fly.io</td><td>get_db() → Flask g object pattern ลบ c.close() 44 จุด — แก้ ISE บน Fly.io</td></tr>
-          <tr><td>Week 5</td><td>Live Development Log</td><td>เพิ่มส่วน Development Log แบบ real-time บน howto page — ดูความคืบหน้าได้ทันที</td></tr>
-          <tr><td>Week 5</td><td>Auto-Logout on Location Leave</td><td>Geolocation API + geo-fencing — ออกนอกรัศมีสาขา = logout อัตโนมัติ (In Progress)</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- ITSM ROADMAP — Professional Blue Theme -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -603,6 +567,37 @@
   <div style="margin-top:16px;padding:16px;background:linear-gradient(135deg,#e8f4fd,#d4e6f1);border-radius:8px;border-left:4px solid #1a5276">
     <strong style="font-size:.8rem;color:#1a5276">💡 Interview Talking Points</strong>
     <p style="font-size:.72rem;color:#2c3e50;margin:6px 0 0;line-height:1.6">ระบบนี้แสดงให้เห็นว่าเข้าใจ ITIL framework, สามารถออกแบบระบบตั้งแต่ zero ได้, และมีแผนการพัฒนาที่ชัดเจน — ไม่ใช่แค่ทำ feature ที่ส่งมา แต่คิดถึง production readiness ด้วย รวมถึง edge cases เช่น mobile banking units, geo-auth สำหรับพื้นที่ห่างไกล</p>
+  </div>
+</div>
+
+<!-- Development Log -->
+<h5 class="mb-3" style="margin-top:32px"><i class="bi bi-clock-history me-2"></i>Development Log</h5>
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light"><tr><th>Date</th><th>Time</th><th>Feature</th><th>Notes</th></tr></thead>
+        <tbody class="small">
+          <tr><td>4 Jun</td><td>09:00</td><td>Core System</td><td>Flask + SQLite + DataTables + Bootstrap 5</td></tr>
+          <tr><td>4 Jun</td><td>09:30</td><td>Ticket Module</td><td>CRUD, server-side filter, yearly code TK-YY-NNNN</td></tr>
+          <tr><td>4 Jun</td><td>10:00</td><td>Asset Module</td><td>Smart tag 1BPC01, retire score</td></tr>
+          <tr><td>4 Jun</td><td>10:30</td><td>Staff + Dashboard</td><td>Province cards, IT filter, cascade dropdowns</td></tr>
+          <tr><td>4 Jun</td><td>11:00</td><td>DataTables filter fix</td><td>Filter อ่าน cell text → แก้ด้วย data[N] attribute</td></tr>
+          <tr><td>4 Jun</td><td>11:30</td><td>KB + Route Planner</td><td>Search/create/attach KB, Leaflet choropleth map</td></tr>
+          <tr><td>4 Jun</td><td>12:00</td><td>Site Map + How To</td><td>System overview + user guide</td></tr>
+          <tr><td>4 Jun</td><td>13:00</td><td>Multi-User Auth</td><td>users table, role-based sessions (admin/manager/user/hr)</td></tr>
+          <tr><td>4 Jun</td><td>14:00</td><td>Settings + Roadmap</td><td>User management, theme switcher, ITSM Phase 1-5 plan</td></tr>
+          <tr><td>4 Jun</td><td>15:00</td><td>Dark Mode + Color Picker</td><td>CSS token system, 34 paired bg/text tokens, WCAG AA</td></tr>
+          <tr><td>4 Jun</td><td>15:30</td><td>PIN Sidebar + Quick Dial</td><td>Sidebar collapse/expand, IT Hotline 888 button</td></tr>
+          <tr><td>4 Jun</td><td>16:00</td><td>Centered Navbar</td><td>Sticky navbar, hamburger mobile menu</td></tr>
+          <tr><td>4 Jun</td><td>16:30</td><td>SQLite Fix Fly.io</td><td>get_db() → Flask g object pattern, removed 44 c.close()</td></tr>
+          <tr><td>4 Jun</td><td>17:00</td><td>Live Dev Log</td><td>Real-time progress section on How To page</td></tr>
+          <tr><td>4 Jun</td><td>17:30</td><td>Filter + Sort Fix</td><td>Staff/asset filter survives sorting (data-* attributes)</td></tr>
+          <tr><td>4 Jun</td><td>18:00</td><td>Asset Tag + Dropdown</td><td>1BPC01 format, type dropdown on create form</td></tr>
+          <tr><td>4 Jun</td><td>18:30</td><td>Route Planner Fix</td><td>Fixed block name (scripts → extra_scripts)</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
