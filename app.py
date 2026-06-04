@@ -401,10 +401,18 @@ def ticket_detail(ticket_id):
     if t and t['kb_id']:
         kb_linked=c.execute('SELECT * FROM knowledge_base WHERE id=?',(t['kb_id'],)).fetchone()
     if not t:return 'Not found',404
+    ticket = dict(t)
+    ticket['short_branch'] = SHORT_BRANCHES.get(ticket['branch'], ticket['branch'].replace('สาขา',''))
+    branches_short = [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district'], 'province': b['province']} for b in ALL_BRANCHES]
+    provinces = sorted(set(b['province'] for b in ALL_BRANCHES))
+    # Add short_branch to each asset dict
+    asset_list = [dict(a) for a in assets]
+    for a in asset_list:
+        a['short_branch'] = SHORT_BRANCHES.get(a['branch'], a['branch'].replace('สาขา',''))
     current_user = get_current_user()
-    return render_template('ticket_detail.html',ticket=dict(t),notes=[dict(n) for n in notes],
-        staff_list=[dict(s) for s in staff],asset_list=[dict(a) for a in assets],kb_articles=[dict(k) for k in kb],kb_linked=dict(kb_linked) if kb_linked else None,
-        current_user=current_user)
+    return render_template('ticket_detail.html',ticket=ticket,notes=[dict(n) for n in notes],
+        staff_list=[dict(s) for s in staff],asset_list=asset_list,kb_articles=[dict(k) for k in kb],kb_linked=dict(kb_linked) if kb_linked else None,
+        current_user=current_user,branches_short=branches_short,provinces=provinces)
 
 @app.route('/asset/<int:asset_id>')
 @login_required
@@ -514,7 +522,7 @@ def api_edit(tid):
         return jsonify(success=False,error='Not Found'),404
     sets = []
     vals = []
-    for field in ('title','description','priority','status','assigned_to','branch','category','reported_by','asset_id','kb_id'):
+    for field in ('title','description','priority','status','assigned_to','branch','province','category','reported_by','asset_id','kb_id'):
         val = d.get(field, None)
         if val is not None and val != '':
             sets.append(f'{field}=?')
@@ -523,6 +531,17 @@ def api_edit(tid):
         return jsonify(success=True)
     vals.append(tid)
     c.execute(f'UPDATE tickets SET {",".join(sets)} WHERE id=?', vals)
+    # Auto-log field changes
+    FIELD_LABELS = {'title':'หัวข้อ','description':'รายละเอียด','priority':'ความสำคัญ','category':'หมวด','branch':'สาขา','province':'จังหวัด','reported_by':'ผู้แจ้ง'}
+    now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    author = d.get('changed_by','System')
+    for field in ('title','description','priority','category','branch','province','reported_by'):
+        new_val = d.get(field)
+        old_val = t[field] if t else None
+        if new_val is not None and new_val != '' and str(new_val) != str(old_val):
+            label = FIELD_LABELS.get(field, field)
+            note_text = f'แก้ไข: {label} เดิม: \'{old_val}\' → ใหม่: \'{new_val}\''
+            c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',(tid,note_text,author,now_str))
     # Auto-log reassign if assigned_to changed
     new_assign = d.get('assigned_to')
     old_assign = t['assigned_to'] or 'ยังไม่มอบหมาย'

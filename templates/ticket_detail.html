@@ -8,11 +8,14 @@
                 <h5 class="mb-0"><i class="bi bi-ticket-detailed me-2"></i>
                     {{ ticket.ticket_code or 'TK-26-' ~ '%04d'|format(ticket.id) }} — {{ ticket.title }}
                 </h5>
-                <a href="/tickets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>กลับ</a>
+                <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-sm btn-outline-primary" onclick="openEditModal()"><i class="bi bi-pencil me-1"></i>แก้ไข</button>
+                    <a href="/tickets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>กลับ</a>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
-                    <div class="col-md-3"><strong>สาขา:</strong><br>{{ ticket.branch }}</div>
+                    <div class="col-md-3"><strong>สาขา:</strong><br>{{ ticket.short_branch or ticket.branch }}</div>
                     <div class="col-md-3"><strong>จังหวัด:</strong><br>{{ ticket.province }}</div>
                     <div class="col-md-3"><strong>หมวด:</strong><br>{{ ticket.category }}</div>
                     <div class="col-md-3"><strong>สถานะ:</strong><br>
@@ -88,7 +91,7 @@
                     <div>
                         <div class="bg-light rounded p-2 px-3 small">
                             {% if 'เปลี่ยนสถานะ' in n.note or 'มอบหมาย:' in n.note or 'เชื่อม Asset' in n.note or 'แนบ KB' in n.note %}
-                            <strong><i class="bi bi-gear me-1"></i>ระบบ</strong> — {{ n.note }}
+                            <strong>{{ n.created_by }}</strong> <span class="badge bg-light text-muted border" style="font-size:0.65rem;font-weight:400;">อัตโนมัติ</span> — {{ n.note }}
                             {% else %}
                             <strong>{{ n.created_by }}</strong>: {{ n.note }}
                             {% endif %}
@@ -168,7 +171,7 @@
                     <select class="form-select form-select-sm" id="assetSelect" onchange="linkAsset()">
                         <option value="">-- เลือก Asset --</option>
                         {% for a in asset_list|sort(attribute='asset_tag') %}
-                        <option value="{{ a.id }}" {% if ticket.asset_id == a.id %}selected{% endif %}>{{ a.asset_tag or a.id }} — {{ a.name }} ({{ a.branch }})</option>
+                        <option value="{{ a.id }}" {% if ticket.asset_id == a.id %}selected{% endif %}>{{ a.asset_tag or a.id }} — {{ a.name }} ({{ a.short_branch or a.branch }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -195,6 +198,78 @@
                     — <a href="/kb/{{ kb_linked.id }}" target="_blank">ดูบทความ</a>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- Edit Ticket Modal -->
+        <div class="modal fade" id="editTicketModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title"><i class="bi bi-pencil me-1"></i>แก้ไข Ticket</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">หัวข้อ</label>
+                            <input type="text" class="form-control form-control-sm" id="editTitle">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">รายละเอียด</label>
+                            <textarea class="form-control form-control-sm" id="editDescription" rows="3"></textarea>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-1">หมวด</label>
+                                <select class="form-select form-select-sm" id="editCategory">
+                                    <option value="ระบบ Core Banking">ระบบ Core Banking</option>
+                                    <option value="เครือข่าย/อินเทอร์เน็ต">เครือข่าย/อินเทอร์เน็ต</option>
+                                    <option value="VPN/ระบบเสีย">VPN/ระบบเสีย</option>
+                                    <option value="เครื่องพิมพ์/สมุด">เครื่องพิมพ์/สมุด</option>
+                                    <option value="คอมพิวเตอร์เสีย">คอมพิวเตอร์เสีย</option>
+                                    <option value="อื่นๆ">อื่นๆ</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small mb-1">ความสำคัญ</label>
+                                <select class="form-select form-select-sm" id="editPriority">
+                                    <option value="low">ต่ำ</option>
+                                    <option value="medium">ปานกลาง</option>
+                                    <option value="high">สำคัญ</option>
+                                    <option value="critical">ด่วน</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-1">จังหวัด</label>
+                                <select class="form-select form-select-sm" id="editProvince" onchange="filterEditBranches()">
+                                    <option value="">-- เลือก --</option>
+                                    {% for p in provinces %}
+                                    <option value="{{ p }}">{{ p }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small mb-1">สาขา</label>
+                                <select class="form-select form-select-sm" id="editBranch">
+                                    <option value="">-- เลือก --</option>
+                                    {% for b in branches_short %}
+                                    <option value="{{ b.branch }}" data-province="{{ b.province }}">{{ b.short }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">ผู้แจ้ง</label>
+                            <input type="text" class="form-control form-control-sm" id="editReportedBy">
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2">
+                        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button class="btn btn-sm btn-primary" onclick="saveEdit()"><i class="bi bi-check-lg me-1"></i>บันทึก</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -301,6 +376,42 @@ function createAndAttachKb(){
             .then(function(){location.reload();});
         }
     });
+}
+
+function openEditModal(){
+    document.getElementById('editTitle').value = {{ ticket.title|tojson }};
+    document.getElementById('editDescription').value = {{ ticket.description|tojson }};
+    document.getElementById('editCategory').value = {{ ticket.category|tojson }};
+    document.getElementById('editPriority').value = {{ ticket.priority|tojson }};
+    document.getElementById('editProvince').value = {{ ticket.province|tojson }};
+    document.getElementById('editReportedBy').value = {{ ticket.reported_by|tojson }};
+    // Set branch after province filter
+    filterEditBranches();
+    document.getElementById('editBranch').value = {{ ticket.branch|tojson }};
+    new bootstrap.Modal(document.getElementById('editTicketModal')).show();
+}
+function filterEditBranches(){
+    const prov = document.getElementById('editProvince').value;
+    const bSel = document.getElementById('editBranch');
+    const opts = bSel.querySelectorAll('option');
+    opts.forEach(function(o){ o.style.display = (!prov || o.dataset.province===prov || o.value==='') ? '' : 'none'; });
+}
+async function saveEdit(){
+    const data = { changed_by: CURRENT_USER };
+    const fields = {
+        title: document.getElementById('editTitle').value.trim(),
+        description: document.getElementById('editDescription').value.trim(),
+        category: document.getElementById('editCategory').value,
+        priority: document.getElementById('editPriority').value,
+        province: document.getElementById('editProvince').value,
+        branch: document.getElementById('editBranch').value,
+        reported_by: document.getElementById('editReportedBy').value.trim()
+    };
+    for (const [k,v] of Object.entries(fields)) {
+        if (v) data[k] = v;
+    }
+    await fetch('/api/ticket/'+TICKET_ID+'/edit', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    location.reload();
 }
 
 (function(){

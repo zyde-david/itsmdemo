@@ -254,7 +254,7 @@ small,.small{color:var(--text-muted)}
 .id-badge{display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:6px;font-family:monospace}
 </style>
 </head>
-<body>
+<body data-theme="light">
 <div class="demo-banner">🚀 DEMO — สร้างโดย Zyde สำหรับการสัมภาษณ์งาน | ข้อมูลเป็นข้อมูลจำลอง</div>
 <nav class="navbar navbar-dark">
  <div class="container-fluid px-3">
@@ -263,10 +263,11 @@ small,.small{color:var(--text-muted)}
    <a href="tel:888" class="quick-dial-btn"><i class="bi bi-telephone-fill"></i>IT Hotline 888</a>
   </div>
   <!-- Center: Brand -->
-  <a href="/" class="navbar-brand mb-0 h5 text-white text-decoration-none"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo <span class="small fw-normal opacity-75">v0.14</span></a>
-  <!-- Right: User + Logout -->
+  <a href="/" class="navbar-brand mb-0 h5 text-white text-decoration-none"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo <span class="small fw-normal opacity-75">v0.15</span></a>
+  <!-- Right: Theme toggle + User + Logout -->
   <div class="nav-user-section d-flex align-items-center gap-2">
    <button class="btn btn-sm btn-outline-light d-md-none me-1" type="button" id="sidebarToggle"><i class="bi bi-list"></i></button>
+   <button class="btn btn-sm btn-outline-light" type="button" id="themeToggleBtn" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง"><i class="bi bi-moon-fill" id="themeToggleIcon"></i></button>
    <span class="text-white small d-none d-lg-inline"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</span>
    <span class="ai-badge d-none d-sm-inline"><i class="bi bi-stars me-1"></i>AI-Powered</span>
    <a href="/logout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i></a>
@@ -428,8 +429,49 @@ function applyCustomColor(hex){
   localStorage.setItem('customColor', hex);
 }
 
+// ── Dark/Light Mode Toggle ──
+function toggleTheme(){
+  var b = document.body;
+  var current = localStorage.getItem('theme') || 'light';
+  // If custom color theme is active, treat it as "dark side" → go light
+  if(current === 'custom'){
+    b.removeAttribute('data-theme');
+    b.setAttribute('data-theme','light');
+    localStorage.setItem('theme','light');
+    revertCustomVars();
+  } else if(current === 'dark'){
+    b.setAttribute('data-theme','light');
+    localStorage.setItem('theme','light');
+  } else {
+    b.setAttribute('data-theme','dark');
+    localStorage.setItem('theme','dark');
+  }
+  updateThemeIcon();
+}
+function updateThemeIcon(){
+  var icon = document.getElementById('themeToggleIcon');
+  if(!icon) return;
+  var mode = localStorage.getItem('theme') || 'light';
+  icon.className = (mode === 'dark') ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+}
+function revertCustomVars(){
+  // Remove all custom properties that applyCustomColor set, so CSS tokens revert to :root defaults
+  var b = document.body;
+  var vars = [
+    '--bg-body','--text-body','--bg-surface','--text-surface','--bg-elevated','--text-elevated',
+    '--bg-nav','--text-nav','--bg-sidebar','--text-sidebar','--border-subtle','--border-dark',
+    '--bg-table','--text-table','--bg-input','--text-input','--bg-chat','--text-chat',
+    '--bg-banner','--text-banner','--text-muted','--text-label','--bg-footer','--text-footer',
+    '--id-badge-bg','--id-badge-text','--ai-badge-bg','--ai-badge-text',
+    '--link-color','--link-hover','--btn-page-bg','--btn-page-text','--btn-page-border',
+    '--shadow-color','--primary','--accent','--warning','--danger'
+  ];
+  vars.forEach(function(v){ b.style.removeProperty(v); });
+}
+
 // Restore on every page load
 (function(){
+  // Ensure body always has an explicit data-theme
   var mode = localStorage.getItem('theme') || 'light';
   if(mode === 'custom'){
     var hex = localStorage.getItem('customColor') || '#1a1a2e';
@@ -437,6 +479,7 @@ function applyCustomColor(hex){
   } else {
     document.body.setAttribute('data-theme', mode);
   }
+  updateThemeIcon();
 })();
 
 // Generic DataTable init with server-like features via client-side
@@ -451,7 +494,7 @@ function initTable(selector,opts={}){
 </script>
 {% block extra_scripts %}{% endblock %}
 <div class="footer text-center py-3" style="color:#95a5a6;font-size:.7rem">
-  ITSM Demo v0.14 | <span class="id-badge" style="font-size:.65rem">a133e14</span> | Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
+  ITSM Demo v0.15 | <span class="id-badge" style="font-size:.65rem">a133e14</span> | Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
   <span class="d-none d-md-inline mx-2">|</span>
   <a href="tel:888" class="d-none d-md-inline" style="color:#2ecc71;font-size:.7rem;text-decoration:none"><i class="bi bi-telephone-fill me-1"></i>IT Hotline 888</a>
 </div>
