@@ -85,19 +85,20 @@
         var ticketData = {};
 
         function getColor(d) {
-            return d > 20 ? '#084594' :
-                   d > 10 ? '#2171b5' :
-                   d > 5  ? '#4292c6' :
-                   d > 2  ? '#8c96c6' :
+            return d > 8  ? '#084594' :
+                   d > 5  ? '#2171b5' :
+                   d > 3  ? '#4292c6' :
+                   d > 1  ? '#8c96c6' :
                    d > 0  ? '#d0d1e6' :
                              '#f7f7f7';
         }
 
         function getLabelClass(d, critical, high) {
             if (critical > 0) return 'red';
-            if (high > 0 || d > 10) return 'orange';
-            if (d > 3) return 'yellow';
-            return 'green';
+            if (high > 0 || d > 3) return 'orange';
+            if (d > 1) return 'yellow';
+            if (d === 1) return 'green';
+            return '';
         }
 
         var info = L.control({position: 'topright'});
@@ -216,10 +217,11 @@
                 }
             }).addTo(map);
 
-            // Add ticket count labels at district centroids
+            // Add ticket count labels at district centroids (skip 0-ticket districts)
             southData.features.forEach(function(f) {
                 var name = f.properties.name;
                 var d = ticketData[name] || {tickets: 0, critical: 0, high: 0};
+                if (d.tickets <= 0) return;
                 var centroid = L.geoJson(f).getBounds().getCenter();
                 var labelClass = getLabelClass(d.tickets, d.critical, d.high);
                 var icon = L.divIcon({
