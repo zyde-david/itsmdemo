@@ -24,24 +24,23 @@
         .info-panel { padding: 10px 14px; font-size: 14px; background: white; background: rgba(255,255,255,0.95); box-shadow: 0 2px 10px rgba(0,0,0,0.15); border-radius: 6px; line-height: 1.6; border-left: 5px solid #2b5c8f; }
         .info-panel h4 { margin: 0 0 5px; color: #2b5c8f; }
 
-        .ticket-label {
-            background: #fff;
-            border: 2px solid #084594;
+        .ticket-count {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 13px;
-            color: #084594;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+            font-size: 14px;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
-        .ticket-label.red { background: #dc2626; border-color: #991b1b; color: #fff; }
-        .ticket-label.orange { background: #f97316; border-color: #9a3412; color: #fff; }
-        .ticket-label.yellow { background: #f59e0b; border-color: #92400e; color: #fff; }
-        .ticket-label.green { background: #16a34a; border-color: #166534; color: #fff; }
+        .ticket-count.red { background: #dc2626; }
+        .ticket-count.orange { background: #f97316; }
+        .ticket-count.yellow { background: #f59e0b; }
+        .ticket-count.green { background: #16a34a; }
 
         @media (max-width: 768px) {
             .container { flex-direction: column; }
@@ -141,6 +140,8 @@
                 .then(res => res.json())
                 .then(data => {
                     ticketData = data;
+                    console.log('Ticket data loaded:', Object.keys(data).length, 'districts');
+                    console.log('Sample:', JSON.stringify(data).substring(0, 200));
                     if (!geojsonLayer) {
                         renderMap();
                     } else {
@@ -178,9 +179,9 @@
                 var labelClass = getLabelClass(d.tickets, d.critical, d.high);
                 var icon = L.divIcon({
                     className: '',
-                    html: '<div class="ticket-label ' + labelClass + '">' + d.tickets + '</div>',
-                    iconSize: [36, 36],
-                    iconAnchor: [18, 18]
+                    html: '<div class="ticket-count ' + labelClass + '">' + d.tickets + '</div>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
                 });
                 L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
             });
@@ -203,15 +204,23 @@
                     };
                 },
                 onEachFeature: function(feature, layer) {
+                    function highlight(e) {
+                        var l = e.target;
+                        l.setStyle({ weight: 3, color: '#333', fillOpacity: 0.95 });
+                        info.update(l.feature.properties);
+                    }
+                    function reset(e) {
+                        geojsonLayer.resetStyle(e.target);
+                        info.update();
+                    }
                     layer.on({
-                        mouseover: function(e) {
-                            var l = e.target;
-                            l.setStyle({ weight: 3, color: '#333', fillOpacity: 0.95 });
-                            info.update(l.feature.properties);
-                        },
-                        mouseout: function(e) {
-                            geojsonLayer.resetStyle(e.target);
-                            info.update();
+                        mouseover: highlight,
+                        mouseout: reset,
+                        click: highlight,
+                        touchend: function(e) {
+                            // Prevent ghost click after touch
+                            L.DomEvent.stop(e);
+                            highlight(e);
                         }
                     });
                 }
@@ -226,9 +235,9 @@
                 var labelClass = getLabelClass(d.tickets, d.critical, d.high);
                 var icon = L.divIcon({
                     className: '',
-                    html: '<div class="ticket-label ' + labelClass + '">' + d.tickets + '</div>',
-                    iconSize: [36, 36],
-                    iconAnchor: [18, 18]
+                    html: '<div class="ticket-count ' + labelClass + '">' + d.tickets + '</div>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
                 });
                 L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
             });
