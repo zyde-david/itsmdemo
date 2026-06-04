@@ -175,6 +175,20 @@ async function sendChat(){
  body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">${ans}</div></div>`;
  body.scrollTop=body.scrollHeight;
 }
+// ── Dark Mode Persistence ──
+function applyTheme(dark){
+  document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
+}
+function toggleTheme(dark){
+  applyTheme(dark);
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+}
+// Restore on every page load
+(function(){
+  var saved = localStorage.getItem('theme');
+  if(saved === 'dark'){ applyTheme(true); }
+})();
+
 // Generic DataTable init with server-like features via client-side
 function initTable(selector,opts={}){
  return $(selector).DataTable({

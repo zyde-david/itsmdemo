@@ -152,13 +152,12 @@ async function deleteUser(uid, username) {
   else alert(d.error);
 }
 
-// Theme toggle
+// Theme toggle (syncs with base.html persistence)
 function toggleTheme(dark) {
   document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
-  document.getElementById('themeToggle').checked = dark;
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  var t = document.getElementById('themeToggle');
+  if(t) t.checked = dark;
 }
-(function(){ // restore saved theme
-  if(localStorage.getItem('theme')==='dark'){document.body.setAttribute('data-theme','dark');document.getElementById('themeToggle').checked=true;}
-})();
 </script>
 {% endblock %}
