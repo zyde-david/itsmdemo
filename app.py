@@ -558,14 +558,15 @@ def api_asset_create():
     branch=d.get('branch','')
     asset_type=d.get('asset_type','')
     # Auto-generate asset_tag: prov_code + br_code + cat_code + seq
-    prov_code = PROVINCE_CODES.get(next((b['province'] for b in ALL_BRANCHES if b['branch']==branch),'0'),'0')
+    branch_obj = next((b for b in ALL_BRANCHES if b['branch']==branch), None)
+    prov_code = PROVINCE_CODES.get(branch_obj['province'],'0') if branch_obj else '0'
     br_code = BRANCH_CODES.get(branch,'0')
     cat_code = CATEGORY_CODES.get(asset_type,'XX')
     # Count existing assets of this type in this branch for sequence
     existing = c.execute('SELECT COUNT(*) FROM assets WHERE branch=? AND asset_type=?',(branch,asset_type)).fetchone()[0]
     seq = existing + 1
     asset_tag = f"{prov_code}{br_code}{cat_code}{seq:02d}"
-    asset_code = f"{branch_num.get(branch,1):02d}{CATEGORY_CODES.get(asset_type,'XX')}{seq:02d}"
+    asset_code = f"{ALL_BRANCHES.index(branch_obj)+1 if branch_obj else 1:02d}{CATEGORY_CODES.get(asset_type,'XX')}{seq:02d}"
     c.execute('INSERT INTO assets (asset_tag,asset_code,branch,asset_type,name,serial,status,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?,?,?)',
               (asset_tag,asset_code,branch,asset_type,d.get('name',''),d.get('serial',''),d.get('status','active'),d.get('last_check',''),d.get('next_check',''),d.get('notes','')))
     c.commit();aid=c.execute('SELECT last_insert_rowid()').fetchone()[0]
