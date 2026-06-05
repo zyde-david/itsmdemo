@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Projects — ITSM Demo{% endblock %}
+{% block content %}
+<style>
+.p-hero{background:linear-gradient(135deg,#1a5276,#2980b9);color:#fff;padding:24px 28px;border-radius:12px;margin-bottom:20px}
+.p-hero h4{font-weight:700;margin-bottom:4px}
+.p-hero p{color:rgba(255,255,255,.7);margin:0;font-size:.85rem}
+.p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.p-card{background:#fff;border:1px solid #dce1e8;border-radius:12px;padding:20px;transition:box-shadow .2s,transform .2s}
+.p-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);transform:translateY(-2px)}
+.p-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.p-card-title{font-weight:700;font-size:1.05rem;margin:0}
+.p-card-phase{font-size:.72rem;color:#6c7a89;margin-top:2px}
+.p-status{font-size:.65rem;padding:3px 10px;border-radius:12px;font-weight:700;color:#fff;white-space:nowrap}
+.p-card-desc{font-size:.78rem;color:#6c7a89;margin:0 0 12px;line-height:1.5}
+.p-progress{margin-bottom:12px}
+.p-progress-label{display:flex;justify-content:space-between;font-size:.68rem;color:#6c7a89;margin-bottom:4px}
+.p-progress-bar{height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.p-progress-fill{height:100%;border-radius:3px}
+.p-meta{display:flex;gap:12px;font-size:.68rem;color:#6c7a89;margin-bottom:12px}
+.p-links{display:flex;gap:8px}
+.p-links a{font-size:.72rem;padding:4px 12px;border-radius:6px;text-decoration:none;font-weight:500}
+.p-links a.live{background:#e8f4fd;color:#1a5276}
+.p-links a.github{background:#f0f0f0;color:#333}
+.p-links a.detail{background:#1a5276;color:#fff}
+.p-time{font-size:.7rem;color:#6c7a89;margin-bottom:8px}
+</style>
+
+<div class="p-hero">
+  <h4><i class="bi bi-kanban me-2"></i>My Projects</h4>
+  <p>ติดตามโปรเจคที่กำลังทำ — สถานะ เวลา และความคืบหน้า</p>
+</div>
+
+<div class="p-grid">
+  {% for p in projects %}
+  <div class="p-card">
+    <div class="p-card-header">
+      <div>
+        <h5 class="p-card-title">{{ p.name }}</h5>
+        <div class="p-card-phase">{{ p.phase }}</div>
+      </div>
+      <span class="p-status" style="background:{{ p.status_color }}">{{ p.status_label }}</span>
+    </div>
+    <p class="p-card-desc">{{ p.description }}</p>
+    <div class="p-time"><i class="bi bi-clock"></i> เวลาที่ใช้: {{ p.time_spent }} นาที ({{ "%.1f"|format(p.time_spent / 60) }} ชม.)</div>
+    <div class="p-progress">
+      <div class="p-progress-label">
+        <span>Tasks: {{ p.tasks_done }}/{{ p.tasks_total }}</span>
+        <span>{{ (p.tasks_done / p.tasks_total * 100)|round|int if p.tasks_total > 0 else 0 }}%</span>
+      </div>
+      <div class="p-progress-bar">
+        <div class="p-progress-fill" style="width:{{ (p.tasks_done / p.tasks_total * 100)|round|int if p.tasks_total > 0 else 0 }}%;background:{{ p.status_color }}"></div>
+      </div>
+    </div>
+    <div class="p-meta">
+      <span><i class="bi bi-calendar"></i> {{ p.created_at[:10] }}</span>
+      <span><i class="bi bi-arrow-repeat"></i> อัพเดท: {{ p.updated_at[:10] if p.updated_at else p.created_at[:10] }}</span>
+    </div>
+    <div class="p-links">
+      {% if p.live_url %}<a href="{{ p.live_url }}" target="_blank" class="live"><i class="bi bi-box-arrow-up-right me-1"></i>Live</a>{% endif %}
+      {% if p.github_url %}<a href="{{ p.github_url }}" target="_blank" class="github"><i class="bi bi-github me-1"></i>GitHub</a>{% endif %}
+      <a href="/project/{{ p.id }}" class="detail"><i class="bi bi-eye me-1"></i>ดูรายละเอียด</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

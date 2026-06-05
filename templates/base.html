@@ -295,6 +295,7 @@ small,.small{color:var(--text-muted)}
    <a class="nav-link" href="/staff" data-label="ทีมงาน"><i class="bi bi-people"></i><span class="nav-text">ทีมงาน</span></a>
    <a class="nav-link" href="/sitemap" data-label="Site Map"><i class="bi bi-diagram-3"></i><span class="nav-text">Site Map</span></a>
    <a class="nav-link" href="/howto" data-label="How To"><i class="bi bi-question-circle"></i><span class="nav-text">How To</span></a>
+   {% if is_admin %}<a class="nav-link" href="/projects" data-label="Projects"><i class="bi bi-kanban"></i><span class="nav-text">Projects</span></a>{% endif %}
    <a class="nav-link" href="/settings" data-label="ตั้งค่า"><i class="bi bi-gear"></i><span class="nav-text">ตั้งค่า</span></a>
   </div>
  </div>

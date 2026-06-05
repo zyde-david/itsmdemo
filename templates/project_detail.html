@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Project: {{ project.name }} — ITSM Demo{% endblock %}
+{% block content %}
+<style>
+.pd-back{color:#6c7a89;font-size:.8rem;text-decoration:none;margin-bottom:12px;display:inline-block}
+.pd-back:hover{color:#1a5276}
+.pd-header{background:linear-gradient(135deg,#1a5276,#2980b9);color:#fff;padding:24px 28px;border-radius:12px;margin-bottom:20px}
+.pd-header h4{font-weight:700;margin-bottom:4px}
+.pd-header p{color:rgba(255,255,255,.7);margin:0;font-size:.85rem}
+.pd-status{display:inline-block;font-size:.7rem;padding:3px 12px;border-radius:12px;font-weight:700;color:#fff;margin-left:8px}
+.pd-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+@media(max-width:768px){.pd-grid{grid-template-columns:1fr}}
+.pd-card{background:#fff;border:1px solid #dce1e8;border-radius:12px;padding:20px;margin-bottom:16px}
+.pd-card h5{font-size:.9rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pd-bnn{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:600px){.pd-bnn{grid-template-columns:1fr}}
+.pd-bnn-box{background:#fff;border:1px solid #dce1e8;border-radius:12px;padding:16px}
+.pd-bnn-box .label{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;color:#6c7a89;margin-bottom:6px;font-weight:600}
+.pd-bnn-box .text{font-size:.78rem;line-height:1.5}
+.pd-bnn-box.before{border-left:4px solid #e74c3c}
+.pd-bnn-box.now{border-left:4px solid #f39c12}
+.pd-bnn-box.next{border-left:4px solid #27ae60}
+.pd-task{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.pd-task:last-child{border-bottom:none}
+.pd-task-check{width:20px;height:20px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.pd-task-check.done{background:#27ae60;border-color:#27ae60;color:#fff}
+.pd-task-text{font-size:.8rem;flex:1}
+.pd-task-text.done{text-decoration:line-through;color:#6c7a89}
+.pd-task-phase{font-size:.65rem;color:#6c7a89;background:#f0f0f0;padding:2px 8px;border-radius:8px}
+.pd-log-item{padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.78rem}
+.pd-log-item:last-child{border-bottom:none}
+.pd-log-date{font-size:.65rem;color:#6c7a89}
+.pd-time-entry{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:.78rem}
+.pd-time-entry:last-child{border-bottom:none}
+.pd-time-min{font-weight:700;color:#2980b9;white-space:nowrap;margin-left:12px}
+.pd-time-note{flex:1}
+.pd-time-date{font-size:.65rem;color:#6c7a89;white-space:nowrap;margin-left:8px}
+.pd-time-total{font-size:.85rem;font-weight:700;color:#27ae60;margin-top:8px}
+.pd-add-row{display:flex;gap:8px;margin-top:12px}
+.pd-add-row input,.pd-add-row select{font-size:.75rem;padding:6px 10px;border:1px solid #dce1e8;border-radius:6px;flex:1}
+.pd-add-row button{font-size:.75rem;padding:6px 14px;border:none;border-radius:6px;background:#1a5276;color:#fff;cursor:pointer;white-space:nowrap}
+</style>
+
+<a href="/projects" class="pd-back"><i class="bi bi-arrow-left me-1"></i>กลับ Projects</a>
+
+<div class="pd-header">
+  <h4>{{ project.name }} <span class="pd-status" style="background:{{ project.status_color }}">{{ project.status_label }}</span></h4>
+  <p>{{ project.phase }} — {{ project.description }}</p>
+</div>
+
+<div class="pd-bnn">
+  <div class="pd-bnn-box before">
+    <div class="label"><i class="bi bi-arrow-left-circle me-1"></i>Before</div>
+    <div class="text" id="bnn-before">{{ project.before_text or '—' }}</div>
+  </div>
+  <div class="pd-bnn-box now">
+    <div class="label"><i class="bi bi-lightning-charge me-1"></i>Now</div>
+    <div class="text" id="bnn-now">{{ project.now_text or '—' }}</div>
+  </div>
+  <div class="pd-bnn-box next">
+    <div class="label"><i class="bi bi-arrow-right-circle me-1"></i>Next</div>
+    <div class="text" id="bnn-next">{{ project.next_text or '—' }}</div>
+  </div>
+</div>
+
+<div class="pd-grid">
+  <div>
+    <div class="pd-card">
+      <h5><i class="bi bi-check2-square"></i>Tasks</h5>
+      <div id="task-list">
+        {% for t in tasks %}
+        <div class="pd-task" data-task-id="{{ t.id }}">
+          <div class="pd-task-check {% if t.status == 'done' %}done{% endif %}" onclick="toggleTask({{ project.id }}, {{ t.id }}, this)">
+            {% if t.status == 'done' %}<i class="bi bi-check" style="font-size:.7rem"></i>{% endif %}
+          </div>
+          <span class="pd-task-text {% if t.status == 'done' %}done{% endif %}">{{ t.title }}</span>
+          <span class="pd-task-phase">{{ t.phase }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="pd-card">
+      <h5><i class="bi bi-journal-text"></i>Track Log</h5>
+      <div id="log-list">
+        {% for l in logs %}
+        <div class="pd-log-item">
+          <div>{{ l.note }}</div>
+          <div class="pd-log-date">{{ l.created_at }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="pd-add-row">
+        <input type="text" id="log-input" placeholder="เพิ่ม log...">
+        <button onclick="addLog({{ project.id }})"><i class="bi bi-plus-lg me-1"></i>เพิ่ม</button>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="pd-card">
+      <h5><i class="bi bi-clock-history"></i>Time Tracker</h5>
+      <div id="time-list">
+        {% for te in time_entries %}
+        <div class="pd-time-entry">
+          <span class="pd-time-note">{{ te.note }}</span>
+          <span class="pd-time-min">{{ te.minutes }} นาที</span>
+          <span class="pd-time-date">{{ te.created_at[:10] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="pd-time-total">รวม: {{ project.time_spent }} นาที ({{ "%.1f"|format(project.time_spent / 60) }} ชม.)</div>
+      <div class="pd-add-row">
+        <input type="text" id="time-note" placeholder="ทำอะไร...">
+        <input type="number" id="time-min" placeholder="นาที" style="width:70px" min="1">
+        <button onclick="addTime({{ project.id }})"><i class="bi bi-plus-lg"></i></button>
+      </div>
+    </div>
+    <div class="pd-card">
+      <h5><i class="bi bi-pencil-square"></i>แก้ไข Before/Now/Next</h5>
+      <div style="margin-bottom:8px">
+        <label style="font-size:.65rem;color:#6c7a89">Before</label>
+        <textarea id="edit-before" class="form-control form-control-sm" rows="2" style="font-size:.75rem">{{ project.before_text or '' }}</textarea>
+      </div>
+      <div style="margin-bottom:8px">
+        <label style="font-size:.65rem;color:#6c7a89">Now</label>
+        <textarea id="edit-now" class="form-control form-control-sm" rows="2" style="font-size:.75rem">{{ project.now_text or '' }}</textarea>
+      </div>
+      <div style="margin-bottom:8px">
+        <label style="font-size:.65rem;color:#6c7a89">Next</label>
+        <textarea id="edit-next" class="form-control form-control-sm" rows="2" style="font-size:.75rem">{{ project.next_text or '' }}</textarea>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="saveBNN({{ project.id }})" style="font-size:.75rem"><i class="bi bi-save me-1"></i>บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleTask(pid, tid, el) {
+  fetch('/api/project/' + pid + '/task/' + tid + '/toggle', {method:'POST', headers:{'Content-Type':'application/json'}})
+    .then(r => r.json()).then(d => {
+      if (!d.success) return;
+      el.classList.toggle('done');
+      el.innerHTML = d.status === 'done' ? '<i class="bi bi-check" style="font-size:.7rem"></i>' : '';
+      el.closest('.pd-task').querySelector('.pd-task-text').classList.toggle('done');
+    });
+}
+function addLog(pid) {
+  const input = document.getElementById('log-input');
+  const note = input.value.trim();
+  if (!note) return;
+  fetch('/api/project/' + pid + '/log', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({note})})
+    .then(r => r.json()).then(d => {
+      if (!d.success) return;
+      const list = document.getElementById('log-list');
+      const div = document.createElement('div');
+      div.className = 'pd-log-item';
+      div.innerHTML = '<div>' + note + '</div><div class="pd-log-date">เมื่อสักครู่</div>';
+      list.prepend(div);
+      input.value = '';
+    });
+}
+function addTime(pid) {
+  const note = document.getElementById('time-note').value.trim();
+  const min = parseInt(document.getElementById('time-min').value) || 0;
+  if (!note || min <= 0) return;
+  fetch('/api/project/' + pid + '/time', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({note, minutes: min})})
+    .then(r => r.json()).then(d => { if (d.success) location.reload(); });
+}
+function saveBNN(pid) {
+  const data = {
+    before_text: document.getElementById('edit-before').value.trim(),
+    now_text: document.getElementById('edit-now').value.trim(),
+    next_text: document.getElementById('edit-next').value.trim(),
+  };
+  fetch('/api/project/' + pid + '/update', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)})
+    .then(r => r.json()).then(d => {
+      if (d.success) {
+        document.getElementById('bnn-before').textContent = data.before_text || '—';
+        document.getElementById('bnn-now').textContent = data.now_text || '—';
+        document.getElementById('bnn-next').textContent = data.next_text || '—';
+      }
+    });
+}
+</script>
+{% endblock %}

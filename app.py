@@ -1013,6 +1013,56 @@ def leave_page():
                            leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS, pending_count=pending_count,
                            approved_count=approved_count, rejected_count=rejected_count, message=message, error=error)
 
+@app.route('/leave-approvals', methods=['GET','POST'])
+@login_required
+def leave_approvals_page():
+    if not is_manager():
+        return forbidden_response()
+
+    c = get_db()
+    current_user = get_current_user()
+    message = ''
+    error = ''
+
+    if request.method == 'POST':
+        action = request.form.get('action', '').strip()
+        approval_note = request.form.get('approval_note', '').strip()[:300]
+        try:
+            request_id = int(request.form.get('request_id', '0'))
+        except ValueError:
+            request_id = 0
+
+        if action not in ('approve', 'reject'):
+            error = 'คำสั่งไม่ถูกต้อง'
+        elif request_id <= 0:
+            error = 'ไม่พบคำขอที่ต้องการดำเนินการ'
+        else:
+            leave_request = c.execute(
+                "SELECT * FROM leave_requests WHERE id=? AND status='pending'",
+                (request_id,)
+            ).fetchone()
+            if not leave_request:
+                error = 'คำขอนี้ไม่อยู่ในสถานะรออนุมัติแล้ว'
+            else:
+                new_status = 'approved' if action == 'approve' else 'rejected'
+                c.execute(
+                    'UPDATE leave_requests SET status=?, approver_id=?, approval_note=? WHERE id=?',
+                    (new_status, current_user['id'], approval_note, request_id)
+                )
+                c.commit()
+                message = 'อนุมัติคำขอลาแล้ว' if new_status == 'approved' else 'ไม่อนุมัติคำขอลาแล้ว'
+
+    pending_rows = c.execute(
+        "SELECT * FROM leave_requests WHERE status='pending' ORDER BY created_at ASC, id ASC"
+    ).fetchall()
+    recent_rows = c.execute(
+        "SELECT * FROM leave_requests WHERE status IN ('approved','rejected') ORDER BY created_at DESC, id DESC LIMIT 20"
+    ).fetchall()
+    return render_template('leave-approvals.html', current_user=current_user,
+                           pending_requests=[dict(r) for r in pending_rows],
+                           recent_requests=[dict(r) for r in recent_rows],
+                           status_labels=LEAVE_STATUS_LABELS, message=message, error=error)
+
 @app.route('/route-planner')
 @login_required
 def route_planner_page():
@@ -1199,3 +1249,206 @@ def api_district_tickets():
         result[d][r['priority']] = result[d].get(r['priority'], 0) + r['cnt']
     return jsonify(result)
 
+
+# ─── Projects (admin only) ───
+
+PROJECT_STATUS_LABELS = {
+    'planned': 'วางแผน',
+    'in_progress': 'กำลังทำ',
+    'done': 'เสร็จแล้ว',
+    'paused': 'พักไว้',
+}
+PROJECT_STATUS_COLORS = {
+    'planned': '#95a5a6',
+    'in_progress': '#3498db',
+    'done': '#27ae60',
+    'paused': '#e67e22',
+}
+
+
+def _seed_projects():
+    c = get_db()
+    if c.execute('SELECT COUNT(*) FROM projects').fetchone()[0] > 0:
+        return
+    projects = [
+        {
+            'name': 'ITSM Demo', 'slug': 'itsm-demo', 'status': 'in_progress',
+            'phase': 'v0.7 — Pre-interview polish',
+            'description': 'ระบบ IT Service Management Demo สำหรับสัมภาษณ์งาน',
+            'live_url': 'https://itsmdemo-zyde.fly.dev',
+            'github_url': 'https://github.com/zyde-david/itsmdemo',
+            'sort_order': 1,
+            'before_text': 'เริ่มจากระบบ ticket ธรรมดา',
+            'now_text': 'มี dashboard, tickets, assets, staff, route planner ครบ',
+            'next_text': 'เพิ่ม asset-staff link, audit log, polish UI',
+        },
+        {
+            'name': 'Pi4 Home Server', 'slug': 'pi4-home', 'status': 'planned',
+            'phase': 'Planning — hardware ready',
+            'description': 'Pi4 8GB เป็น home server: AdGuard + Tailscale',
+            'live_url': '', 'github_url': '', 'sort_order': 2,
+            'before_text': 'ยังไม่มี server ตัวเล็ก',
+            'now_text': 'วางแผน hardware และ software stack',
+            'next_text': 'ติดตั้ง Ubuntu ARM64 + Docker + AdGuard + Tailscale',
+        },
+    ]
+    for p in projects:
+        c.execute(
+            'INSERT INTO projects (name,slug,status,phase,description,live_url,github_url,sort_order,before_text,now_text,next_text) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+            (p['name'], p['slug'], p['status'], p['phase'], p['description'], p['live_url'], p['github_url'], p['sort_order'], p['before_text'], p['now_text'], p['next_text'])
+        )
+    itsm_id = c.execute('SELECT id FROM projects WHERE slug=?', ('itsm-demo',)).fetchone()[0]
+    tasks = [
+        (itsm_id, 'Dashboard + Tickets UI', 'done', 'v0.1', 1),
+        (itsm_id, 'Assets + Staff pages', 'done', 'v0.2', 2),
+        (itsm_id, 'Route Planner (Leaflet map)', 'done', 'v0.3', 3),
+        (itsm_id, 'Settings + Role card', 'done', 'v0.4', 4),
+        (itsm_id, 'Dev log + Footer polish', 'done', 'v0.5', 5),
+        (itsm_id, 'Asset-Staff link', 'pending', 'v0.6', 6),
+        (itsm_id, 'Pre-interview audit + polish', 'in_progress', 'v0.7', 7),
+    ]
+    for t in tasks:
+        c.execute('INSERT INTO project_tasks (project_id,title,status,phase,sort_order) VALUES (?,?,?,?,?)', t)
+    logs = [
+        (itsm_id, '31 May 2026 — เริ่มโปรเจค สร้าง Flask app + SQLite'),
+        (itsm_id, '1 Jun 2026 — Dashboard + Tickets + Assets pages'),
+        (itsm_id, '2 Jun 2026 — Staff page + Route Planner + Settings'),
+        (itsm_id, '3 Jun 2026 — Deploy Fly.io + Leaflet map + Dev log'),
+        (itsm_id, '4 Jun 2026 — Footer polish + Tech Stack reorder + Projects page'),
+    ]
+    for l in logs:
+        c.execute('INSERT INTO project_logs (project_id,note) VALUES (?,?)', l)
+    c.commit()
+
+
+@app.route('/projects')
+@login_required
+def projects_page():
+    if not is_admin():
+        return redirect('/dashboard')
+    _seed_projects()
+    c = get_db()
+    projects = c.execute('SELECT * FROM projects ORDER BY sort_order').fetchall()
+    result = []
+    for p in projects:
+        p = dict(p)
+        counts = c.execute('SELECT status, COUNT(*) as cnt FROM project_tasks WHERE project_id=? GROUP BY status', (p['id'],)).fetchall()
+        p['tasks_done'] = sum(r['cnt'] for r in counts if r['status'] == 'done')
+        p['tasks_total'] = sum(r['cnt'] for r in counts)
+        p['status_label'] = PROJECT_STATUS_LABELS.get(p['status'], p['status'])
+        p['status_color'] = PROJECT_STATUS_COLORS.get(p['status'], '#95a5a6')
+        total_min = c.execute('SELECT COALESCE(SUM(minutes),0) FROM project_time_entries WHERE project_id=?', (p['id'],)).fetchone()[0]
+        p['time_spent'] = total_min or p.get('time_spent_minutes', 0)
+        result.append(p)
+    return render_template('projects.html', projects=result, current_user=session.get('username'))
+
+
+@app.route('/project/<int:project_id>')
+@login_required
+def project_detail(project_id):
+    if not is_admin():
+        return redirect('/dashboard')
+    c = get_db()
+    project = c.execute('SELECT * FROM projects WHERE id=?', (project_id,)).fetchone()
+    if not project:
+        return redirect('/projects')
+    project = dict(project)
+    tasks = c.execute('SELECT * FROM project_tasks WHERE project_id=? ORDER BY sort_order', (project_id,)).fetchall()
+    logs = c.execute('SELECT * FROM project_logs WHERE project_id=? ORDER BY created_at DESC', (project_id,)).fetchall()
+    time_entries = c.execute('SELECT * FROM project_time_entries WHERE project_id=? ORDER BY created_at DESC', (project_id,)).fetchall()
+    total_min = sum(t['minutes'] for t in time_entries) + project.get('time_spent_minutes', 0)
+    project['time_spent'] = total_min
+    project['status_label'] = PROJECT_STATUS_LABELS.get(project['status'], project['status'])
+    project['status_color'] = PROJECT_STATUS_COLORS.get(project['status'], '#95a5a6')
+    return render_template('project_detail.html', project=project, tasks=tasks, logs=logs, time_entries=time_entries, current_user=session.get('username'))
+
+
+@app.route('/api/project/<int:project_id>/log', methods=['POST'])
+@login_required
+def api_project_log(project_id):
+    if not is_admin():
+        return jsonify(success=False, error='forbidden'), 403
+    note = request.json.get('note', '').strip()
+    if not note:
+        return jsonify(success=False, error='note required'), 400
+    c = get_db()
+    c.execute('INSERT INTO project_logs (project_id,note) VALUES (?,?)', (project_id, note))
+    c.execute('UPDATE projects SET updated_at=CURRENT_TIMESTAMP WHERE id=?', (project_id,))
+    c.commit()
+    return jsonify(success=True)
+
+
+@app.route('/api/project/<int:project_id>/time', methods=['POST'])
+@login_required
+def api_project_time(project_id):
+    if not is_admin():
+        return jsonify(success=False, error='forbidden'), 403
+    note = request.json.get('note', '').strip()
+    minutes = int(request.json.get('minutes', 0))
+    if not note or minutes <= 0:
+        return jsonify(success=False, error='note and minutes required'), 400
+    c = get_db()
+    c.execute('INSERT INTO project_time_entries (project_id,note,minutes) VALUES (?,?,?)', (project_id, note, minutes))
+    c.execute('UPDATE projects SET updated_at=CURRENT_TIMESTAMP WHERE id=?', (project_id,))
+    c.commit()
+    return jsonify(success=True)
+
+
+@app.route('/api/project/<int:project_id>/task/<int:task_id>/toggle', methods=['POST'])
+@login_required
+def api_project_task_toggle(project_id, task_id):
+    if not is_admin():
+        return jsonify(success=False, error='forbidden'), 403
+    c = get_db()
+    task = c.execute('SELECT * FROM project_tasks WHERE id=? AND project_id=?', (task_id, project_id)).fetchone()
+    if not task:
+        return jsonify(success=False, error='not found'), 404
+    new_status = 'done' if task['status'] != 'done' else 'pending'
+    c.execute('UPDATE project_tasks SET status=? WHERE id=?', (new_status, task_id))
+    c.execute('UPDATE projects SET updated_at=CURRENT_TIMESTAMP WHERE id=?', (project_id,))
+    c.commit()
+    return jsonify(success=True, status=new_status)
+
+
+@app.route('/api/project/<int:project_id>/update', methods=['POST'])
+@login_required
+def api_project_update(project_id):
+    if not is_admin():
+        return jsonify(success=False, error='forbidden'), 403
+    data = request.json
+    allowed = ['before_text', 'now_text', 'next_text', 'status', 'phase', 'description']
+    sets = []
+    vals = []
+    for k in allowed:
+        if k in data:
+            sets.append(f'{k}=?')
+            vals.append(data[k])
+    if not sets:
+        return jsonify(success=False, error='no fields'), 400
+    vals.append(project_id)
+    c = get_db()
+    c.execute(f"UPDATE projects SET {','.join(sets)}, updated_at=CURRENT_TIMESTAMP WHERE id=?", vals)
+    c.commit()
+    return jsonify(success=True)
+
+
+@app.route('/api/staff/<int:sid>/assets')
+@login_required
+def api_staff_assets(sid):
+    c = get_db()
+    staff = c.execute('SELECT * FROM staff WHERE id=?', (sid,)).fetchone()
+    if not staff:
+        return jsonify(success=False, error='not found'), 404
+    assets = c.execute('SELECT * FROM assets WHERE assigned_to=? ORDER BY asset_type, name', (staff['name'],)).fetchall()
+    return jsonify(success=True, staff=dict(staff), assets=[dict(a) for a in assets])
+
+
+@app.route('/api/asset/<int:aid>/history')
+@login_required
+def api_asset_history(aid):
+    c = get_db()
+    asset = c.execute('SELECT * FROM assets WHERE id=?', (aid,)).fetchone()
+    if not asset:
+        return jsonify(success=False, error='not found'), 404
+    logs = c.execute('SELECT * FROM asset_logs WHERE asset_id=? ORDER BY created_at DESC', (aid,)).fetchall()
+    return jsonify(success=True, asset=dict(asset), logs=[dict(l) for l in logs])

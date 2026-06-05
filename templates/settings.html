@@ -68,25 +68,31 @@
             <thead><tr><th>ชื่อผู้ใช้</th><th>บทบาท</th><th>วันที่สร้าง</th><th></th></tr></thead>
             <tbody>
               {% for u in users %}
-              <tr>
-                <td><strong>{{ u['username'] }}</strong></td>
+                {% if u['username'] != 'zyde' or session.get('username') == 'zyde' %}
+              <tr {% if u['username'] == 'zyde' %}class="table-secondary"{% endif %}>
+                <td><strong>{{ u['username'] }}</strong> {% if u['username'] == 'zyde' %}<span class="badge bg-dark" style="font-size:.6rem">Owner</span>{% endif %}</td>
                 <td>
+                  {% if u['username'] == 'zyde' %}
+                    <span class="badge bg-danger">Admin</span>
+                  {% else %}
                   <select class="form-select form-select-sm" style="width:auto" onchange="changeRole({{ u['id'] }}, this.value)">
                     <option value="user" {% if u['role']=='user' %}selected{% endif %}>User</option>
                     <option value="manager" {% if u['role']=='manager' %}selected{% endif %}>Manager</option>
                     <option value="admin" {% if u['role']=='admin' %}selected{% endif %}>Admin</option>
                     <option value="hr" {% if u['role']=='hr' %}selected{% endif %}>HR</option>
                   </select>
+                  {% endif %}
                 </td>
                 <td class="text-muted small">{{ u['created_at'] }}</td>
                 <td>
-                  {% if u['id'] != session.get('user_id') %}
+                  {% if u['id'] != session.get('user_id') and u['username'] != 'zyde' %}
                   <button class="btn btn-sm btn-outline-danger" onclick="deleteUser({{ u['id'] }}, '{{ u['username'] }}')">
                     <i class="bi bi-trash"></i>
                   </button>
                   {% endif %}
                 </td>
               </tr>
+                {% endif %}
               {% endfor %}
             </tbody>
           </table>
