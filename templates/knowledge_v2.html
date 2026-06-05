@@ -52,52 +52,87 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="t2-wrap">
-  <div class="t2-stats" id="t2Stats"></div>
-  <div class="t2-toolbar">
-    <div class="t2-search"><span style="color:var(--text-muted)">🔍</span><input type="text" id="t2GlobalSearch" placeholder="Search all columns..."/></div>
-    <div class="t2-groups" id="t2Groups"></div>
-    <div class="t2-cols" id="t2Cols"></div>
-  </div>
-  <div id="t2Root"></div>
-</div>
+<div id="t2Root" class="t2-wrap"></div>
 {% endblock %}
 {% block extra_scripts %}
 <script>
 (function(){
-  const {useReactTable,getCoreRowModel,getFilteredRowModel,getGroupedRowModel,getSortedRowModel,getPaginationRowModel,flexRender,createColumnHelper}=TanstackTable;
-  const {useState,useMemo,useEffect}=React;
-  const e=React.createElement;
-  const [data,setData]=useState([]);const [stats,setStats]={};const [loading,setLoading]=useState(true);
-  const [globalFilter,setGlobalFilter]=useState('');const [grouping,setGrouping]=useState([]);const [columnVisibility,setColumnVisibility]=useState({});
-  useEffect(()=>{(async()=>{try{const res=await fetch('/api/knowledge');const json=await res.json();if(json.success){setData(json.articles);setStats(json.stats)}}catch(err){console.error(err)}setLoading(false)})()},[]);
-  const ch=createColumnHelper();
-  const columns=useMemo(()=>[
-    ch.accessor('id',{header:'ID',size:60}),
-    ch.accessor('title',{header:'Title',size:280,filterFn:'includesString'}),
-    ch.accessor('category',{header:'Category',size:140,filterFn:'includesString'}),
-    ch.accessor('views',{header:'Views',cell:info=>e('span',{style:{fontWeight:600}},info.getValue()||0),size:80}),
-    ch.accessor('ticket_count',{header:'Used in Tickets',cell:info=>e('span',{style:{fontWeight:600,color:info.getValue()>0?'#3b82f6':'var(--text-muted)'}},info.getValue()||0),size:120}),
-    ch.accessor('created_at',{header:'Created',cell:info=>info.getValue()?info.getValue().slice(0,10):'-',size:100}),
-  ],[]);
-  const table=useReactTable({data,columns,state:{globalFilter,grouping,columnVisibility},onGlobalFilterChange:setGlobalFilter,onGroupingChange:setGrouping,onColumnVisibilityChange:setColumnVisibility,getCoreRowModel:getCoreRowModel(),getFilteredRowModel:getFilteredRowModel(),getGroupedRowModel:getGroupedRowModel(),getSortedRowModel:getSortedRowModel(),getPaginationRowModel:getPaginationRowModel(),initialState:{pagination:{pageSize:15}}});
-  useEffect(()=>{const el=document.getElementById('t2GlobalSearch');if(!el)return;let t;const h=()=>{clearTimeout(t);t=setTimeout(()=>setGlobalFilter(el.value),250)};el.addEventListener('input',h);return()=>el.removeEventListener('input',h)},[]);
-  const root=ReactDOM.createRoot(document.getElementById('t2Root'));
-  let lastRender='';
-  function renderApp(){
-    const sEl=document.getElementById('t2Stats');
-    sEl.innerHTML='<div class="t2-stat"><div class="t2-stat-label">บทความทั้งหมด</div><div class="t2-stat-value" style="color:#3b82f6">'+(stats.total||0)+'</div></div><div class="t2-stat"><div class="t2-stat-label">หมวดหมู่</div><div class="t2-stat-value" style="color:#8b5cf6">'+(stats.categories||0)+'</div></div>';
-    const gEl=document.getElementById('t2Groups');
-    gEl.innerHTML=grouping.length>0?grouping.map(g=>'<span class="t2-group-tag">Grouped by: '+g+'<button onclick="window.t2RemoveGroup(\''+g+'\')">✕</button></span>').join('')+'<span class="t2-group-tag" style="background:#334155;border-color:#475569;color:#94a5a6;cursor:pointer" onclick="window.t2ClearGroups()">Clear all</span>':'';
-    const cEl=document.getElementById('t2Cols');
-    cEl.innerHTML=table.getAllLeafColumns().map(col=>'<label><input type="checkbox" '+(col.getIsVisible()?'checked':'')+' onchange="window.t2ToggleCol(\''+col.id+'\')"> '+(col.columnDef.header||col.id)+'</label>').join('');
-    root.render(e('div',{style:{overflowX:'auto'}},e('table',{className:'t2-table'},e('thead',null,table.getHeaderGroups().map(hg=>e(React.Fragment,{key:hg.id},e('tr',{key:'h-'+hg.id},hg.headers.map(h=>e('th',{key:h.id,style:{width:h.getSize()},onClick:h.column.getToggleSortingHandler()},e('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},flexRender(h.column.columnDef.header,h.getContext()),e('span',{className:'t2-sort'},h.column.getIsSorted()==='asc'?'▲':h.column.getIsSorted()==='desc'?'▼':'⇅'),h.column.getCanGroup()&&e('span',{className:'t2-group-icon'+(grouping.includes(h.column.id)?' active':''),onClick:(ev)=>{ev.stopPropagation();h.column.toggleGrouping()},title:'Group by this column'},'⊞')))))),e('tr',{key:'f-'+hg.id,className:'t2-filter-row'},hg.headers.map(h=>e('th',{key:h.id},h.column.getCanFilter()&&e('input',{type:'text',placeholder:'Filter '+(h.column.columnDef.header||h.column.id)+'...',value:h.column.getFilterValue()||'',onChange:(ev)=>h.column.setFilterValue(ev.target.value)}))))))),e('tbody',null,table.getRowModel().rows.length===0?e('tr',null,e('td',{colSpan:99,style:{textAlign:'center',padding:'40px',color:'var(--text-muted)'}},loading?e('div',null,e('div',{className:'t2-spinner'}),e('div',{style:{marginTop:10}},'Loading...')):'No records found')):table.getRowModel().rows.map(row=>e('tr',{key:row.id,className:row.getIsGrouped()?'t2-group-row':'',onClick:()=>{if(!row.getIsGrouped())window.location.href='/kb/'+row.original.id},style:{cursor:row.getIsGrouped()?'default':'pointer'}},row.getVisibleCells().map(cell=>e('td',{key:cell.id},row.getIsGrouped()?e('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},e('button',{className:'t2-expand-btn',onClick:row.getToggleExpandedHandler()},row.getIsExpanded()?'▼':'▶'),flexRender(cell.column.columnDef.cell,cell.getContext()),e('span',{style:{color:'var(--text-muted)',fontSize:'12px'}},'('+row.subRows.length+' items)')):flexRender(cell.column.columnDef.cell,cell.getContext()))))))),e('div',{className:'t2-pagination'},e('div',null,'Showing '+(table.getState().pagination.pageIndex*table.getState().pagination.pageSize+1)+'–'+Math.min((table.getState().pagination.pageIndex+1)*table.getState().pagination.pageSize,table.getFilteredRowModel().rows.length)+' of '+table.getFilteredRowModel().rows.length+' records'),e('div',{className:'t2-page-btns'},e('button',{className:'t2-page-btn',onClick:()=>table.setPageIndex(0),disabled:!table.getCanPreviousPage()},'« First'),e('button',{className:'t2-page-btn',onClick:()=>table.previousPage(),disabled:!table.getCanPreviousPage()},'‹ Prev'),e('span',{className:'t2-page-info'},'Page '+(table.getState().pagination.pageIndex+1)+' of '+table.getPageCount()),e('button',{className:'t2-page-btn',onClick:()=>table.nextPage(),disabled:!table.getCanNextPage()},'Next ›'),e('button',{className:'t2-page-btn',onClick:()=>table.setPageIndex(table.getPageCount()-1),disabled:!table.getCanNextPage()},'Last »'),e('select',{className:'t2-page-size',value:table.getState().pagination.pageSize,onChange:(ev)=>table.setPageSize(Number(ev.target.value))},[10,15,25,50,100].map(s=>e('option',{key:s,value:s},s+' / page'))))))));
+  var RT = window.TanstackTable;
+  if(!RT){ document.getElementById('t2Root').innerHTML='<div class="t2-loading">Error: TanStack Table not loaded</div>'; return; }
+  var useReactTable=RT.useReactTable, getCoreRowModel=RT.getCoreRowModel, getFilteredRowModel=RT.getFilteredRowModel,
+      getGroupedRowModel=RT.getGroupedRowModel, getSortedRowModel=RT.getSortedRowModel,
+      getPaginationRowModel=RT.getPaginationRowModel, flexRender=RT.flexRender, createColumnHelper=RT.createColumnHelper;
+  var e = React.createElement;
+
+  function App(){
+    var _a = React.useState([]), data = _a[0], setData = _a[1];
+    var _b = React.useState({}), stats = _b[0], setStats = _b[1];
+    var _c = React.useState(true), loading = _c[0], setLoading = _c[1];
+    var _d = React.useState(''), globalFilter = _d[0], setGlobalFilter = _d[1];
+    var _e = React.useState([]), grouping = _e[0], setGrouping = _e[1];
+    var _f = React.useState({}), columnVisibility = _f[0], setColumnVisibility = _f[1];
+
+    React.useEffect(function(){
+      setLoading(true);
+      fetch('/api/knowledge').then(function(r){return r.json()}).then(function(json){
+        if(json.success){setData(json.articles);setStats(json.stats);}
+        setLoading(false);
+      }).catch(function(){setLoading(false);});
+    }, []);
+
+    var searchTimer = React.useRef(null);
+    function onSearch(val){ clearTimeout(searchTimer.current); searchTimer.current = setTimeout(function(){setGlobalFilter(val);}, 250); }
+
+    var ch = createColumnHelper();
+    var columns = React.useMemo(function(){ return [
+      ch.accessor('id',{header:'ID',size:60}),
+      ch.accessor('title',{header:'Title',size:280,filterFn:'includesString'}),
+      ch.accessor('category',{header:'Category',size:140,filterFn:'includesString'}),
+      ch.accessor('views',{header:'Views',cell:function(info){return e('span',{style:{fontWeight:600}},info.getValue()||0);},size:80}),
+      ch.accessor('ticket_count',{header:'Used in Tickets',cell:function(info){return e('span',{style:{fontWeight:600,color:info.getValue()>0?'#3b82f6':'var(--text-muted)'}},info.getValue()||0);},size:120}),
+      ch.accessor('created_at',{header:'Created',cell:function(info){return info.getValue()?info.getValue().slice(0,10):'-';},size:100}),
+    ]; }, []);
+
+    var table = useReactTable({data:data,columns:columns,state:{globalFilter:globalFilter,grouping:grouping,columnVisibility:columnVisibility},onGlobalFilterChange:setGlobalFilter,onGroupingChange:setGrouping,onColumnVisibilityChange:setColumnVisibility,getCoreRowModel:getCoreRowModel(),getFilteredRowModel:getFilteredRowModel(),getGroupedRowModel:getGroupedRowModel(),getSortedRowModel:getSortedRowModel(),getPaginationRowModel:getPaginationRowModel(),initialState:{pagination:{pageSize:15}}});
+
+    return e('div',{className:'t2-wrap'},
+      e('div',{className:'t2-stats'},
+        e('div',{className:'t2-stat'},e('div',{className:'t2-stat-label'},'บทความทั้งหมด'),e('div',{className:'t2-stat-value',style:{color:'#3b82f6'}},stats.total||0)),
+        e('div',{className:'t2-stat'},e('div',{className:'t2-stat-label'},'หมวดหมู่'),e('div',{className:'t2-stat-value',style:{color:'#8b5cf6'}},stats.categories||0))
+      ),
+      e('div',{className:'t2-toolbar'},
+        e('div',{className:'t2-search'},e('span',{style:{color:'var(--text-muted)'}},'🔍'),e('input',{type:'text',placeholder:'Search all columns...',onChange:function(ev){onSearch(ev.target.value);}})),
+        e('div',{className:'t2-groups'},grouping.length>0?grouping.map(function(g){return e('span',{key:g,className:'t2-group-tag'},'Grouped by: '+g,e('button',{onClick:function(){setGrouping(grouping.filter(function(x){return x!==g;}));}},'✕'));}).concat([e('span',{key:'clear',className:'t2-group-tag',style:{background:'#334155',borderColor:'#475569',color:'#94a5a6',cursor:'pointer'},onClick:function(){setGrouping([]);}},'Clear all')]):null),
+        e('div',{className:'t2-cols'},table.getAllLeafColumns().map(function(col){return e('label',{key:col.id},e('input',{type:'checkbox',checked:col.getIsVisible(),onChange:function(){col.toggleVisibility();}}),' '+(col.columnDef.header||col.id));}))
+      ),
+      e('div',{style:{overflowX:'auto'}},
+        e('table',{className:'t2-table'},
+          e('thead',null,table.getHeaderGroups().map(function(hg){return e(React.Fragment,{key:hg.id},
+            e('tr',{key:'h-'+hg.id},hg.headers.map(function(h){return e('th',{key:h.id,style:{width:h.getSize()},onClick:h.column.getToggleSortingHandler()},e('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},flexRender(h.column.columnDef.header,h.getContext()),e('span',{className:'t2-sort'},h.column.getIsSorted()==='asc'?'▲':h.column.getIsSorted()==='desc'?'▼':'⇅'),h.column.getCanGroup()&&e('span',{className:'t2-group-icon'+(grouping.includes(h.column.id)?' active':''),onClick:function(ev){ev.stopPropagation();h.column.toggleGrouping();},title:'Group by this column'},'⊞')));})),
+            e('tr',{key:'f-'+hg.id,className:'t2-filter-row'},hg.headers.map(function(h){return e('th',{key:h.id},h.column.getCanFilter()&&e('input',{type:'text',placeholder:'Filter '+(h.column.columnDef.header||h.column.id)+'...',value:h.column.getFilterValue()||'',onChange:function(ev){h.column.setFilterValue(ev.target.value);}}));}))
+          );})),
+          e('tbody',null,
+            loading?e('tr',null,e('td',{colSpan:99,style:{textAlign:'center',padding:'60px'}},e('div',{className:'t2-spinner'}),e('div',{style:{marginTop:10}},'Loading...'))):
+            table.getRowModel().rows.length===0?e('tr',null,e('td',{colSpan:99,style:{textAlign:'center',padding:'40px',color:'var(--text-muted)'}},'No records found')):
+            table.getRowModel().rows.map(function(row){return e('tr',{key:row.id,className:row.getIsGrouped()?'t2-group-row':'',onClick:function(){if(!row.getIsGrouped())window.location.href='/kb/'+row.original.id;},style:{cursor:row.getIsGrouped()?'default':'pointer'}},row.getVisibleCells().map(function(cell){return e('td',{key:cell.id},row.getIsGrouped()?e('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},e('button',{className:'t2-expand-btn',onClick:row.getToggleExpandedHandler()},row.getIsExpanded()?'▼':'▶'),flexRender(cell.column.columnDef.cell,cell.getContext()),e('span',{style:{color:'var(--text-muted)',fontSize:'12px'}},'('+row.subRows.length+' items)')):flexRender(cell.column.columnDef.cell,cell.getContext()));}));})
+          )
+        )
+      ),
+      e('div',{className:'t2-pagination'},
+        e('div',null,'Showing '+(table.getState().pagination.pageIndex*table.getState().pagination.pageSize+1)+'–'+Math.min((table.getState().pagination.pageIndex+1)*table.getState().pagination.pageSize,table.getFilteredRowModel().rows.length)+' of '+table.getFilteredRowModel().rows.length+' records'),
+        e('div',{className:'t2-page-btns'},
+          e('button',{className:'t2-page-btn',onClick:function(){table.setPageIndex(0);},disabled:!table.getCanPreviousPage()},'« First'),
+          e('button',{className:'t2-page-btn',onClick:function(){table.previousPage();},disabled:!table.getCanPreviousPage()},'‹ Prev'),
+          e('span',{className:'t2-page-info'},'Page '+(table.getState().pagination.pageIndex+1)+' of '+table.getPageCount()),
+          e('button',{className:'t2-page-btn',onClick:function(){table.nextPage();},disabled:!table.getCanNextPage()},'Next ›'),
+          e('button',{className:'t2-page-btn',onClick:function(){table.setPageIndex(table.getPageCount()-1);},disabled:!table.getCanNextPage()},'Last »'),
+          e('select',{className:'t2-page-size',value:table.getState().pagination.pageSize,onChange:function(ev){table.setPageSize(Number(ev.target.value));}},[10,15,25,50,100].map(function(s){return e('option',{key:s,value:s},s+' / page');}))
+        )
+      )
+    );
   }
-  window.t2RemoveGroup=function(colId){setGrouping(grouping.filter(g=>g!==colId))};
-  window.t2ClearGroups=function(){setGrouping([])};
-  window.t2ToggleCol=function(colId){const col=table.getColumn(colId);if(col)col.toggleVisibility()};
-  setInterval(()=>{const s=JSON.stringify({data:data.length,globalFilter,grouping,columnVisibility,loading});if(s!==lastRender){lastRender=s;renderApp()}},100);
-  renderApp();
+
+  ReactDOM.createRoot(document.getElementById('t2Root')).render(e(App));
 })();
 </script>
 {% endblock %}
