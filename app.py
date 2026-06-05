@@ -369,6 +369,10 @@ def init_db():
 def howto_public():
     return render_template('howto-public.html')
 
+@app.route('/interview')
+def interview_page():
+    return render_template('interview.html')
+
 @app.route('/login',methods=['GET','POST'])
 def login():
     if request.method=='POST':
