@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Assets v2 — ITSM Demo{% endblock %}
+{% block extra_head %}
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@tanstack/react-table@8/build/umd/index.production.js"></script>
+<style>
+  .t2-wrap{font-family:'Segoe UI','Noto Sans Thai',sans-serif}
+  .t2-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+  .t2-search{display:flex;align-items:center;gap:8px;background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:8px;padding:8px 14px;flex:1 1 280px;max-width:380px}
+  .t2-search input{background:transparent;border:none;outline:none;color:var(--text-body);font-size:14px;width:100%}
+  .t2-search input::placeholder{color:var(--text-muted)}
+  .t2-groups{display:flex;gap:6px;flex-wrap:wrap}
+  .t2-group-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;background:#1e3a5f;border:1px solid #3b82f6;border-radius:16px;font-size:12px;color:#93c5fd}
+  .t2-group-tag button{background:none;border:none;color:#93c5fd;cursor:pointer;padding:0;font-size:12px}
+  .t2-cols{display:flex;gap:4px;flex-wrap:wrap}
+  .t2-cols label{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;cursor:pointer}
+  .t2-cols input{accent-color:#3b82f6}
+  .t2-table{width:100%;border-collapse:collapse;font-size:13px}
+  .t2-table thead th{background:var(--bg-elevated,#f8f9fa);padding:10px 12px;text-align:left;font-weight:600;color:var(--text-muted);border-bottom:2px solid var(--border-subtle,#e0e0e0);cursor:pointer;user-select:none;white-space:nowrap}
+  .t2-table thead th:hover{color:var(--text-body)}
+  .t2-sort{color:#bbb;font-size:10px;margin-left:4px}
+  .t2-group-icon{cursor:pointer;color:#bbb;font-size:11px;margin-left:auto}
+  .t2-group-icon.active{color:#3b82f6}
+  .t2-filter-row th{padding:4px 12px 8px;background:var(--bg-body)}
+  .t2-filter-row input{width:100%;padding:4px 8px;font-size:12px;background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:4px;color:var(--text-body);outline:none}
+  .t2-filter-row input::placeholder{color:var(--text-muted)}
+  .t2-table tbody td{padding:10px 12px;border-bottom:1px solid var(--border-subtle,#f0f0f0);color:var(--text-body)}
+  .t2-table tbody tr:hover{background:var(--bg-elevated,#f8f9ff)}
+  .t2-group-row{background:var(--bg-elevated,#f0f4f8)!important;font-weight:600}
+  .t2-badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600}
+  .t2-status-active{background:#d1fae5;color:#047857}
+  .t2-status-maintenance{background:#fef3c7;color:#b45309}
+  .t2-status-retired{background:#f3f4f6;color:#4b5563}
+  .t2-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px}
+  .t2-stat{background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .t2-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .t2-stat.active{border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.2)}
+  .t2-stat .t2-stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
+  .t2-stat .t2-stat-value{font-size:22px;font-weight:700}
+  .t2-pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--text-muted)}
+  .t2-page-btns{display:flex;gap:6px;align-items:center}
+  .t2-page-btn{padding:6px 12px;background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:6px;color:var(--text-body);cursor:pointer;font-size:13px}
+  .t2-page-btn:disabled{opacity:.4;cursor:not-allowed}
+  .t2-page-btn:hover:not(:disabled){border-color:#3b82f6;color:#3b82f6}
+  .t2-page-info{padding:0 8px;color:var(--text-body)}
+  .t2-page-size{padding:6px 8px;background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:6px;color:var(--text-body);font-size:13px}
+  .t2-loading{text-align:center;padding:60px;color:var(--text-muted)}
+  .t2-spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border-subtle);border-top-color:#3b82f6;border-radius:50%;animation:t2-spin .8s linear infinite}
+  @keyframes t2-spin{to{transform:rotate(360deg)}}
+  .t2-expand-btn{background:none;border:none;color:#3b82f6;cursor:pointer;font-size:14px;padding:0;margin-right:6px}
+  body[data-theme="dark"] .t2-search,body[data-theme="dark"] .t2-stat,body[data-theme="dark"] .t2-page-btn,body[data-theme="dark"] .t2-page-size,body[data-theme="dark"] .t2-filter-row input{background:#16213e;border-color:#0f3460;color:#e0e0e0}
+  body[data-theme="dark"] .t2-table thead th{background:#16213e;color:#94a3b8;border-color:#0f3460}
+  body[data-theme="dark"] .t2-table tbody td{border-color:rgba(255,255,255,0.04);color:#cbd5e1}
+  body[data-theme="dark"] .t2-table tbody tr:hover{background:#16213e}
+  body[data-theme="dark"] .t2-group-row{background:#1a1a4e!important}
+</style>
+{% endblock %}
+{% block content %}
+<div class="t2-wrap">
+  <div class="t2-stats" id="t2Stats"></div>
+  <div class="t2-toolbar">
+    <div class="t2-search"><span style="color:var(--text-muted)">🔍</span><input type="text" id="t2GlobalSearch" placeholder="Search all columns..."/></div>
+    <div class="t2-groups" id="t2Groups"></div>
+    <div class="t2-cols" id="t2Cols"></div>
+  </div>
+  <div id="t2Root"></div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+(function(){
+  const {useReactTable,getCoreRowModel,getFilteredRowModel,getGroupedRowModel,getSortedRowModel,getPaginationRowModel,flexRender,createColumnHelper}=TanstackTable;
+  const {useState,useMemo,useEffect,useCallback}=React;
+  const e=React.createElement;
+  const [data,setData]=useState([]);const [stats,setStats]=useState({});const [loading,setLoading]=useState(true);
+  const [globalFilter,setGlobalFilter]=useState('');const [grouping,setGrouping]=useState([]);const [columnVisibility,setColumnVisibility]=useState({});
+  const [statusFilter,setStatusFilter]=useState('');
+  const fetchData=useCallback(async()=>{setLoading(true);try{const res=await fetch('/api/assets');const json=await res.json();if(json.success){setData(json.assets);setStats(json.stats)}}catch(err){console.error(err)}setLoading(false);},[]);
+  useEffect(()=>{fetchData()},[fetchData]);
+  const ch=createColumnHelper();
+  const columns=useMemo(()=>[
+    ch.accessor('asset_tag',{header:'Tag',cell:info=>e('span',{style:{fontFamily:'monospace',color:'#3b82f6',fontWeight:600}},info.getValue()),size:100,filterFn:'includesString'}),
+    ch.accessor('asset_type',{header:'Type',size:110,filterFn:'includesString'}),
+    ch.accessor('brand',{header:'Brand',size:100,filterFn:'includesString'}),
+    ch.accessor('model',{header:'Model',size:120,filterFn:'includesString'}),
+    ch.accessor('serial',{header:'Serial',cell:info=>e('span',{style:{fontFamily:'monospace',fontSize:12}},info.getValue()||'-'),size:130,filterFn:'includesString'}),
+    ch.accessor('status',{header:'Status',cell:info=>{const s=info.getValue();const l={active:'ใช้งาน',maintenance:'ซ่อมบำรุง',retired:'เลิกใช้'};return e('span',{className:'t2-badge t2-status-'+s},l[s]||s)},size:110,filterFn:'includesString'}),
+    ch.accessor('short_branch',{header:'Branch',size:110,filterFn:'includesString'}),
+    ch.accessor('province',{header:'Province',size:100,filterFn:'includesString'}),
+    ch.accessor('assigned_to',{header:'Assigned to',cell:info=>info.getValue()||'-',size:130,filterFn:'includesString'}),
+  ],[]);
+  const table=useReactTable({data,columns,state:{globalFilter,grouping,columnVisibility},onGlobalFilterChange:setGlobalFilter,onGroupingChange:setGrouping,onColumnVisibilityChange:setColumnVisibility,getCoreRowModel:getCoreRowModel(),getFilteredRowModel:getFilteredRowModel(),getGroupedRowModel:getGroupedRowModel(),getSortedRowModel:getSortedRowModel(),getPaginationRowModel:getPaginationRowModel(),initialState:{pagination:{pageSize:15}}});
+  useEffect(()=>{const el=document.getElementById('t2GlobalSearch');if(!el)return;let t;const h=()=>{clearTimeout(t);t=setTimeout(()=>setGlobalFilter(el.value),250)};el.addEventListener('input',h);return()=>el.removeEventListener('input',h)},[]);
+  const root=ReactDOM.createRoot(document.getElementById('t2Root'));
+  let lastRender='';
+  function renderApp(){
+    const sEl=document.getElementById('t2Stats');
+    const items=[{key:'all',label:'ทั้งหมด',value:stats.total||0,color:'#3b82f6',f:''},{key:'active',label:'ใช้งาน',value:stats.active||0,color:'#047857',f:'active'},{key:'maintenance',label:'ซ่อมบำรุง',value:stats.maintenance||0,color:'#b45309',f:'maintenance'},{key:'retired',label:'เลิกใช้',value:stats.retired||0,color:'#4b5563',f:'retired'}];
+    sEl.innerHTML=items.map(s=>'<div class="t2-stat'+(statusFilter===s.f?' active':'')+'" onclick="window.t2SetStatus(\''+s.f+'\')"><div class="t2-stat-label">'+s.label+'</div><div class="t2-stat-value" style="color:'+s.color+'">'+s.value+'</div></div>').join('');
+    const gEl=document.getElementById('t2Groups');
+    gEl.innerHTML=grouping.length>0?grouping.map(g=>'<span class="t2-group-tag">Grouped by: '+g+'<button onclick="window.t2RemoveGroup(\''+g+'\')">✕</button></span>').join('')+'<span class="t2-group-tag" style="background:#334155;border-color:#475569;color:#94a5a6;cursor:pointer" onclick="window.t2ClearGroups()">Clear all</span>':'';
+    const cEl=document.getElementById('t2Cols');
+    cEl.innerHTML=table.getAllLeafColumns().map(col=>'<label><input type="checkbox" '+(col.getIsVisible()?'checked':'')+' onchange="window.t2ToggleCol(\''+col.id+'\')"> '+(col.columnDef.header||col.id)+'</label>').join('');
+    root.render(e('div',{style:{overflowX:'auto'}},e('table',{className:'t2-table'},e('thead',null,table.getHeaderGroups().map(hg=>e(React.Fragment,{key:hg.id},e('tr',{key:'h-'+hg.id},hg.headers.map(h=>e('th',{key:h.id,style:{width:h.getSize()},onClick:h.column.getToggleSortingHandler()},e('div',{style:{display:'flex',alignItems:'center',gap:'6px'}},flexRender(h.column.columnDef.header,h.getContext()),e('span',{className:'t2-sort'},h.column.getIsSorted()==='asc'?'▲':h.column.getIsSorted()==='desc'?'▼':'⇅'),h.column.getCanGroup()&&e('span',{className:'t2-group-icon'+(grouping.includes(h.column.id)?' active':''),onClick:(ev)=>{ev.stopPropagation();h.column.toggleGrouping()},title:'Group by this column'},'⊞')))))),e('tr',{key:'f-'+hg.id,className:'t2-filter-row'},hg.headers.map(h=>e('th',{key:h.id},h.column.getCanFilter()&&e('input',{type:'text',placeholder:'Filter '+(h.column.columnDef.header||h.column.id)+'...',value:h.column.getFilterValue()||'',onChange:(ev)=>h.column.setFilterValue(ev.target.value)}))))))),e('tbody',null,table.getRowModel().rows.length===0?e('tr',null,e('td',{colSpan:99,style:{textAlign:'center',padding:'40px',color:'var(--text-muted)'}},loading?e('div',null,e('div',{className:'t2-spinner'}),e('div',{style:{marginTop:10}},'Loading...')):'No records found')):table.getRowModel().rows.map(row=>e('tr',{key:row.id,className:row.getIsGrouped()?'t2-group-row':'',onClick:()=>{if(!row.getIsGrouped())window.location.href='/asset/'+row.original.id},style:{cursor:row.getIsGrouped()?'default':'pointer'}},row.getVisibleCells().map(cell=>e('td',{key:cell.id},row.getIsGrouped()?e('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},e('button',{className:'t2-expand-btn',onClick:row.getToggleExpandedHandler()},row.getIsExpanded()?'▼':'▶'),flexRender(cell.column.columnDef.cell,cell.getContext()),e('span',{style:{color:'var(--text-muted)',fontSize:'12px'}},'('+row.subRows.length+' items)')):flexRender(cell.column.columnDef.cell,cell.getContext()))))))),e('div',{className:'t2-pagination'},e('div',null,'Showing '+(table.getState().pagination.pageIndex*table.getState().pagination.pageSize+1)+'–'+Math.min((table.getState().pagination.pageIndex+1)*table.getState().pagination.pageSize,table.getFilteredRowModel().rows.length)+' of '+table.getFilteredRowModel().rows.length+' records'),e('div',{className:'t2-page-btns'},e('button',{className:'t2-page-btn',onClick:()=>table.setPageIndex(0),disabled:!table.getCanPreviousPage()},'« First'),e('button',{className:'t2-page-btn',onClick:()=>table.previousPage(),disabled:!table.getCanPreviousPage()},'‹ Prev'),e('span',{className:'t2-page-info'},'Page '+(table.getState().pagination.pageIndex+1)+' of '+table.getPageCount()),e('button',{className:'t2-page-btn',onClick:()=>table.nextPage(),disabled:!table.getCanNextPage()},'Next ›'),e('button',{className:'t2-page-btn',onClick:()=>table.setPageIndex(table.getPageCount()-1),disabled:!table.getCanNextPage()},'Last »'),e('select',{className:'t2-page-size',value:table.getState().pagination.pageSize,onChange:(ev)=>table.setPageSize(Number(ev.target.value))},[10,15,25,50,100].map(s=>e('option',{key:s,value:s},s+' / page'))))))));
+  }
+  window.t2SetStatus=function(f){setStatusFilter(f===statusFilter?'':f);setData(data.filter(a=>!f||a.status===f))};
+  window.t2RemoveGroup=function(colId){setGrouping(grouping.filter(g=>g!==colId))};
+  window.t2ClearGroups=function(){setGrouping([])};
+  window.t2ToggleCol=function(colId){const col=table.getColumn(colId);if(col)col.toggleVisibility()};
+  setInterval(()=>{const s=JSON.stringify({data:data.length,globalFilter,grouping,columnVisibility,statusFilter,loading});if(s!==lastRender){lastRender=s;renderApp()}},100);
+  renderApp();
+})();
+</script>
+{% endblock %}

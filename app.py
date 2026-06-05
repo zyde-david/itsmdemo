@@ -416,6 +416,14 @@ def dashboard():
     tp=round(bc[0]['cnt']/total*100) if bc and total>0 else 0
     return render_template('dashboard.html',total=total,open_tickets=op,resolved=res,in_progress=prog,pending=pend,critical=critical,recent=recent,by_province=bp,by_category=bc,cat_labels=cl,cat_counts=cc,top_cat_pct=tp,branch_count=NUM_BRANCHES,total_staff=ns,total_assets=na,active_assets=aa,it_team=itc,total_kb=nk)
 
+@app.route('/tickets/v2')
+@login_required
+def tickets_v2_page():
+    """TanStack Table v2 tickets page (React SPA via CDN)."""
+    current_user = get_current_user()
+    return render_template('tickets_v2.html', current_user=current_user)
+
+
 @app.route('/tickets')
 @login_required
 def tickets_page():
@@ -481,6 +489,60 @@ def tickets_page():
         critical_tickets=critical_tickets,
         current_user=current_user)
 
+@app.route('/api/tickets')
+@login_required
+def api_tickets():
+    """JSON API for TanStack Table v2 tickets page."""
+    c = get_db()
+    where = []
+    params = []
+    status = request.args.get('status', '')
+    priority = request.args.get('priority', '')
+    branch = request.args.get('branch', '')
+    province = request.args.get('province', '')
+    category = request.args.get('category', '')
+    search = request.args.get('search', '')
+    if status:
+        where.append('status=?'); params.append(status)
+    if priority:
+        where.append('priority=?'); params.append(priority)
+    if branch:
+        where.append('branch=?'); params.append(branch)
+    if province:
+        where.append('province=?'); params.append(province)
+    if category:
+        where.append('category=?'); params.append(category)
+    if search:
+        where.append('(title LIKE ? OR ticket_code LIKE ? OR branch LIKE ? OR reported_by LIKE ?)')
+        params.extend(['%'+search+'%']*4)
+    # Role-based scope
+    scope_sql, scope_params = ticket_scope_clause()
+    if scope_sql:
+        where.append(scope_sql)
+        params.extend(scope_params)
+    q = 'SELECT * FROM tickets'
+    if where:
+        q += ' WHERE ' + ' AND '.join(where)
+    q += ' ORDER BY created_at DESC'
+    rows = c.execute(q, params).fetchall()
+    tickets = []
+    for r in rows:
+        t = dict(r)
+        t['short_branch'] = SHORT_BRANCHES.get(t['branch'], t['branch'].replace('สาขา',''))
+        tickets.append(t)
+    # Stats
+    stats = {
+        'total': c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0],
+        'open': c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0],
+        'in_progress': c.execute("SELECT COUNT(*) FROM tickets WHERE status='in_progress'").fetchone()[0],
+        'pending': c.execute("SELECT COUNT(*) FROM tickets WHERE status='pending'").fetchone()[0],
+        'resolved': c.execute("SELECT COUNT(*) FROM tickets WHERE status='resolved'").fetchone()[0],
+        'closed': c.execute("SELECT COUNT(*) FROM tickets WHERE status='closed'").fetchone()[0],
+        'critical': c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0],
+    }
+    return jsonify(success=True, tickets=tickets, stats=stats)
+
+
 @app.route('/ticket/<int:ticket_id>')
 @login_required
 def ticket_detail(ticket_id):
@@ -518,6 +580,85 @@ def asset_detail(asset_id):
     linked=c.execute('SELECT * FROM tickets WHERE asset_id=? ORDER BY created_at DESC',(asset_id,)).fetchall()
     logs=c.execute('SELECT * FROM asset_logs WHERE asset_id=? ORDER BY created_at DESC',(asset_id,)).fetchall()
     return render_template('asset_detail.html',asset=a,linked_tickets=linked,logs=logs,current_user=session.get('username'))
+
+@app.route('/api/assets')
+@login_required
+def api_assets():
+    """JSON API for TanStack Table v2 assets page."""
+    c = get_db()
+    rows = c.execute('SELECT * FROM assets ORDER BY branch, asset_type').fetchall()
+    branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+    assets = []
+    for r in rows:
+        a = dict(r)
+        a['province'] = branch_to_province.get(a['branch'], '-')
+        a['short_branch'] = SHORT_BRANCHES.get(a['branch'], a['branch'].replace('สาขา',''))
+        assets.append(a)
+    stats = {
+        'total': c.execute('SELECT COUNT(*) FROM assets').fetchone()[0],
+        'active': c.execute("SELECT COUNT(*) FROM assets WHERE status='active'").fetchone()[0],
+        'maintenance': c.execute("SELECT COUNT(*) FROM assets WHERE status='maintenance'").fetchone()[0],
+        'retired': c.execute("SELECT COUNT(*) FROM assets WHERE status='retired'").fetchone()[0],
+    }
+    return jsonify(success=True, assets=assets, stats=stats)
+
+
+@app.route('/api/staff')
+@login_required
+def api_staff():
+    """JSON API for TanStack Table v2 staff page."""
+    c = get_db()
+    rows = c.execute('SELECT * FROM staff ORDER BY province, branch, name').fetchall()
+    staff = [dict(r) for r in rows]
+    for s in staff:
+        s['short_branch'] = SHORT_BRANCHES.get(s['branch'], s['branch'].replace('สาขา',''))
+    stats = {
+        'total': c.execute('SELECT COUNT(*) FROM staff').fetchone()[0],
+        'it': c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0],
+    }
+    return jsonify(success=True, staff=staff, stats=stats)
+
+
+@app.route('/api/knowledge')
+@login_required
+def api_knowledge():
+    """JSON API for TanStack Table v2 knowledge page."""
+    c = get_db()
+    rows = c.execute('''
+        SELECT kb.*, COALESCE(COUNT(t.id), 0) AS ticket_count
+        FROM knowledge_base kb
+        LEFT JOIN tickets t ON t.kb_id = kb.id
+        GROUP BY kb.id
+        ORDER BY kb.views DESC
+    ''').fetchall()
+    articles = [dict(r) for r in rows]
+    stats = {
+        'total': len(articles),
+        'categories': len(set(a['category'] for a in articles)),
+    }
+    return jsonify(success=True, articles=articles, stats=stats)
+
+
+@app.route('/assets/v2')
+@login_required
+def assets_v2_page():
+    current_user = get_current_user()
+    return render_template('assets_v2.html', current_user=current_user)
+
+
+@app.route('/staff/v2')
+@login_required
+def staff_v2_page():
+    current_user = get_current_user()
+    return render_template('staff_v2.html', current_user=current_user)
+
+
+@app.route('/knowledge/v2')
+@login_required
+def knowledge_v2_page():
+    current_user = get_current_user()
+    return render_template('knowledge_v2.html', current_user=current_user)
+
 
 @app.route('/assets')
 @login_required

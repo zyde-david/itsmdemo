@@ -265,9 +265,14 @@ small,.small{color:var(--text-muted)}
   </div>
   <!-- Center: Brand -->
   <a href="/" class="navbar-brand mb-0 h5 text-white text-decoration-none"><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo <span class="small fw-normal opacity-75">v0.7</span></a>
-  <!-- Right: Theme toggle + User + Logout -->
+  <!-- Right: v1/v2 switch + Theme toggle + User + Logout -->
   <div class="nav-user-section d-flex align-items-center gap-2">
    <button class="btn btn-sm btn-outline-light d-md-none me-1" type="button" id="sidebarToggle"><i class="bi bi-list"></i></button>
+   <!-- v1/v2 Table Switch (shown via JS on tickets/assets/staff/knowledge pages) -->
+   <div id="tableVersionSwitch" class="d-none" style="background:rgba(255,255,255,.12);border-radius:18px;padding:3px;display:inline-flex;align-items:center;gap:2px">
+    <button type="button" class="btn btn-sm" id="tv1" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:15px;background:#fff;color:#1a5276;border:none" onclick="setTableVersion('v1')">v1</button>
+    <button type="button" class="btn btn-sm" id="tv2" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:15px;background:transparent;color:rgba(255,255,255,.7);border:none" onclick="setTableVersion('v2')">v2</button>
+   </div>
    <button class="btn btn-sm btn-outline-light" type="button" id="themeToggleBtn" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง"><i class="bi bi-moon-fill" id="themeToggleIcon"></i></button>
    <span class="text-white small d-none d-lg-inline"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</span>
    <span class="ai-badge d-none d-sm-inline"><i class="bi bi-stars me-1"></i>AI-Powered</span>
@@ -495,6 +500,62 @@ function initTable(selector,opts={}){
   ...opts
  });
 }
+
+// ── v1/v2 Table Version Switch ──
+(function(){
+  // Map: v1 path → v2 path
+  const v2map = {
+    '/tickets': '/tickets/v2',
+    '/assets':  '/assets/v2',
+    '/staff':   '/staff/v2',
+    '/knowledge': '/knowledge/v2'
+  };
+  const v1map = {};
+  Object.keys(v2map).forEach(k => { v1map[v2map[k]] = k; });
+
+  const currentPath = window.location.pathname;
+  const isV1Page = currentPath in v2map;
+  const isV2Page = currentPath in v1map;
+  const hasV2 = isV1Page || isV2Page;
+
+  if (hasV2) {
+    const sw = document.getElementById('tableVersionSwitch');
+    if (sw) sw.classList.remove('d-none');
+  }
+
+  // Restore preference
+  const saved = localStorage.getItem('tableVersion');
+  if (hasV2 && saved === 'v2' && isV1Page) {
+    // Auto-redirect to v2 if user previously chose v2
+    window.location.replace(v2map[currentPath]);
+  }
+
+  window.setTableVersion = function(v) {
+    localStorage.setItem('tableVersion', v);
+    const tv1 = document.getElementById('tv1');
+    const tv2 = document.getElementById('tv2');
+    if (v === 'v1') {
+      tv1.style.background = '#fff'; tv1.style.color = '#1a5276';
+      tv2.style.background = 'transparent'; tv2.style.color = 'rgba(255,255,255,.7)';
+      if (isV2Page) window.location.replace(v1map[currentPath]);
+    } else {
+      tv2.style.background = '#fff'; tv2.style.color = '#1a5276';
+      tv1.style.background = 'transparent'; tv1.style.color = 'rgba(255,255,255,.7)';
+      if (isV1Page) window.location.replace(v2map[currentPath]);
+    }
+  };
+
+  // Set initial button state
+  if (hasV2) {
+    const startV2 = isV2Page;
+    if (startV2) {
+      const tv2 = document.getElementById('tv2');
+      if (tv2) { tv2.style.background = '#fff'; tv2.style.color = '#1a5276'; }
+      const tv1 = document.getElementById('tv1');
+      if (tv1) { tv1.style.background = 'transparent'; tv1.style.color = 'rgba(255,255,255,.7)'; }
+    }
+  }
+})();
 </script>
 {% block extra_scripts %}{% endblock %}
 <div class="footer text-center py-3" style="color:#95a5a6;font-size:.7rem">
