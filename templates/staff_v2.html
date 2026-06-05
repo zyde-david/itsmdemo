@@ -3,7 +3,7 @@
 {% block extra_head %}
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@tanstack/react-table@8/build/umd/index.production.js"></script>
+<script src="https://unpkg.com/@tanstack/react-table@8.21.3/build/umd/index.production.js"></script>
 <style>
   .t2-wrap{font-family:'Segoe UI','Noto Sans Thai',sans-serif}
   .t2-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
@@ -59,7 +59,7 @@
 {% block extra_scripts %}
 <script>
 (function(){
-  var RT = window.TanstackTable;
+  var RT = window.ReactTable;
   if(!RT){ document.getElementById('t2Root').innerHTML='<div class="t2-loading">Error: TanStack Table not loaded</div>'; return; }
   var useReactTable=RT.useReactTable, getCoreRowModel=RT.getCoreRowModel, getFilteredRowModel=RT.getFilteredRowModel,
       getGroupedRowModel=RT.getGroupedRowModel, getSortedRowModel=RT.getSortedRowModel,
