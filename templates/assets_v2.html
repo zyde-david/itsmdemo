@@ -77,11 +77,12 @@
     var _e = React.useState([]), grouping = _e[0], setGrouping = _e[1];
     var _f = React.useState({}), columnVisibility = _f[0], setColumnVisibility = _f[1];
     var _g = React.useState(''), statusFilter = _g[0], setStatusFilter = _g[1];
+    var _h = React.useState([]), originalData = _h[0], setOriginalData = _h[1];
 
     React.useEffect(function(){
       setLoading(true);
       fetch('/api/assets').then(function(r){return r.json()}).then(function(json){
-        if(json.success){setData(json.assets);setStats(json.stats);}
+        if(json.success){var rows=json.assets||[];setOriginalData(rows);setData(rows);setStats(json.stats||{});}
         setLoading(false);
       }).catch(function(){setLoading(false);});
     }, []);
@@ -112,7 +113,7 @@
     ];
 
     return e('div',{className:'t2-wrap'},
-      e('div',{className:'t2-stats'},statItems.map(function(s){return e('div',{key:s.key,className:'t2-stat'+(statusFilter===s.f?' active':''),onClick:function(){setStatusFilter(statusFilter===s.f?'':s.f);setData(statusFilter===s.f?data:data.filter(function(a){return a.status===s.f;}));}},e('div',{className:'t2-stat-label'},s.label),e('div',{className:'t2-stat-value',style:{color:s.color}},s.value));})),
+      e('div',{className:'t2-stats'},statItems.map(function(s){return e('div',{key:s.key,className:'t2-stat'+(statusFilter===s.f?' active':''),onClick:function(){if(statusFilter===s.f){setStatusFilter('');setData(originalData);}else{setStatusFilter(s.f);setData(s.f?originalData.filter(function(a){return a.status===s.f;}):originalData);}}},e('div',{className:'t2-stat-label'},s.label),e('div',{className:'t2-stat-value',style:{color:s.color}},s.value));})),
       e('div',{className:'t2-toolbar'},
         e('div',{className:'t2-search'},e('span',{style:{color:'var(--text-muted)'}},'🔍'),e('input',{type:'text',placeholder:'Search all columns...',onChange:function(ev){onSearch(ev.target.value);}})),
         e('div',{className:'t2-groups'},grouping.length>0?grouping.map(function(g){return e('span',{key:g,className:'t2-group-tag'},'Grouped by: '+g,e('button',{onClick:function(){setGrouping(grouping.filter(function(x){return x!==g;}));}},'✕'));}).concat([e('span',{key:'clear',className:'t2-group-tag',style:{background:'#334155',borderColor:'#475569',color:'#94a5a6',cursor:'pointer'},onClick:function(){setGrouping([]);}},'Clear all')]):null),

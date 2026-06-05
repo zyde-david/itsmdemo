@@ -30,7 +30,9 @@
   .t2-group-row{background:var(--bg-elevated,#f0f4f8)!important;font-weight:600}
   .t2-badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600}
   .t2-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px}
-  .t2-stat{background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:10px;padding:12px;text-align:center}
+  .t2-stat{background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .t2-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .t2-stat.active{border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.2)}
   .t2-stat .t2-stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
   .t2-stat .t2-stat-value{font-size:22px;font-weight:700}
   .t2-pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--text-muted)}
@@ -71,11 +73,12 @@
     var _d = React.useState(''), globalFilter = _d[0], setGlobalFilter = _d[1];
     var _e = React.useState([]), grouping = _e[0], setGrouping = _e[1];
     var _f = React.useState({}), columnVisibility = _f[0], setColumnVisibility = _f[1];
+    var _g = React.useState([]), originalData = _g[0], setOriginalData = _g[1];
 
     React.useEffect(function(){
       setLoading(true);
       fetch('/api/knowledge').then(function(r){return r.json()}).then(function(json){
-        if(json.success){setData(json.articles);setStats(json.stats);}
+        if(json.success){var rows=json.articles||[];setOriginalData(rows);setData(rows);setStats(json.stats||{});}
         setLoading(false);
       }).catch(function(){setLoading(false);});
     }, []);
@@ -97,7 +100,7 @@
 
     return e('div',{className:'t2-wrap'},
       e('div',{className:'t2-stats'},
-        e('div',{className:'t2-stat'},e('div',{className:'t2-stat-label'},'บทความทั้งหมด'),e('div',{className:'t2-stat-value',style:{color:'#3b82f6'}},stats.total||0)),
+        e('div',{className:'t2-stat active',onClick:function(){setData(originalData);}},e('div',{className:'t2-stat-label'},'บทความทั้งหมด'),e('div',{className:'t2-stat-value',style:{color:'#3b82f6'}},stats.total||0)),
         e('div',{className:'t2-stat'},e('div',{className:'t2-stat-label'},'หมวดหมู่'),e('div',{className:'t2-stat-value',style:{color:'#8b5cf6'}},stats.categories||0))
       ),
       e('div',{className:'t2-toolbar'},

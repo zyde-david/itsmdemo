@@ -32,7 +32,9 @@
   .t2-it{background:#dbeafe;color:#1d4ed8}
   .t2-nonit{background:#f3f4f6;color:#4b5563}
   .t2-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px}
-  .t2-stat{background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:10px;padding:12px;text-align:center}
+  .t2-stat{background:var(--bg-surface,#fff);border:1px solid var(--border-subtle,#e0e0e0);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .t2-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .t2-stat.active{border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.2)}
   .t2-stat .t2-stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
   .t2-stat .t2-stat-value{font-size:22px;font-weight:700}
   .t2-pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--text-muted)}
@@ -73,11 +75,13 @@
     var _d = React.useState(''), globalFilter = _d[0], setGlobalFilter = _d[1];
     var _e = React.useState([]), grouping = _e[0], setGrouping = _e[1];
     var _f = React.useState({}), columnVisibility = _f[0], setColumnVisibility = _f[1];
+    var _g = React.useState(''), staffFilter = _g[0], setStaffFilter = _g[1];
+    var _h = React.useState([]), originalData = _h[0], setOriginalData = _h[1];
 
     React.useEffect(function(){
       setLoading(true);
       fetch('/api/staff').then(function(r){return r.json()}).then(function(json){
-        if(json.success){setData(json.staff);setStats(json.stats);}
+        if(json.success){var rows=json.staff||[];setOriginalData(rows);setData(rows);setStats(json.stats||{});}
         setLoading(false);
       }).catch(function(){setLoading(false);});
     }, []);
@@ -100,8 +104,8 @@
 
     return e('div',{className:'t2-wrap'},
       e('div',{className:'t2-stats'},
-        e('div',{className:'t2-stat'},e('div',{className:'t2-stat-label'},'ทั้งหมด'),e('div',{className:'t2-stat-value',style:{color:'#3b82f6'}},stats.total||0)),
-        e('div',{className:'t2-stat'},e('div',{className:'t2-stat-label'},'IT Team'),e('div',{className:'t2-stat-value',style:{color:'#1d4ed8'}},stats.it||0))
+        e('div',{className:'t2-stat'+(staffFilter===''?' active':''),onClick:function(){setStaffFilter('');setData(originalData);}},e('div',{className:'t2-stat-label'},'ทั้งหมด'),e('div',{className:'t2-stat-value',style:{color:'#3b82f6'}},stats.total||0)),
+        e('div',{className:'t2-stat'+(staffFilter==='it'?' active':''),onClick:function(){if(staffFilter==='it'){setStaffFilter('');setData(originalData);}else{setStaffFilter('it');setData(originalData.filter(function(s){return !!s.is_it;}));}}},e('div',{className:'t2-stat-label'},'IT Team'),e('div',{className:'t2-stat-value',style:{color:'#1d4ed8'}},stats.it||0))
       ),
       e('div',{className:'t2-toolbar'},
         e('div',{className:'t2-search'},e('span',{style:{color:'var(--text-muted)'}},'🔍'),e('input',{type:'text',placeholder:'Search all columns...',onChange:function(ev){onSearch(ev.target.value);}})),
