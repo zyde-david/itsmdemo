@@ -53,13 +53,14 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 .small-stat{font-size:0.7rem;color:#888}
 
 /* Sidebar PIN button */
-.sidebar-pin-btn{position:absolute;top:8px;right:-14px;width:28px;height:28px;background:var(--primary);color:#fff;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;z-index:1060;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:transform .2s,background .15s;font-size:.7rem}
-.sidebar-pin-btn:hover{background:#2980b9;transform:scale(1.1)}
+@media(min-width:768px){ #sidebarNav{padding-top:42px} }
+.sidebar-pin-btn{position:absolute;top:10px;left:14px;right:auto;width:34px;height:34px;background:var(--primary);color:#fff;border-radius:10px;align-items:center;justify-content:center;cursor:pointer;z-index:1060;box-shadow:0 2px 8px rgba(0,0,0,.22);transition:transform .2s,background .15s;font-size:.82rem}
+.sidebar-pin-btn:hover{background:#2980b9;transform:scale(1.08)}
 .sidebar-collapsed .sidebar{width:56px!important;min-width:56px!important;max-width:56px!important;overflow:hidden}
 .sidebar-collapsed .sidebar .nav-text{display:none!important}
 .sidebar-collapsed .sidebar .nav-link{justify-content:center;padding:10px 0}
 .sidebar-collapsed .sidebar .nav-link i{margin:0!important;font-size:1.1rem}
-.sidebar-collapsed .sidebar-pin-btn{right:-14px;transform:rotate(180deg)}
+.sidebar-collapsed .sidebar-pin-btn{left:50%;right:auto;transform:translateX(-50%) rotate(180deg)}
 .sidebar-collapsed #mainContent{flex:0 0 calc(100% - 56px)!important;max-width:calc(100% - 56px)!important}
 body[data-theme="dark"] .sidebar-pin-btn,
 body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:var(--text-elevated);border:1px solid var(--border-dark)}
@@ -74,6 +75,36 @@ body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:v
 
 /* Mobile nav link text */
 .sidebar .nav-link span.nav-text{display:inline}
+
+/* Mobile sidebar preference modes */
+.mobile-sidebar-hidden .sidebar{display:none!important}
+.mobile-sidebar-hidden #mainContent{flex:0 0 100%!important;max-width:100%!important;width:100%!important}
+.mobile-sidebar-minimal .sidebar{width:74px!important;max-width:74px!important;min-width:74px!important}
+.mobile-sidebar-minimal .sidebar .nav-text{display:none!important}
+.mobile-sidebar-minimal .sidebar .nav-link{justify-content:center;padding:12px 0;margin:3px 8px}
+.mobile-sidebar-minimal .sidebar .nav-link i{margin:0!important;font-size:1.15rem}
+.mobile-sidebar-pinned .sidebar-overlay{display:none!important}
+.mobile-sidebar-pinned #appLayout{display:flex;flex-wrap:nowrap}
+.mobile-sidebar-pinned .sidebar{position:sticky!important;top:62px!important;left:auto!important;bottom:auto!important;transform:none!important;width:220px!important;min-width:220px!important;max-width:220px!important;height:calc(100vh - 62px)!important;box-shadow:none!important;z-index:1010!important}
+.mobile-sidebar-pinned #mainContent{flex:1 1 auto!important;max-width:none!important;width:auto!important;min-width:0}
+.mobile-sidebar-pinned .sidebar .nav-link{padding:10px 12px;font-size:.86rem}
+@media(max-width:575.98px){
+  body.mobile-sidebar-pinned .sidebar{position:fixed!important;top:0!important;bottom:0!important;transform:translateX(-100%)!important;width:260px!important;min-width:260px!important;max-width:260px!important;z-index:1050!important;box-shadow:2px 0 12px rgba(0,0,0,.15)!important}
+  body.mobile-sidebar-pinned .sidebar.show{transform:translateX(0)!important}
+  body.mobile-sidebar-pinned #appLayout{display:block}
+  body.mobile-sidebar-pinned #mainContent{width:100%!important;max-width:100%!important}
+  body.mobile-sidebar-pinned .sidebar-overlay.show{display:block!important}
+}
+@media(min-width:768px){
+  body.mobile-sidebar-hidden .sidebar{display:block!important}
+  body.mobile-sidebar-hidden #mainContent{flex:0 0 auto!important;max-width:none!important;width:auto!important}
+  body.mobile-sidebar-minimal .sidebar{width:auto!important;max-width:none!important;min-width:0!important}
+  body.mobile-sidebar-minimal .sidebar .nav-text{display:inline!important}
+  body.mobile-sidebar-minimal .sidebar .nav-link{justify-content:flex-start;padding:10px 16px;margin:2px 6px}
+  body.mobile-sidebar-minimal .sidebar .nav-link i{margin-right:8px!important;font-size:1rem}
+  body.mobile-sidebar-pinned #appLayout{display:flex;flex-wrap:wrap}
+  body.mobile-sidebar-pinned .sidebar{width:auto!important;min-width:0!important;max-width:none!important;height:calc(100vh - 110px)!important;top:0!important}
+}
 
 /* Mobile filter: hidden by default on small screens, toggled via JS */
 @media(max-width:767.98px){
@@ -284,7 +315,7 @@ small,.small{color:var(--text-muted)}
 <!-- Sidebar overlay for mobile -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div class="row g-0">
+<div class="row g-0" id="appLayout">
  <div class="col-md-2 sidebar" id="sidebar">
   <div class="sidebar-pin-btn d-none d-md-flex" id="sidebarPinBtn" onclick="toggleSidebarPin()" title="ยุบ/ขยาย Sidebar">
    <i class="bi bi-chevron-left" id="sidebarPinIcon"></i>
@@ -339,12 +370,39 @@ small,.small{color:var(--text-muted)}
 const sidebarToggle=document.getElementById('sidebarToggle');
 const sidebar=document.getElementById('sidebar');
 const sidebarOverlay=document.getElementById('sidebarOverlay');
-function openSidebar(){sidebar.classList.add('show');sidebarOverlay.classList.add('show')}
+function getMobileSidebarMode(){return localStorage.getItem('mobileSidebarMode') || 'auto'}
+function isMobileSidebarPinnedActive(){return getMobileSidebarMode()==='pinned' && window.innerWidth>=576 && window.innerWidth<768}
+function openSidebar(){
+  if(document.body.classList.contains('mobile-sidebar-hidden')) return;
+  sidebar.classList.add('show');
+  if(!isMobileSidebarPinnedActive()) sidebarOverlay.classList.add('show');
+}
 function closeSidebar(){sidebar.classList.remove('show');sidebarOverlay.classList.remove('show')}
+function applyMobileSidebarMode(mode){
+  mode = mode || getMobileSidebarMode();
+  document.body.classList.remove('mobile-sidebar-auto','mobile-sidebar-pinned','mobile-sidebar-hidden','mobile-sidebar-minimal');
+  if(window.innerWidth >= 768){ closeSidebar(); return; }
+  if(mode === 'hidden'){
+    document.body.classList.add('mobile-sidebar-hidden');
+    closeSidebar();
+  } else if(mode === 'minimal'){
+    document.body.classList.add('mobile-sidebar-minimal');
+    closeSidebar();
+  } else if(mode === 'pinned' && window.innerWidth >= 576){
+    document.body.classList.add('mobile-sidebar-pinned');
+    sidebar.classList.add('show');
+    sidebarOverlay.classList.remove('show');
+  } else {
+    document.body.classList.add('mobile-sidebar-auto');
+    closeSidebar();
+  }
+}
 if(sidebarToggle) sidebarToggle.addEventListener('click',()=>{sidebar.classList.contains('show')?closeSidebar():openSidebar()});
 sidebarOverlay.addEventListener('click',closeSidebar);
-// Close sidebar on nav link click (mobile)
-sidebar.querySelectorAll('.nav-link').forEach(link=>{link.addEventListener('click',()=>{if(window.innerWidth<768)closeSidebar()})});
+// Close sidebar on nav link click (mobile), except wide-mobile pinned mode
+sidebar.querySelectorAll('.nav-link').forEach(link=>{link.addEventListener('click',()=>{if(window.innerWidth<768 && !isMobileSidebarPinnedActive())closeSidebar()})});
+applyMobileSidebarMode();
+window.addEventListener('resize',()=>applyMobileSidebarMode());
 
 // Sidebar PIN collapse/expand (desktop)
 function toggleSidebarPin(){

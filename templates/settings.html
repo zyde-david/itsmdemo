@@ -101,6 +101,28 @@
     </div>
     {% endif %}
 
+    <!-- Mobile Sidebar Preference -->
+    <div class="card mb-4">
+      <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-layout-sidebar me-2"></i>Sidebar บนมือถือ</h6></div>
+      <div class="card-body">
+        <p class="small text-muted mb-3">เลือกวิธีแสดงเมนูด้านข้างบนจอมือถือ ค่าแนะนำคือซ่อนอัตโนมัติ เพื่อไม่บังหน้าจอเล็ก.</p>
+        <div class="list-group small" id="mobileSidebarChoices">
+          <label class="list-group-item d-flex gap-2 align-items-start">
+            <input class="form-check-input mt-1" type="radio" name="mobileSidebarMode" value="auto" onchange="setMobileSidebarMode(this.value)">
+            <span><strong>ซ่อนอัตโนมัติ (แนะนำ)</strong><br><span class="text-muted">กดปุ่มเมนูแล้ว sidebar เลื่อนออกมา ใช้พื้นที่หน้าจอน้อยสุด.</span></span>
+          </label>
+          <label class="list-group-item d-flex gap-2 align-items-start">
+            <input class="form-check-input mt-1" type="radio" name="mobileSidebarMode" value="pinned" onchange="setMobileSidebarMode(this.value)">
+            <span><strong>แสดงค้าง ถ้าจอกว้างพอ</strong><br><span class="text-muted">มือถือจอกว้าง/แนวนอนจะแสดง sidebar ข้างจอ; จอเล็กมากจะกลับเป็นซ่อนอัตโนมัติ.</span></span>
+          </label>
+          <label class="list-group-item d-flex gap-2 align-items-start">
+            <input class="form-check-input mt-1" type="radio" name="mobileSidebarMode" value="minimal" onchange="setMobileSidebarMode(this.value)">
+            <span><strong>แบบย่อ / ไอคอนอย่างเดียว</strong><br><span class="text-muted">เวลาเปิดเมนูบนมือถือจะแสดงแถบแคบ ไม่กินพื้นที่มาก.</span></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <!-- Theme & Color Picker -->
     <div class="card mb-4">
       <div class="card-header bg-white"><h6 class="mb-0"><i class="bi bi-palette me-2"></i>ธีม & สีพื้นหลัง</h6></div>
@@ -178,6 +200,17 @@ async function deleteUser(uid, username) {
   if(d.success) location.reload();
   else alert(d.error);
 }
+
+// ── Mobile sidebar settings UI ──
+function setMobileSidebarMode(mode){
+  localStorage.setItem('mobileSidebarMode', mode);
+  document.querySelectorAll('input[name="mobileSidebarMode"]').forEach(function(el){el.checked = el.value === mode;});
+  if(typeof applyMobileSidebarMode === 'function') applyMobileSidebarMode(mode);
+}
+(function(){
+  var savedMode = localStorage.getItem('mobileSidebarMode') || 'auto';
+  document.querySelectorAll('input[name="mobileSidebarMode"]').forEach(function(el){el.checked = el.value === savedMode;});
+})();
 
 // ── Theme settings UI ──
 // Theme engine lives globally in base.html. This page only updates controls.
