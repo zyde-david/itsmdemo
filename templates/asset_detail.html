@@ -63,6 +63,17 @@
         <div style="font-size:.78rem;color:#6c7a89">ยังไม่มีประวัติ</div>
       {% endif %}
     </div>
+    {% if linked_tickets %}
+    <div class="ad-card">
+      <h5><i class="bi bi-ticket-detailed"></i>Ticket ที่เกี่ยวข้อง</h5>
+      {% for t in linked_tickets %}
+      <div class="ad-log-item">
+        <div><strong>{{ t.ticket_code or '—' }}</strong> — {{ t.title }}</div>
+        <div class="ad-log-date">{{ t.created_at }} | {{ t.status }} | {{ t.priority }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

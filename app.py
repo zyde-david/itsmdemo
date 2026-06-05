@@ -513,8 +513,11 @@ def asset_detail(asset_id):
     c=get_db()
     a=c.execute('SELECT * FROM assets WHERE id=?',(asset_id,)).fetchone()
     if not a:  return 'Not found',404
+    a = dict(a)
+    a['short_branch'] = SHORT_BRANCHES.get(a['branch'], a['branch'].replace('สาขา',''))
     linked=c.execute('SELECT * FROM tickets WHERE asset_id=? ORDER BY created_at DESC',(asset_id,)).fetchall()
-    return render_template('asset_detail.html',asset=a,linked_tickets=linked)
+    logs=c.execute('SELECT * FROM asset_logs WHERE asset_id=? ORDER BY created_at DESC',(asset_id,)).fetchall()
+    return render_template('asset_detail.html',asset=a,linked_tickets=linked,logs=logs,current_user=session.get('username'))
 
 @app.route('/assets')
 @login_required
@@ -1453,15 +1456,3 @@ def api_asset_history(aid):
     logs = c.execute('SELECT * FROM asset_logs WHERE asset_id=? ORDER BY created_at DESC', (aid,)).fetchall()
     return jsonify(success=True, asset=dict(asset), logs=[dict(l) for l in logs])
 
-
-@app.route('/asset/<int:aid>')
-@login_required
-def asset_detail(aid):
-    c = get_db()
-    asset = c.execute('SELECT * FROM assets WHERE id=?', (aid,)).fetchone()
-    if not asset:
-        return redirect('/assets')
-    asset = dict(asset)
-    asset['short_branch'] = SHORT_BRANCHES.get(asset['branch'], asset['branch'].replace('สาขา',''))
-    logs = c.execute('SELECT * FROM asset_logs WHERE asset_id=? ORDER BY created_at DESC', (aid,)).fetchall()
-    return render_template('asset_detail.html', asset=asset, logs=logs, current_user=session.get('username'))
