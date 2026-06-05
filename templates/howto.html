@@ -61,6 +61,7 @@
 <!-- Internal notice -->
 <div class="alert alert-primary mb-4 small">
   <i class="bi bi-info-circle me-1"></i><strong>หน้านี้สำหรับผู้ใช้งานแล้ว</strong> — ถ้ายังไม่เคยใช้งาน ดู <a href="/howto-public" class="alert-link">แนะนำระบบ</a> ก่อน
+  <div class="mt-1"><strong>Daily maintenance:</strong> เมื่อเพิ่มหรือแก้ feature ให้ update <a href="/sitemap" class="alert-link">Site Map</a>, How To, และ Development Log ในวันเดียวกัน ด้วยวันที่จริง.</div>
 </div>
 
 <!-- Concept -->
@@ -192,6 +193,31 @@
           <li><strong>ดูรายละเอียด</strong> — Hover หรือคลิกอำเภอเพื่อดูชื่อและค่า</li>
           <li><strong>ลำดับเยี่ยม</strong> — ด้านขวาแสดงรายการเรียงตามค่ามาก→น้อย (ไปอันดับแรกก่อน)</li>
           <li><strong>เส้นทาง</strong> — แสดงเส้นเชื่อมตาม nearest-neighbor (ลดการวนกลับ)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-calendar"><i class="bi bi-calendar3 me-2 text-primary"></i>Leave Calendar</button></h2>
+    <div id="ht-calendar" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>เปิดปฏิทิน</strong> — ใช้เมนู Calendar เพื่อดูรายการลารายเดือน</li>
+          <li><strong>เปลี่ยนเดือน</strong> — กด ก่อนหน้า / เดือนนี้ / ถัดไป</li>
+          <li><strong>อ่านสถานะ</strong> — สี chip แยก pending, approved, rejected, cancelled</li>
+          <li><strong>จัดการคำขอ</strong> — กลับไปหน้า Leave เพื่อสร้างหรืออนุมัติรายการ</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-projects"><i class="bi bi-kanban me-2 text-dark"></i>Projects &amp; v2 Pages</button></h2>
+    <div id="ht-projects" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>Projects</strong> — Admin เปิด /projects เพื่อดู project cards, status, progress และรายละเอียดสำหรับเล่าใน interview</li>
+          <li><strong>v2 Tables</strong> — Tickets, Assets, Staff, Knowledge มีหน้า /v2 ที่ใช้ React + TanStack Table</li>
+          <li><strong>สลับเวอร์ชัน</strong> — ใช้ปุ่ม v1/v2 บนแต่ละ module; v1 DataTables ยังเป็น baseline</li>
         </ol>
       </div>
     </div>
@@ -617,6 +643,9 @@
           <tr><td></td><td>5 Jun</td><td>Leaflet Map Merge</td><td>Route Planner now uses real GeoJSON + live ticket counts</td></tr>
           <tr><td></td><td>5 Jun</td><td>Realtime Refresh</td><td>Map polls /api/district-tickets every 30 seconds</td></tr>
           <tr><td></td><td>5 Jun</td><td>Version Log</td><td>Dev log grouped by version with real dates</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Leave Calendar</td><td>Monthly leave view with status chips and month navigation</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Projects Hub</td><td>Admin project cards and detail pages for interview walkthroughs</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Site Map + How To Maintenance</td><td>Added daily-change reminder and current route coverage</td></tr>
         </tbody>
       </table>
     </div>
