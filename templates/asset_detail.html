@@ -1,110 +1,68 @@
 {% extends "base.html" %}
-{% block title %}Asset {{ asset.asset_tag or asset.asset_code or '#' ~ asset.id }} — ITSM Demo{% endblock %}
+{% block title %}Asset: {{ asset.asset_code or asset.name }} — ITSM Demo{% endblock %}
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <!-- Asset Header -->
-        <div class="card mb-3">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Asset: {{ asset.name }} <small class="text-muted">({{ asset.asset_tag or asset.asset_code or 'AS-' ~ '%04d'|format(asset.id) }})</small></h5>
-                <a href="/assets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>กลับ</a>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-3"><strong>ประเภท:</strong><br>{{ asset.asset_type }}</div>
-                    <div class="col-md-3"><strong>สาขา:</strong><br>{{ asset.branch }}</div>
-                    <div class="col-md-3"><strong>สถานะ:</strong><br>
-                        {% if asset.status=='active' %}<span class="badge bg-success">Active</span>
-                        {% elif asset.status=='maintenance' %}<span class="badge bg-warning text-dark">Maintenance</span>
-                        {% else %}<span class="badge bg-secondary">Retired</span>{% endif %}
-                    </div>
-                    <div class="col-md-3"><strong>Retire Score:</strong><br>
-                        {% if linked_tickets|length >= 5 %}<span class="badge bg-danger">สูง ({{ linked_tickets|length }} tickets) ควรเปลี่ยน</span>
-                        {% elif linked_tickets|length >= 3 %}<span class="badge bg-warning text-dark">ปานกลาง ({{ linked_tickets|length }} tickets)</span>
-                        {% else %}<span class="badge bg-success">ปกติ ({{ linked_tickets|length }} tickets)</span>{% endif %}
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-3"><strong>Brand:</strong><br>{{ asset.brand or '-' }}</div>
-                    <div class="col-md-3"><strong>Spec:</strong><br>{{ asset.spec or '-' }}</div>
-                    <div class="col-md-3"><strong>Asset Tag:</strong><br><span class="badge bg-dark">{{ asset.asset_tag or '-' }}</span></div>
-                    <div class="col-md-3"><strong>Serial:</strong><br><small class="font-monospace">{{ asset.serial }}</small></div>
-                    <div class="col-md-3"><strong>ผู้รับผิดชอบ:</strong><br>{{ asset.assigned_to or '-' }}</div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4"><strong>ตรวจล่าสุด:</strong><br>{{ asset.last_check or '-' }}</div>
-                    <div class="col-md-4"><strong>ตรวจครั้งต่อไป:</strong><br>{{ asset.next_check or '-' }}</div>
-                    <div class="col-md-4"><strong>หมายเหตุ:</strong><br>{{ asset.notes or '-' }}</div>
-                </div>
-            </div>
-        </div>
+<style>
+.ad-back{color:#6c7a89;font-size:.8rem;text-decoration:none;margin-bottom:12px;display:inline-block}
+.ad-back:hover{color:#1a5276}
+.ad-header{background:linear-gradient(135deg,#1a5276,#2980b9);color:#fff;padding:24px 28px;border-radius:12px;margin-bottom:20px}
+.ad-header h4{font-weight:700;margin-bottom:4px}
+.ad-header p{color:rgba(255,255,255,.7);margin:0;font-size:.85rem}
+.ad-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+@media(max-width:768px){.ad-grid{grid-template-columns:1fr}}
+.ad-card{background:#fff;border:1px solid #dce1e8;border-radius:12px;padding:20px;margin-bottom:16px}
+.ad-card h5{font-size:.9rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.ad-info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:.8rem}
+.ad-info-row:last-child{border-bottom:none}
+.ad-info-label{color:#6c7a89}
+.ad-info-value{font-weight:600}
+.ad-log-item{padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.78rem}
+.ad-log-item:last-child{border-bottom:none}
+.ad-log-date{font-size:.65rem;color:#6c7a89}
+.ad-status{display:inline-block;font-size:.7rem;padding:3px 12px;border-radius:12px;font-weight:700;color:#fff}
+.ad-status.active{background:#27ae60}
+.ad-status.maintenance{background:#f39c12}
+.ad-status.retired{background:#95a5a6}
+</style>
 
-        <!-- Linked Tickets -->
-        <div class="card mb-3">
-            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-ticket-detailed me-2"></i>ประวัติแจ้งซ่อม ({{ linked_tickets|length }} รายการ)</span>
-                {% if linked_tickets|length >= 5 %}<span class="badge bg-danger">⚠️ ควรพิจารณาเปลี่ยน</span>{% endif %}
-            </div>
-            {% if linked_tickets %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr><th>Ticket</th><th>ปัญหา</th><th>ความสำคัญ</th><th>สถานะ</th><th>วันที่</th><th>ผู้แจ้ง</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for t in linked_tickets %}
-                        <tr onclick="location.href='/ticket/{{ t.id }}'" style="cursor:pointer">
-                            <td><a href="/ticket/{{ t.id }}">{{ t.ticket_code or '#' ~ t.id }}</a></td>
-                            <td>{{ t.title }}</td>
-                            <td><span class="badge-priority priority-{{ t.priority }}">{{ t.priority }}</span></td>
-                            <td>
-                                {% if t.status=='open' %}<span class="badge bg-primary">เปิด</span>
-                                {% elif t.status=='in_progress' %}<span class="badge bg-warning text-dark">กำลัง</span>
-                                {% elif t.status=='resolved' %}<span class="badge bg-success">เสร็จ</span>
-                                {% else %}<span class="badge bg-secondary">ปิด</span>{% endif %}
-                            </td>
-                            <td><small>{{ t.created_at[:10] }}</small></td>
-                            <td><small>{{ t.reported_by }}</small></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="card-body"><small class="text-muted">ยังไม่มีการแจ้งซ่อม</small></div>
-            {% endif %}
-        </div>
-    </div>
+<a href="/assets" class="ad-back"><i class="bi bi-arrow-left me-1"></i>กลับ Assets</a>
 
-    <!-- Sidebar: Stats + Summary -->
-    <div class="col-md-4">
-        <div class="card mb-3">
-            <div class="card-header bg-white fw-bold">สรุป</div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Total Tickets:</span>
-                    <strong class="{% if linked_tickets|length >= 5 %}text-danger{% elif linked_tickets|length >= 3 %}text-warning{% else %}text-success{% endif %}">
-                        {{ linked_tickets|length }}
-                    </strong>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Open:</span>
-                    <strong>{{ linked_tickets|selectattr('status','equalto','open')|list|length }}</strong>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Resolved:</span>
-                    <strong>{{ linked_tickets|selectattr('status','equalto','resolved')|list|length }}</strong>
-                </div>
-                <hr>
-                {% if linked_tickets|length >= 5 %}
-                <div class="alert alert-danger py-2 small mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Asset นี้มีปัญหาบ่อย ควรพิจารณาเปลี่ยนใหม่</div>
-                {% elif linked_tickets|length >= 3 %}
-                <div class="alert alert-warning py-2 small mb-0"><i class="bi bi-info-circle me-1"></i>ควรติดตามอย่างใกล้ชิด</div>
-                {% else %}
-                <div class="alert alert-success py-2 small mb-0"><i class="bi bi-check-circle me-1"></i>สถานะดี ใช้งานได้ปกติ</div>
-                {% endif %}
-            </div>
-        </div>
+<div class="ad-header">
+  <h4>{{ asset.asset_code or '—' }} — {{ asset.name }}</h4>
+  <p>{{ asset.asset_type }} | {{ asset.short_branch }} | <span class="ad-status {{ asset.status }}">{{ asset.status }}</span></p>
+</div>
+
+<div class="ad-grid">
+  <div>
+    <div class="ad-card">
+      <h5><i class="bi bi-info-circle"></i>รายละเอียด Asset</h5>
+      <div class="ad-info-row"><span class="ad-info-label">รหัส</span><span class="ad-info-value">{{ asset.asset_code or '—' }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">ชื่อ</span><span class="ad-info-value">{{ asset.name }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">ประเภท</span><span class="ad-info-value">{{ asset.asset_type }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">ยี่ห้อ</span><span class="ad-info-value">{{ asset.brand or '—' }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">Serial</span><span class="ad-info-value">{{ asset.serial or '—' }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">สเปค</span><span class="ad-info-value">{{ asset.spec or '—' }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">สาขา</span><span class="ad-info-value">{{ asset.short_branch }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">สถานะ</span><span class="ad-info-value"><span class="ad-status {{ asset.status }}">{{ asset.status }}</span></span></div>
+      <div class="ad-info-row"><span class="ad-info-label">ผู้รับผิดชอบ</span><span class="ad-info-value">{{ asset.assigned_to or '—' }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">ตรวจสอบล่าสุด</span><span class="ad-info-value">{{ asset.last_check or '—' }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">ตรวจสอบครั้งต่อไป</span><span class="ad-info-value">{{ asset.next_check or '—' }}</span></div>
+      <div class="ad-info-row"><span class="ad-info-label">หมายเหตุ</span><span class="ad-info-value">{{ asset.notes or '—' }}</span></div>
     </div>
+  </div>
+  <div>
+    <div class="ad-card">
+      <h5><i class="bi bi-clock-history"></i>ประวัติ (History Log)</h5>
+      {% if logs %}
+        {% for l in logs %}
+        <div class="ad-log-item">
+          <div>{{ l.note }}</div>
+          <div class="ad-log-date">{{ l.created_at }} {% if l.created_by %}(โดย: {{ l.created_by }}){% endif %}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="font-size:.78rem;color:#6c7a89">ยังไม่มีประวัติ</div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

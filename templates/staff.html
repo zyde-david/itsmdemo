@@ -78,7 +78,7 @@
 <table id="staffTable" class="table table-hover mb-0" style="width:100%">
   <thead class="table-light"><tr>
    <th><input type="checkbox" id="selectAllStaff" onclick="toggleAllStaff(this)"></th>
-   <th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th class="d-none d-md-table-cell">จังหวัด</th><th class="d-none d-md-table-cell">IT</th><th></th>
+   <th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>สาขา</th><th class="d-none d-md-table-cell">จังหวัด</th><th class="d-none d-md-table-cell">IT</th><th>Assets</th><th></th>
   </tr></thead>
   <tbody>
    {% for s in staff %}
@@ -90,6 +90,7 @@
     <td><span class="branch-tag">{{ s.branch }}</span></td>
     <td class="d-none d-md-table-cell">{{ s.province }}</td>
     <td class="d-none d-md-table-cell">{% if s.is_it %}<i class="bi bi-check-circle text-success"></i>{% endif %}</td>
+    <td><span class="badge bg-info" style="font-size:.7rem">{{ asset_counts.get(s.id, 0) }}</span></td>
     <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOneStaff({{ s.id }})"><i class="bi bi-trash"></i></button></td>
    </tr>
    {% endfor %}
