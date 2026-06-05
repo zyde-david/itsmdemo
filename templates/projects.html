@@ -59,7 +59,7 @@
     <div class="p-links">
       {% if p.live_url %}<a href="{{ p.live_url }}" target="_blank" class="live"><i class="bi bi-box-arrow-up-right me-1"></i>Live</a>{% endif %}
       {% if p.github_url %}<a href="{{ p.github_url }}" target="_blank" class="github"><i class="bi bi-github me-1"></i>GitHub</a>{% endif %}
-      <a href="/project/{{ p.id }}" class="detail"><i class="bi bi-eye me-1"></i>ดูรายละเอียด</a>
+      <a href="/project/{{ p.slug }}" class="detail"><i class="bi bi-eye me-1"></i>ดูรายละเอียด</a>
     </div>
   </div>
   {% endfor %}

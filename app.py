@@ -1343,13 +1343,13 @@ def projects_page():
     return render_template('projects.html', projects=result, current_user=session.get('username'))
 
 
-@app.route('/project/<int:project_id>')
+@app.route('/project/<slug>')
 @login_required
-def project_detail(project_id):
+def project_detail(slug):
     if not is_admin():
         return redirect('/dashboard')
     c = get_db()
-    project = c.execute('SELECT * FROM projects WHERE id=?', (project_id,)).fetchone()
+    project = c.execute('SELECT * FROM projects WHERE slug=?', (slug,)).fetchone()
     if not project:
         return redirect('/projects')
     project = dict(project)
