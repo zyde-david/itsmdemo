@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Calendar — ITSM Demo{% endblock %}
+
+{% block extra_head %}
+<style>
+.calendar-toolbar .btn{min-height:36px}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:#dfe6ee;border:1px solid #dfe6ee;border-radius:14px;overflow:hidden}
+.calendar-weekday{background:#f8fafc;color:#64748b;font-weight:700;text-align:center;padding:10px 4px;font-size:.78rem;letter-spacing:.02em}
+.calendar-day{background:#fff;min-height:126px;padding:8px;position:relative;display:flex;flex-direction:column;gap:6px}
+.calendar-day.is-muted{background:#f8fafc;color:#94a3b8}
+.calendar-day.is-today{box-shadow:inset 0 0 0 2px #2563eb;z-index:1}
+.calendar-day.has-leave{background:linear-gradient(180deg,#fff 0%,#f8fbff 100%)}
+.calendar-date{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:.82rem;font-weight:700}
+.calendar-date .day-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%}
+.calendar-day.is-today .day-num{background:#2563eb;color:#fff}
+.calendar-leave-list{display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.leave-chip{border:0;border-radius:8px;padding:4px 6px;text-align:left;font-size:.7rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;cursor:pointer}
+.leave-chip:focus{outline:2px solid #2563eb;outline-offset:1px}
+.leave-chip.pending{background:#fff3cd;color:#8a5b00;border-left:3px solid #f59e0b}
+.leave-chip.approved{background:#d1e7dd;color:#0f5132;border-left:3px solid #198754}
+.leave-chip.rejected{background:#f8d7da;color:#842029;border-left:3px solid #dc3545}
+.leave-chip.cancelled{background:#e9ecef;color:#495057;border-left:3px solid #6c757d}
+.status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.status-dot.pending{background:#f59e0b}.status-dot.approved{background:#198754}.status-dot.rejected{background:#dc3545}.status-dot.cancelled{background:#6c757d}
+.legend-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid #e2e8f0;border-radius:999px;padding:4px 9px;background:#fff;font-size:.75rem}
+.calendar-empty{display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:.72rem;height:100%;text-align:center}
+body[data-theme="dark"] .calendar-grid,
+body[data-theme="custom"] .calendar-grid{background:var(--border-dark);border-color:var(--border-dark)}
+body[data-theme="dark"] .calendar-weekday,
+body[data-theme="custom"] .calendar-weekday{background:var(--bg-elevated);color:var(--text-elevated)}
+body[data-theme="dark"] .calendar-day,
+body[data-theme="custom"] .calendar-day{background:var(--bg-surface);color:var(--text-surface)}
+body[data-theme="dark"] .calendar-day.is-muted,
+body[data-theme="custom"] .calendar-day.is-muted{background:rgba(255,255,255,.03);color:var(--text-muted)}
+body[data-theme="dark"] .calendar-day.has-leave,
+body[data-theme="custom"] .calendar-day.has-leave{background:linear-gradient(180deg,var(--bg-surface) 0%,rgba(255,255,255,.04) 100%)}
+body[data-theme="dark"] .legend-pill,
+body[data-theme="custom"] .legend-pill{background:var(--bg-surface);border-color:var(--border-dark);color:var(--text-surface)}
+body[data-theme="dark"] .popover,
+body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popover-border-color:var(--border-dark);--bs-popover-header-bg:var(--bg-elevated);--bs-popover-header-color:var(--text-elevated);--bs-popover-body-color:var(--text-elevated)}
+@media(max-width:767.98px){
+  .calendar-grid{gap:0;border-radius:10px;overflow-x:auto;grid-template-columns:repeat(7,92px)}
+  .calendar-day{min-height:104px;padding:6px}
+  .calendar-weekday{font-size:.7rem;padding:8px 2px}
+  .leave-chip{font-size:.65rem;padding:3px 5px}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% set ns = namespace(pending=0, approved=0, rejected=0, cancelled=0) %}
+{% for r in leave_requests %}
+  {% if r.status == 'pending' %}{% set ns.pending = ns.pending + 1 %}{% endif %}
+  {% if r.status == 'approved' %}{% set ns.approved = ns.approved + 1 %}{% endif %}
+  {% if r.status == 'rejected' %}{% set ns.rejected = ns.rejected + 1 %}{% endif %}
+  {% if r.status == 'cancelled' %}{% set ns.cancelled = ns.cancelled + 1 %}{% endif %}
+{% endfor %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 calendar-toolbar">
+  <div>
+    <h4 class="mb-1"><i class="bi bi-calendar3 me-2"></i>Leave Calendar</h4>
+    <div class="text-muted small">ปฏิทินการลา — ดูรายการลารายเดือนและสถานะอนุมัติ</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-sm btn-outline-secondary" href="/calendar?year={{ prev_year }}&month={{ prev_month }}">
+      <i class="bi bi-chevron-left me-1"></i>ก่อนหน้า
+    </a>
+    <a class="btn btn-sm btn-outline-primary" href="/calendar">
+      <i class="bi bi-calendar-event me-1"></i>เดือนนี้
+    </a>
+    <a class="btn btn-sm btn-outline-secondary" href="/calendar?year={{ next_year }}&month={{ next_month }}">
+      ถัดไป<i class="bi bi-chevron-right ms-1"></i>
+    </a>
+    <a class="btn btn-sm btn-primary" href="/leave">
+      <i class="bi bi-plus-lg me-1"></i>ขอลา
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">รออนุมัติ</div><div class="h4 mb-0 text-warning">{{ ns.pending }}</div></div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">อนุมัติแล้ว</div><div class="h4 mb-0 text-success">{{ ns.approved }}</div></div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">ไม่อนุมัติ</div><div class="h4 mb-0 text-danger">{{ ns.rejected }}</div></div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">รายการในเดือน</div><div class="h4 mb-0 text-primary">{{ leave_requests|length }}</div></div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="fw-bold"><i class="bi bi-calendar-month me-2"></i>{{ month_name }}</div>
+    <div class="d-flex gap-2 flex-wrap">
+      <span class="legend-pill"><span class="status-dot pending"></span>{{ status_labels.get('pending','pending') }}</span>
+      <span class="legend-pill"><span class="status-dot approved"></span>{{ status_labels.get('approved','approved') }}</span>
+      <span class="legend-pill"><span class="status-dot rejected"></span>{{ status_labels.get('rejected','rejected') }}</span>
+    </div>
+  </div>
+  <div class="card-body p-2 p-md-3">
+    <div class="calendar-grid" aria-label="Leave calendar for {{ month_name }}">
+      {% for wd in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] %}
+      <div class="calendar-weekday">{{ wd }}</div>
+      {% endfor %}
+      {% for week in month_weeks %}
+        {% for day in week %}
+        <div class="calendar-day {% if not day.in_month %}is-muted{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.leaves %}has-leave{% endif %}" data-date="{{ day.iso }}">
+          <div class="calendar-date">
+            <span class="day-num">{{ day.day }}</span>
+            {% if day.leaves %}<span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">{{ day.leaves|length }}</span>{% endif %}
+          </div>
+          {% if day.leaves %}
+          <div class="calendar-leave-list">
+            {% for leave in day.leaves[:4] %}
+            {% set st = leave.status|default('pending') %}
+            <button type="button" class="leave-chip {{ st }}" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" data-bs-title="{{ status_labels.get(st, st) }}" data-bs-content="<div class='small'><div><strong>{{ leave.username|e }}</strong></div><div>{{ leave.leave_type|e }}</div><div>{{ leave.start_date }} → {{ leave.end_date }}</div><div>ID: {{ leave.id }}</div></div>">
+              <span class="status-dot {{ st }}"></span>{{ leave.username }} — {{ leave.leave_type }}
+            </button>
+            {% endfor %}
+            {% if day.leaves|length > 4 %}
+            <button type="button" class="leave-chip cancelled" data-bs-toggle="modal" data-bs-target="#dayModal{{ day.iso|replace('-','') }}">+{{ day.leaves|length - 4 }} more</button>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="calendar-empty">ไม่มีรายการลา</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% for week in month_weeks %}
+  {% for day in week %}
+    {% if day.leaves|length > 4 %}
+<div class="modal fade" id="dayModal{{ day.iso|replace('-','') }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-calendar-day me-2"></i>{{ day.iso }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group list-group-flush">
+          {% for leave in day.leaves %}
+          {% set st = leave.status|default('pending') %}
+          <div class="list-group-item px-0">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div>
+                <div class="fw-semibold">{{ leave.username }} — {{ leave.leave_type }}</div>
+                <div class="text-muted small">{{ leave.start_date }} → {{ leave.end_date }}</div>
+              </div>
+              <span class="badge {% if st == 'approved' %}bg-success{% elif st == 'rejected' %}bg-danger{% elif st == 'cancelled' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">{{ status_labels.get(st, st) }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el){
+    new bootstrap.Popover(el, {container:'body', sanitize:false});
+  });
+});
+</script>
+{% endblock %}

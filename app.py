@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import hashlib
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, g
+import calendar
 import sqlite3, random, os, logging
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from functools import wraps
 
 # Ensure static files resolve correctly on WSGI hosts (PythonAnywhere, etc.)
@@ -695,13 +696,20 @@ def staff_page():
     total=c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
     itc=c.execute('SELECT COUNT(*) FROM staff WHERE is_it=1').fetchone()[0]
     staff_by_province = c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN is_it=1 THEN 1 ELSE 0 END) as it_cnt FROM staff GROUP BY province').fetchall()
+    asset_count_rows = c.execute('''
+        SELECT staff.id, COUNT(assets.id) AS cnt
+        FROM staff
+        LEFT JOIN assets ON assets.assigned_to = staff.name
+        GROUP BY staff.id
+    ''').fetchall()
+    asset_counts = {r['id']: r['cnt'] for r in asset_count_rows}
     provinces = sorted(set(s['province'] for s in rows))
     roles = sorted(set(s['role'] for s in rows))
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     province_to_branches = PROVINCE_TO_BRANCHES
     province_to_branches_short = {prov: [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district']} for b in blist] for prov, blist in PROVINCE_TO_BRANCHES.items()}
     branches_short = [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district'], 'province': b['province']} for b in ALL_BRANCHES]
-    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=branches_short,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches,province_to_branches_short=province_to_branches_short,staff_by_province=staff_by_province)
+    return render_template('staff.html',staff=rows,total=total,it_count=itc,branches=branches_short,staff_provinces=provinces,staff_roles=roles,branch_to_province=branch_to_province,province_to_branches=province_to_branches,province_to_branches_short=province_to_branches_short,staff_by_province=staff_by_province,asset_counts=asset_counts)
 
 @app.route('/knowledge')
 @login_required
@@ -1119,6 +1127,69 @@ def howto_page():
 
 LEAVE_TYPES = ('ลาป่วย', 'ลากิจ', 'ลาพักร้อน', 'ลาอื่น ๆ')
 LEAVE_STATUS_LABELS = {'pending':'รออนุมัติ','approved':'อนุมัติ','rejected':'ไม่อนุมัติ','cancelled':'ยกเลิก'}
+
+@app.route('/calendar')
+@login_required
+def calendar_page():
+    c = get_db()
+    today = date.today()
+    try:
+        year = int(request.args.get('year', today.year))
+        month = int(request.args.get('month', today.month))
+        if month < 1 or month > 12:
+            raise ValueError
+    except ValueError:
+        year = today.year
+        month = today.month
+
+    first_day = date(year, month, 1)
+    _, days_in_month = calendar.monthrange(year, month)
+    last_day = date(year, month, days_in_month)
+    prev_month = first_day.replace(day=1) - timedelta(days=1)
+    next_month = last_day + timedelta(days=1)
+
+    rows = c.execute(
+        """
+        SELECT * FROM leave_requests
+        WHERE start_date <= ? AND end_date >= ?
+        ORDER BY start_date ASC, id ASC
+        """,
+        (last_day.isoformat(), first_day.isoformat())
+    ).fetchall()
+    leave_requests = [dict(r) for r in rows]
+
+    leave_by_day = {}
+    for req in leave_requests:
+        try:
+            start_dt = datetime.strptime(req['start_date'], '%Y-%m-%d').date()
+            end_dt = datetime.strptime(req['end_date'], '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            continue
+        cursor = max(start_dt, first_day)
+        end_limit = min(end_dt, last_day)
+        while cursor <= end_limit:
+            leave_by_day.setdefault(cursor.isoformat(), []).append(req)
+            cursor += timedelta(days=1)
+
+    month_weeks = []
+    for week in calendar.Calendar(firstweekday=6).monthdatescalendar(year, month):
+        month_weeks.append([
+            {
+                'date': day,
+                'iso': day.isoformat(),
+                'day': day.day,
+                'in_month': day.month == month,
+                'is_today': day == today,
+                'leaves': leave_by_day.get(day.isoformat(), []),
+            }
+            for day in week
+        ])
+
+    return render_template('calendar.html', current_user=get_current_user(), month_weeks=month_weeks,
+                           month_name=first_day.strftime('%B %Y'), month=month, year=year,
+                           prev_year=prev_month.year, prev_month=prev_month.month,
+                           next_year=next_month.year, next_month=next_month.month,
+                           leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS)
 
 @app.route('/leave', methods=['GET','POST'])
 @login_required
