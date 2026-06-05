@@ -342,13 +342,39 @@ def init_db():
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
     c.execute('CREATE TABLE IF NOT EXISTS asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     c.execute("CREATE TABLE IF NOT EXISTS leave_requests (id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,username TEXT,leave_type TEXT,start_date DATE,end_date DATE,days REAL,reason TEXT,status TEXT DEFAULT 'pending',approver_id INTEGER DEFAULT 0,approval_note TEXT DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
-    # Migration: add kb_id to tickets if missing
-    cols = [row[1] for row in c.execute('PRAGMA table_info(tickets)')]
-    if 'kb_id' not in cols:
-        c.execute('ALTER TABLE tickets ADD COLUMN kb_id INTEGER DEFAULT 0')
-    cols_assets = [row[1] for row in c.execute('PRAGMA table_info(assets)')]
-    if 'asset_tag' not in cols_assets:
-        c.execute('ALTER TABLE assets ADD COLUMN asset_tag TEXT DEFAULT \'\'')
+    # Migrations for existing persistent Fly/SQLite volumes. CREATE TABLE IF NOT EXISTS
+    # does not add columns to old tables, so keep every route/template dependency here.
+    def ensure_column(table, column, definition):
+        cols = [row[1] for row in c.execute(f'PRAGMA table_info({table})')]
+        if column not in cols:
+            c.execute(f'ALTER TABLE {table} ADD COLUMN {column} {definition}')
+
+    for column, definition in {
+        'ticket_code': "TEXT DEFAULT ''",
+        'assigned_to': "TEXT DEFAULT ''",
+        'asset_id': 'INTEGER DEFAULT 0',
+        'reported_at': 'TIMESTAMP',
+        'kb_id': 'INTEGER DEFAULT 0',
+    }.items():
+        ensure_column('tickets', column, definition)
+
+    for column, definition in {
+        'asset_code': "TEXT DEFAULT ''",
+        'brand': "TEXT DEFAULT ''",
+        'spec': "TEXT DEFAULT ''",
+        'assigned_to': "TEXT DEFAULT ''",
+        'last_check': 'DATE',
+        'next_check': 'DATE',
+        'asset_tag': "TEXT DEFAULT ''",
+    }.items():
+        ensure_column('assets', column, definition)
+
+    for column, definition in {
+        'role': "TEXT DEFAULT 'user'",
+        'staff_id': 'INTEGER DEFAULT 0',
+        'created_at': 'TIMESTAMP',
+    }.items():
+        ensure_column('users', column, definition)
     demo_hash = hashlib.sha256(b'demo2026').hexdigest()
     demo_users = [('admin', 'admin'), ('manager', 'manager'), ('user', 'user'), ('hr', 'hr')]
     for username, role in demo_users:
