@@ -1147,12 +1147,13 @@ def route_planner_page():
 def _start_init_db():
     """Run init_db in a background thread so it doesn't block gunicorn startup."""
     try:
-        init_db()
-        c = get_db()
-        ns = c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
-        nt = c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
-        na = c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
-        print(f'[INIT OK] {ns} staff, {nt} tickets, {na} assets')
+        with app.app_context():
+            init_db()
+            c = get_db()
+            ns = c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]
+            nt = c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
+            na = c.execute('SELECT COUNT(*) FROM assets').fetchone()[0]
+            print(f'[INIT OK] {ns} staff, {nt} tickets, {na} assets')
     except Exception as e:
         print(f'[INIT ERR] {e}')
 
