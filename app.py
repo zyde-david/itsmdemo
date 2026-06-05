@@ -340,6 +340,7 @@ def init_db():
     c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_code TEXT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,brand TEXT,spec TEXT,assigned_to TEXT,last_check DATE,next_check DATE,notes TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
     c.execute('CREATE TABLE IF NOT EXISTS asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
+    c.execute("CREATE TABLE IF NOT EXISTS leave_requests (id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,username TEXT,leave_type TEXT,start_date DATE,end_date DATE,days REAL,reason TEXT,status TEXT DEFAULT 'pending',approver_id INTEGER DEFAULT 0,approval_note TEXT DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     # Migration: add kb_id to tickets if missing
     cols = [row[1] for row in c.execute('PRAGMA table_info(tickets)')]
     if 'kb_id' not in cols:
@@ -968,10 +969,49 @@ def sitemap_page():
 def howto_page():
     return render_template('howto.html')
 
-@app.route('/leave')
+LEAVE_TYPES = ('ลาป่วย', 'ลากิจ', 'ลาพักร้อน', 'ลาอื่น ๆ')
+LEAVE_STATUS_LABELS = {'pending':'รออนุมัติ','approved':'อนุมัติ','rejected':'ไม่อนุมัติ','cancelled':'ยกเลิก'}
+
+@app.route('/leave', methods=['GET','POST'])
 @login_required
 def leave_page():
-    return render_template('leave.html', current_user=get_current_user(), can_approve=is_manager())
+    c = get_db()
+    current_user = get_current_user()
+    message = ''
+    error = ''
+    if request.method == 'POST':
+        leave_type = request.form.get('leave_type','').strip()
+        start_date = request.form.get('start_date','').strip()
+        end_date = request.form.get('end_date','').strip()
+        reason = request.form.get('reason','').strip()
+        if leave_type not in LEAVE_TYPES:
+            error = 'กรุณาเลือกประเภทการลา'
+        elif not start_date or not end_date:
+            error = 'กรุณาระบุวันที่เริ่มและวันที่สิ้นสุด'
+        elif not reason:
+            error = 'กรุณาระบุเหตุผล'
+        else:
+            try:
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
+                days = (end_dt - start_dt).days + 1
+                if days <= 0:
+                    error = 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม'
+                else:
+                    c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,reason,status) VALUES (?,?,?,?,?,?,?,?)',
+                              (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, reason, 'pending'))
+                    c.commit()
+                    message = 'ส่งคำขอลาแล้ว — รอ Manager/Admin อนุมัติ'
+            except ValueError:
+                error = 'รูปแบบวันที่ไม่ถูกต้อง'
+    rows = c.execute('SELECT * FROM leave_requests WHERE user_id=? ORDER BY created_at DESC, id DESC', (current_user['id'],)).fetchall()
+    leave_requests = [dict(r) for r in rows]
+    pending_count = sum(1 for r in leave_requests if r['status'] == 'pending')
+    approved_count = sum(1 for r in leave_requests if r['status'] == 'approved')
+    rejected_count = sum(1 for r in leave_requests if r['status'] == 'rejected')
+    return render_template('leave.html', current_user=current_user, can_approve=is_manager(), leave_types=LEAVE_TYPES,
+                           leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS, pending_count=pending_count,
+                           approved_count=approved_count, rejected_count=rejected_count, message=message, error=error)
 
 @app.route('/route-planner')
 @login_required
