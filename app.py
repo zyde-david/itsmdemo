@@ -498,6 +498,23 @@ def init_db():
         'created_at': 'TIMESTAMP',
     }.items():
         ensure_column('users', column, definition)
+
+    # Feedback table
+    c.execute('''CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        username TEXT,
+        role TEXT,
+        branch TEXT,
+        category TEXT DEFAULT 'general',
+        rating INTEGER DEFAULT 0,
+        message TEXT,
+        page TEXT,
+        status TEXT DEFAULT 'new',
+        admin_note TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
+
     demo_hash = hashlib.sha256(b'demo2026').hexdigest()
     demo_users = [('admin', 'admin'), ('manager', 'manager'), ('user', 'user'), ('hr', 'hr')]
     for username, role in demo_users:
@@ -1591,6 +1608,50 @@ def leave_approvals_page():
                            manager_branch=manager_branch, total_staff=total_staff,
                            on_leave_now=on_leave_now, remaining=remaining, mpct=mpct, mp_roles=mp_roles)
 
+# ─── Feedback ────────────────────────────────────────────────
+
+@app.route('/api/feedback', methods=['POST'])
+@login_required
+def api_feedback():
+   try:
+       data = request.get_json(force=True) or {}
+       conn = get_db()
+       cur = conn.cursor()
+       cu = get_current_user() or {}
+       cur.execute(
+           'INSERT INTO feedback (user_id, username, role, branch, category, rating, message, page) VALUES (?,?,?,?,?,?,?,?)',
+           (cu.get('id'), cu.get('username',''), cu.get('role',''), cu.get('branch',''), data.get('category','general'), int(data.get('rating',0)), data.get('message',''), data.get('page',''))
+       )
+       fid = cur.lastrowid
+       conn.commit()
+       return jsonify({'ok': True, 'id': fid})
+   except Exception as e:
+       return jsonify({'ok': False, 'error': str(e)}), 500
+
+@app.route('/feedback')
+@login_required
+def feedback_page():
+    if not is_manager():
+        return forbidden_response()
+    c = get_db()
+    rows = c.execute('SELECT * FROM feedback ORDER BY created_at DESC, id DESC LIMIT 200').fetchall()
+    return render_template('feedback.html', feedbacks=[dict(r) for r in rows], current_user=get_current_user())
+
+@app.route('/api/feedback/<int:fid>', methods=['POST'])
+@login_required
+def api_feedback_update(fid):
+   if not is_manager():
+       return forbidden_response()
+   data = request.get_json(force=True) or {}
+   conn = get_db()
+   cur = conn.cursor()
+   if 'status' in data:
+       cur.execute('UPDATE feedback SET status=? WHERE id=?', (data['status'], fid))
+   if 'admin_note' in data:
+       cur.execute('UPDATE feedback SET admin_note=? WHERE id=?', (data['admin_note'], fid))
+   conn.commit()
+   return jsonify({'ok': True})
+
 @app.route('/route-planner')
 @login_required
 def route_planner_page():
@@ -1669,8 +1730,13 @@ def route_planner_page():
 
         hq = {'name': 'HQ เมืองปัตตานี', 'short_branch': 'HQ', 'lat': 6.8690, 'lng': 101.2500, 'x': 0, 'y': 0}
         districts = []
-        for b in ALL_BRANCHES:
-            d = b['district']
+        # Create one district object per unique district (not per branch)
+        unique_districts = set(b['district'] for b in ALL_BRANCHES)
+        for d in unique_districts:
+            # Get the first branch in this district for branch/province info
+            branch_obj = next((b for b in ALL_BRANCHES if b['district'] == d), None)
+            if not branch_obj:
+                continue
             p = priority_counts.get(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
             active = ticket_counts.get(d, 0)
             assets = asset_counts.get(d, 0)
@@ -1687,7 +1753,7 @@ def route_planner_page():
             else:
                 color = 'green'
             districts.append({
-                'name': d, 'short_branch': _short_branch(b['branch']), 'branch': b['branch'], 'province': b['province'],
+                'name': d, 'short_branch': _short_branch(branch_obj['branch']), 'branch': branch_obj['branch'], 'province': branch_obj['province'],
                 'tickets': active, 'assets': assets, 'critical': p.get('critical',0), 'high': p.get('high',0),
                 'medium': p.get('medium',0), 'low': p.get('low',0), 'score': dispatch_score,
                 'categories': cats, 'category_summary': cat_summary or '-',
