@@ -260,13 +260,11 @@ function applyTicketFilters(){
   if(branch && branchToProvince[branch] && !province){
     document.getElementById('tFilterProvince').value = branchToProvince[branch];
   }
-  const statusMap = {'เปิด':'open','กำลังแก้':'in_progress','รอ':'pending','เสร็จแล้ว':'resolved','เสร็จ':'resolved','ปิด':'closed'};
-  // Clear previous custom filters (keep DataTables built-in)
-  $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn){
-    return fn._builtIn;
-  });
+  // Clear previous page-level filters. DataTables built-in search is not stored here.
+  $.fn.dataTable.ext.search = [];
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    const row = settings.aoData[dataIndex].nTr;
+    if(!settings || !settings.nTable || settings.nTable.id !== 'ticketsTable') return true;
+    const row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
     if(!row) return true;
     const $row = $(row);
     // Use data-* attributes for reliable filtering
@@ -290,6 +288,11 @@ function filterTicketStatus(s) {
   return false;
 }
 
+window.filterTicketPriority = filterTicketPriority;
+window.filterTicketStatus = filterTicketStatus;
+window.applyTicketFilters = applyTicketFilters;
+window.toggleTicketFilter = toggleTicketFilter;
+
 function updateTicketSelection(){
   const count = document.querySelectorAll('.ticket-check:checked').length;
   const btn = document.getElementById('bulkDeleteTicketBtn');
@@ -309,7 +312,12 @@ function toggleAllTickets(cb){
 }
 
 document.addEventListener('DOMContentLoaded',function(){
-  ticketsTable = initTable('#ticketsTable',{order:[[1,'desc']]});
+  ticketsTable = initTable('#ticketsTable',{
+    order:[[1,'desc']],
+    columnDefs:[
+      {orderable:false, targets:[0,-1]}
+    ]
+  });
   document.querySelectorAll('.ticket-check').forEach(cb=>cb.addEventListener('change',updateTicketSelection));
   if(ticketsTable) ticketsTable.on('draw', updateTicketSelection);
   // Apply URL filter params (e.g. ?category=xxx from dashboard)

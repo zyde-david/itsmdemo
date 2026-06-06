@@ -42,7 +42,7 @@
  <thead class="table-light"><tr><th>ID</th><th>หัวข้อ</th><th>หมวดหมู่</th><th>ยอดเข้าชม</th><th>ใช้กับ Ticket</th><th>จัดการ</th></tr></thead>
  <tbody>
   {% for a in articles %}
-  <tr data-id="{{ a.id }}" data-category="{{ a.category }}" data-title="{{ a.title|e }}" data-content="{{ a.content|striptags|e }}" onclick="handleRowClick(event, '/kb/{{ a.id }}')">
+  <tr class="kb-row" data-id="{{ a.id }}" data-category="{{ a.category }}" data-title="{{ a.title|e }}" data-content="{{ a.content|striptags|e }}" onclick="handleRowClick(event, '/kb/{{ a.id }}')" style="cursor:pointer">
    <td data-order="{{ a.id }}"><span class="id-badge" style="display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:0.75rem;padding:2px 8px;border-radius:6px;font-family:monospace">{{ a.id }}</span></td>
    <td style="cursor:pointer" onclick="event.stopPropagation(); openEditKB({{ a.id }})"><strong>{{ a.title }}</strong></td>
    <td><span class="badge bg-info text-dark">{{ a.category }}</span></td>
@@ -94,10 +94,13 @@ function toggleKbFilter(){
 }
 
 function kbFilter(settings, data, dataIndex){
-  if(settings.nTable.id !== 'kbTable') return true;
-  const row = settings.aoData[dataIndex].nTr;
-  const cat = document.getElementById('kbFilterCat').value;
-  const query = document.getElementById('kbFilterSearch').value.trim().toLowerCase();
+  if(!settings || !settings.nTable || settings.nTable.id !== 'kbTable') return true;
+  const row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+  if(!row) return true;
+  const catEl = document.getElementById('kbFilterCat');
+  const searchEl = document.getElementById('kbFilterSearch');
+  const cat = catEl ? catEl.value : '';
+  const query = searchEl ? searchEl.value.trim().toLowerCase() : '';
   if(cat && row.getAttribute('data-category') !== cat) return false;
   if(query){
     const haystack = [
@@ -118,7 +121,12 @@ function applyKbFilters(){
 document.addEventListener('DOMContentLoaded',function(){
   const sortCol = document.getElementById('kbFilterSort').value;
   $.fn.dataTable.ext.search.push(kbFilter);
-  kbTable = initTable('#kbTable',{order:[[sortCol === 'views' ? 3 : 1,'desc']]});
+  kbTable = initTable('#kbTable',{
+    order:[[sortCol === 'views' ? 3 : 1,'desc']],
+    columnDefs:[
+      {orderable:false, targets:[-1]}
+    ]
+  });
   document.getElementById('kbFilterSort').addEventListener('change', function(){
     const col = this.value === 'views' ? 3 : 1;
     kbTable.order([col, 'desc']).draw();
@@ -126,9 +134,12 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 function handleRowClick(e, url){
- if(e.target.closest('a, button, input, .btn, input[type=checkbox]')) return;
+ if(e.target.closest('a, button, input, select, textarea, .btn, input[type=checkbox]')) return;
  location.href=url;
 }
+
+window.applyKbFilters = applyKbFilters;
+window.toggleKbFilter = toggleKbFilter;
 function openEditKB(id){
  window.location.href='/kb/'+id;
 }

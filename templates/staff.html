@@ -179,12 +179,17 @@ function filterStaffBranchByProvince(province){
 // Persistent custom filter for staff — survives sorting and pagination
 // Uses data attributes on <tr> instead of cell text (cells contain HTML badges)
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-  if(settings.nTable.id !== 'staffTable') return true;
-  var row = settings.aoData[dataIndex].nTr;
-  var branch = document.getElementById('sFilterBranch').value;
-  var province = document.getElementById('sFilterProvince').value;
-  var role = document.getElementById('sFilterRole').value;
-  var isIt = document.getElementById('sFilterIsIt').value;
+  if(!settings || !settings.nTable || settings.nTable.id !== 'staffTable') return true;
+  var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+  if(!row) return true;
+  var branchEl = document.getElementById('sFilterBranch');
+  var provinceEl = document.getElementById('sFilterProvince');
+  var roleEl = document.getElementById('sFilterRole');
+  var isItEl = document.getElementById('sFilterIsIt');
+  var branch = branchEl ? branchEl.value : '';
+  var province = provinceEl ? provinceEl.value : '';
+  var role = roleEl ? roleEl.value : '';
+  var isIt = isItEl ? isItEl.value : '';
   // Cascade: branch → province
   if(branch && branchToProvince[branch] && !province){
     document.getElementById('sFilterProvince').value = branchToProvince[branch];
@@ -203,6 +208,10 @@ $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
 function applyStaffFilters(){
   if(window.staffTable) window.staffTable.draw();
 }
+
+window.applyStaffFilters = applyStaffFilters;
+window.toggleStaffFilter = toggleStaffFilter;
+window.filterStaffBranchByProvince = filterStaffBranchByProvince;
 
 // Debounce timer for staff search
 let _staffSearchTimer;
@@ -233,7 +242,12 @@ function deleteOneStaff(id){if(!confirm('ลบพนักงาน?'))return;f
 function bulkDeleteStaff(){const ids=[...document.querySelectorAll('.staff-check:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('ลบ '+ids.length+' พนักงาน?'))return;Promise.all(ids.map(id=>fetch('/api/staff/'+id+'/delete',{method:'POST',headers:{'Content-Type':'application/json'}}))).then(()=>location.reload());}
 
 document.addEventListener('DOMContentLoaded',function(){
-  window.staffTable = initTable('#staffTable',{order:[[1,'asc']]});
+  window.staffTable = initTable('#staffTable',{
+    order:[[1,'asc']],
+    columnDefs:[
+      {orderable:false, targets:[0,-1]}
+    ]
+  });
   document.querySelectorAll('.staff-check').forEach(cb=>cb.addEventListener('change',updateStaffSelection));
   if(window.staffTable) window.staffTable.on('draw', updateStaffSelection);
 });
