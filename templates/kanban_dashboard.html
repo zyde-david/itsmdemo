@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>qq Operator Queue Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root{--ops-bg:#0f172a;--ops-panel:#111827;--ops-card:#ffffff;--ops-muted:#64748b;--ops-border:#e2e8f0}
+    body{margin:0;background:linear-gradient(135deg,#0f172a,#1e293b 58%,#0f766e);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#0f172a;min-height:100vh}
+    .ops-shell{max-width:1440px;margin:0 auto;padding:18px}
+    .ops-top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;color:#fff;margin-bottom:16px}
+    .ops-brand{display:flex;gap:12px;align-items:center}.ops-logo{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:1.3rem}.ops-title h1{font-size:1.25rem;font-weight:850;margin:0}.ops-title p{margin:2px 0 0;color:rgba(255,255,255,.72);font-size:.86rem}.ops-private{border:1px solid rgba(255,255,255,.22);background:rgba(15,23,42,.35);border-radius:999px;color:#fff;padding:8px 12px;font-size:.82rem}
+    .ops-alert{border-radius:14px}.ops-stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;margin-bottom:12px}.ops-stat{background:rgba(255,255,255,.94);border-radius:16px;padding:14px;border-left:5px solid #94a3b8;box-shadow:0 16px 40px rgba(15,23,42,.16)}.ops-stat strong{display:block;font-size:1.7rem;line-height:1}.ops-stat span{font-size:.78rem;color:var(--ops-muted)}.ops-stat.processing{border-color:#38bdf8}.ops-stat.next{border-color:#f59e0b}.ops-stat.done{border-color:#22c55e}.ops-stat.other{border-color:#94a3b8}
+    .ops-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.9);border:1px solid rgba(226,232,240,.75);border-radius:16px;padding:10px;margin-bottom:12px}.ops-note{font-size:.78rem;color:var(--ops-muted)}
+    .ops-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.ops-column{background:rgba(248,250,252,.92);border:1px solid rgba(226,232,240,.86);border-radius:18px;min-height:260px;overflow:hidden}.ops-column-head{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border-bottom:1px solid var(--ops-border);background:rgba(255,255,255,.72)}.ops-column-head h2{font-size:.96rem;font-weight:850;margin:0}.ops-column-body{padding:12px;display:flex;flex-direction:column;gap:10px}
+    .ops-card{background:var(--ops-card);border:1px solid var(--ops-border);border-radius:16px;padding:12px;box-shadow:0 10px 24px rgba(15,23,42,.08)}.ops-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}.ops-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:850;color:#0f766e}.ops-status{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;border-radius:999px;padding:4px 8px;background:#e2e8f0}.ops-status.processing{background:#dbeafe;color:#1d4ed8}.ops-status.next{background:#fef3c7;color:#92400e}.ops-status.done{background:#dcfce7;color:#166534}.ops-card-title{font-weight:800;line-height:1.25;margin-bottom:6px}.ops-summary{font-size:.82rem;color:#475569;line-height:1.35;margin:7px 0}.ops-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;font-size:.74rem;color:#475569}.ops-meta b{color:#111827}.ops-progress{height:7px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:8px 0}.ops-progress span{display:block;height:100%;background:linear-gradient(90deg,#14b8a6,#22c55e)}.ops-empty{padding:18px;text-align:center;color:#64748b;font-size:.86rem;border:1px dashed #cbd5e1;border-radius:14px;background:rgba(255,255,255,.5)}
+    @media(max-width:991.98px){.ops-columns{grid-template-columns:1fr}.ops-stats{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:575.98px){.ops-shell{padding:12px}.ops-stats{grid-template-columns:1fr}.ops-toolbar .form-control,.ops-toolbar .form-select{width:100%!important}.ops-meta{grid-template-columns:1fr}.ops-private{width:100%;border-radius:14px}}
+  </style>
+</head>
+<body>
+  <main class="ops-shell">
+    <header class="ops-top">
+      <div class="ops-brand">
+        <div class="ops-logo"><i class="bi bi-sign-stoplights"></i></div>
+        <div class="ops-title">
+          <h1>qq Operator Queue Dashboard</h1>
+          <p>Operator-only queue view on the same domain. Safe metadata only: no task body, comments, logs, payloads, or secrets.</p>
+        </div>
+      </div>
+      <div class="ops-private"><i class="bi bi-person-lock me-1"></i>{{ operator_user }} · no public app navigation</div>
+    </header>
+
+    {% if error %}<div class="alert alert-warning ops-alert"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>{% endif %}
+
+    <section class="ops-stats" id="kanbanStats" aria-label="qq queue status counts">
+      <div class="ops-stat processing"><strong>{{ counts.processing }}</strong><span>Processing / Running</span></div>
+      <div class="ops-stat next"><strong>{{ counts.next }}</strong><span>Next / Blocked / Backlog</span></div>
+      <div class="ops-stat done"><strong>{{ counts.done }}</strong><span>Done</span></div>
+      <div class="ops-stat other"><strong>{{ counts.other }}</strong><span>Other</span></div>
+    </section>
+
+    <section class="ops-toolbar" aria-label="qq queue filters">
+      <div class="d-flex gap-2 flex-wrap">
+        <input class="form-control form-control-sm" id="kanbanSearch" placeholder="ค้นหา Task ID / title / assignee" style="width:280px">
+        <select class="form-select form-select-sm" id="kanbanStatus" style="width:190px">
+          <option value="">ทุกกลุ่มงาน</option>
+          <option value="processing">Processing</option>
+          <option value="next">Next / Blocked</option>
+          <option value="done">Done</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="ops-note"><i class="bi bi-arrow-repeat me-1"></i>Refresh every 30s · <span id="kanbanUpdated">loaded</span></div>
+    </section>
+
+    <section class="ops-columns" aria-label="qq queue board">
+      <article class="ops-column"><div class="ops-column-head"><h2><i class="bi bi-lightning-charge text-primary me-1"></i>Processing</h2><span class="badge text-bg-primary">running</span></div><div class="ops-column-body" id="col-processing"></div></article>
+      <article class="ops-column"><div class="ops-column-head"><h2><i class="bi bi-hourglass-split text-warning me-1"></i>Next / Blocked / Backlog</h2><span class="badge text-bg-warning">next</span></div><div class="ops-column-body" id="col-next"></div></article>
+      <article class="ops-column"><div class="ops-column-head"><h2><i class="bi bi-check2-circle text-success me-1"></i>Done</h2><span class="badge text-bg-success">done</span></div><div class="ops-column-body" id="col-done"></div></article>
+    </section>
+  </main>
+
+  <script>
+    let kanbanCards = {{ cards|tojson }};
+    function escapeHtml(value){return String(value || '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));}
+    function cardSearch(card){return (card.id+' '+card.title+' '+card.assignee+' '+card.status+' '+(card.summary || '')).toLowerCase();}
+    function cardHtml(card){
+      const progress = card.progress === null || card.progress === undefined ? '' : `<div class="ops-progress" title="${card.progress}%"><span style="width:${card.progress}%"></span></div>`;
+      const summary = card.summary ? `<div class="ops-summary">${escapeHtml(card.summary)}</div>` : '<div class="ops-summary text-muted">No summary yet — showing status only</div>';
+      return `<article class="ops-card">
+        <div class="ops-card-top"><span class="ops-id">${escapeHtml(card.id)}</span><span class="ops-status ${card.group}">${escapeHtml(card.status)}</span></div>
+        <div class="ops-card-title">${escapeHtml(card.title)}</div>${progress}${summary}
+        <div class="ops-meta">
+          <span><b>Created</b><br>${escapeHtml(card.created_at || '-')}</span><span><b>Started</b><br>${escapeHtml(card.started_at || '-')}</span>
+          <span><b>Done/Updated</b><br>${escapeHtml(card.completed_at || card.updated_at || '-')}</span><span><b>Heartbeat</b><br>${escapeHtml(card.last_heartbeat_at || '-')}</span>
+          <span><b>Assignee</b><br>${escapeHtml(card.assignee)}</span><span><b>Priority</b><br>${escapeHtml(card.priority)}</span>
+        </div>
+      </article>`;
+    }
+    function renderKanban(){
+      const query = document.getElementById('kanbanSearch').value.trim().toLowerCase();
+      const status = document.getElementById('kanbanStatus').value;
+      ['processing','next','done'].forEach(group => {
+        const target = document.getElementById('col-' + group);
+        const visible = kanbanCards.filter(card => card.group === group && (!status || card.group === status) && (!query || cardSearch(card).includes(query)));
+        target.innerHTML = visible.length ? visible.map(cardHtml).join('') : '<div class="ops-empty">ไม่มีการ์ดในกลุ่มนี้</div>';
+      });
+    }
+    async function refreshKanban(){
+      try{
+        const res = await fetch('/ops/api/kanban/cards', {headers:{'Accept':'application/json'}});
+        const data = await res.json();
+        if(data.cards){kanbanCards = data.cards; renderKanban(); document.getElementById('kanbanUpdated').textContent = new Date().toLocaleTimeString();}
+        else{document.getElementById('kanbanUpdated').textContent = data.error || 'refresh failed';}
+      }catch(err){document.getElementById('kanbanUpdated').textContent = 'refresh failed';}
+    }
+    document.getElementById('kanbanSearch').addEventListener('input', renderKanban);
+    document.getElementById('kanbanStatus').addEventListener('change', renderKanban);
+    renderKanban();
+    setInterval(refreshKanban, 30000);
+  </script>
+</body>
+</html>

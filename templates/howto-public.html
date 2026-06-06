@@ -28,28 +28,37 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5;color
 .btn-outline-demo{background:transparent;color:var(--primary);border:2px solid var(--primary);padding:8px 20px;border-radius:8px;font-weight:600;font-size:.8rem;text-decoration:none;display:inline-block;transition:background .2s}
 .btn-outline-demo:hover{background:var(--primary);color:#fff}
 .footer{text-align:center;padding:24px;color:#95a5a6;font-size:.7rem}
+.lang-switch{position:relative;z-index:2;display:inline-flex;gap:4px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:4px;margin-bottom:14px}
+.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.8);font-size:.76rem;padding:6px 11px;font-weight:700}.lang-btn.active{background:#fff;color:var(--primary)}
+@media(max-width:575.98px){.hero{padding:34px 18px}.lang-btn{font-size:.72rem;padding:5px 8px}}
 </style>
 </head>
 <body>
 
 <!-- Hero -->
 <div class="hero">
-  <h1><i class="bi bi-ticket-detailed me-2"></i>ITSM Demo</h1>
-  <p>ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์<br>ครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner</p>
+  <div class="lang-switch" aria-label="Language switcher: English, Thai, Bahasa Nayu / Melayu Pattani">
+    <button type="button" class="lang-btn active" data-lang="th">ไทย</button>
+    <button type="button" class="lang-btn" data-lang="en">English</button>
+    <button type="button" class="lang-btn" data-lang="pm" title="Bahasa Nayu / Melayu Pattani">นายูบ้านเรา</button>
+  </div>
+  <h1><i class="bi bi-ticket-detailed me-2"></i><span data-i18n="heroTitle">ITSM Demo</span></h1>
+  <p data-i18n-html="heroText">ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์<br>ครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner</p>
 </div>
 
 <div class="container py-4">
 
   <!-- What is this -->
   <div class="cta-box mb-4">
-    <h5><i class="bi bi-lightbulb me-2"></i>ระบบนี้ทำอะไรได้?</h5>
-    <p class="mb-2">ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา</p>
-    <a href="/login" class="btn-demo me-2"><i class="bi bi-box-arrow-in-right me-1"></i>เข้าสู่ระบบ</a>
+    <h5><i class="bi bi-lightbulb me-2"></i><span data-i18n="whatTitle">ระบบนี้ทำอะไรได้?</span></h5>
+    <p class="mb-2" data-i18n="whatText">ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา</p>
+    <a href="/login" class="btn-demo me-2"><i class="bi bi-box-arrow-in-right me-1"></i><span data-i18n="loginCta">เข้าสู่ระบบ</span></a>
+    <a href="/vision" class="btn-outline-demo me-2"><i class="bi bi-stars me-1"></i>Next: Vision / แผนอนาคต</a>
     <a href="https://github.com/zyde-david" target="_blank" class="btn-outline-demo"><i class="bi bi-github me-1"></i>GitHub</a>
   </div>
 
   <!-- Features Grid -->
-  <div class="section-title"><i class="bi bi-grid-3x3-gap"></i>ฟีเจอร์หลัก</div>
+  <div class="section-title"><i class="bi bi-grid-3x3-gap"></i><span data-i18n="featuresTitle">ฟีเจอร์หลัก</span></div>
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-4 col-lg-3">
       <div class="feature-card">
@@ -110,7 +119,7 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5;color
   </div>
 
   <!-- Paperless Section -->
-  <div class="section-title"><i class="bi bi-file-earmark-arrow-up"></i>นำเข้าข้อมูลเดิม — ระบบรองรับ Paperless</div>
+  <div class="section-title"><i class="bi bi-file-earmark-arrow-up"></i><span data-i18n="paperlessTitle">นำเข้าข้อมูลเดิม — ระบบรองรับ Paperless</span></div>
   <div class="card mb-4">
     <div class="card-body">
       <p class="small text-muted mb-3">ไม่ต้องพิมพ์ข้อมูลเดิมซ้ำทั้งหมด ระบบรองรับการนำเข้าข้อมูลจาก Excel/CSV ได้:</p>
@@ -143,8 +152,35 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5;color
     </div>
   </div>
 
+  <!-- AI Privacy Explanation -->
+  <div class="section-title"><i class="bi bi-shield-lock"></i><span data-i18n="aiPrivacyTitle">AI ช่วยงานแบบระวังข้อมูลส่วนตัว</span></div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 border rounded h-100 bg-light">
+            <strong class="d-block small mb-1"><i class="bi bi-hdd-network me-1 text-success"></i><span data-i18n="aiPrivateModeTitle">Local LLM / private mode</span></strong>
+            <p class="small text-muted mb-0" data-i18n="aiPrivateModeText">ข้อมูล private เช่น ticket, asset, staff และสาขา จะใช้ local LLM/private mode เป็นทางหลัก เพื่อไม่ส่งข้อมูลดิบออกนอก server โดยค่าเริ่มต้น</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 border rounded h-100 bg-light">
+            <strong class="d-block small mb-1"><i class="bi bi-cloud-check me-1 text-primary"></i><span data-i18n="aiCloudTitle">Cloud AI ต้องเลือกเปิดเอง</span></strong>
+            <p class="small text-muted mb-0" data-i18n="aiCloudText">ถ้าใช้ Cloud AI/API ให้เป็น opt-in ส่งเฉพาะข้อมูลจำเป็น ลดรายละเอียดส่วนตัว และให้คนอนุมัติก่อนเสมอ</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 border rounded h-100 bg-light">
+            <strong class="d-block small mb-1"><i class="bi bi-person-check me-1 text-warning"></i><span data-i18n="aiHumanTitle">AI เป็นผู้ช่วยเท่านั้น</span></strong>
+            <p class="small text-muted mb-0" data-i18n="aiHumanText">AI ช่วยสรุปงาน แนะนำหมวด/ความสำคัญ หรือร่าง KB ได้ แต่การเปลี่ยนสถานะ มอบหมายงาน หรือเผยแพร่เนื้อหา ต้องให้คนยืนยันก่อน</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Roadmap Preview -->
-  <div class="section-title"><i class="bi bi-signpost-split"></i>แผนการพัฒนา</div>
+  <div class="section-title"><i class="bi bi-signpost-split"></i><span data-i18n="roadmapTitle">แผนการพัฒนา</span></div>
   <div class="card mb-4">
     <div class="card-body">
       <div class="row g-2 text-center small">
@@ -162,17 +198,35 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5;color
 
   <!-- Contact / CTA -->
   <div class="cta-box mb-4">
-    <h5><i class="bi bi-chat-dots me-2"></i>สนใจทดลองใช้งาน?</h5>
-    <p class="mb-3">ระบบนี้เป็น demo สำหรับการสัมภาษณ์งาน — สามารถติดต่อผู้พัฒนาเพื่อขอทดลองใช้งานเพิ่มเติมได้ทาง GitHub</p>
+    <h5><i class="bi bi-chat-dots me-2"></i><span data-i18n="contactTitle">สนใจทดลองใช้งาน?</span></h5>
+    <p class="mb-3" data-i18n="contactText">ระบบนี้เป็น demo สำหรับการสัมภาษณ์งาน — สามารถติดต่อผู้พัฒนาเพื่อขอทดลองใช้งานเพิ่มเติมได้ทาง GitHub</p>
     <a href="https://github.com/zyde-david" target="_blank" class="btn-demo me-2"><i class="bi bi-github me-1"></i>GitHub: zyde-david</a>
-    <a href="/login" class="btn-outline-demo"><i class="bi bi-box-arrow-in-right me-1"></i>เข้าสู่ระบบ</a>
+    <a href="/login" class="btn-outline-demo"><i class="bi bi-box-arrow-in-right me-1"></i><span data-i18n="loginCta">เข้าสู่ระบบ</span></a>
   </div>
 
 </div>
 
 <div class="footer">
   ITSM Demo v0.24 — สร้างโดย Zyde สำหรับการสัมภาษณ์งาน | ข้อมูลเป็นข้อมูลจำลอง<br>
-  Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
+  <a href="/vision" class="text-decoration-none">Vision / AI privacy roadmap</a> · Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
 </div>
+
+<script>
+const pageCopy={
+  th:{heroTitle:'ITSM Demo',heroText:'ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์<br>ครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner',whatTitle:'ระบบนี้ทำอะไรได้?',whatText:'ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา',loginCta:'เข้าสู่ระบบ',featuresTitle:'ฟีเจอร์หลัก',paperlessTitle:'นำเข้าข้อมูลเดิม — ระบบรองรับ Paperless',aiPrivacyTitle:'AI ช่วยงานแบบระวังข้อมูลส่วนตัว',aiPrivateModeTitle:'Local LLM / private mode',aiPrivateModeText:'ข้อมูล private เช่น ticket, asset, staff และสาขา จะใช้ local LLM/private mode เป็นทางหลัก เพื่อไม่ส่งข้อมูลดิบออกนอก server โดยค่าเริ่มต้น',aiCloudTitle:'Cloud AI ต้องเลือกเปิดเอง',aiCloudText:'ถ้าใช้ Cloud AI/API ให้เป็น opt-in ส่งเฉพาะข้อมูลจำเป็น ลดรายละเอียดส่วนตัว และให้คนอนุมัติก่อนเสมอ',aiHumanTitle:'AI เป็นผู้ช่วยเท่านั้น',aiHumanText:'AI ช่วยสรุปงาน แนะนำหมวด/ความสำคัญ หรือร่าง KB ได้ แต่การเปลี่ยนสถานะ มอบหมายงาน หรือเผยแพร่เนื้อหา ต้องให้คนยืนยันก่อน',roadmapTitle:'แผนการพัฒนา',contactTitle:'สนใจทดลองใช้งาน?',contactText:'ระบบนี้เป็น demo สำหรับการสัมภาษณ์งาน — สามารถติดต่อผู้พัฒนาเพื่อขอทดลองใช้งานเพิ่มเติมได้ทาง GitHub'},
+  en:{heroTitle:'ITSM Demo',heroText:'IT Service Management demo for a branch-based cooperative<br>Ticket · Asset · Staff · Knowledge Base · Route Planner',whatTitle:'What can this system do?',whatText:'Designed for IT work across many cooperative branches and provinces — from issue intake and tracking to asset control and branch visit planning.',loginCta:'Sign in',featuresTitle:'Main features',paperlessTitle:'Bring old data in — paperless-ready',aiPrivacyTitle:'AI helps without exposing private data',aiPrivateModeTitle:'Local LLM / private mode',aiPrivateModeText:'Private ITSM data such as tickets, assets, staff, and branch details will use a local model/private mode first, so raw private data does not leave the server by default.',aiCloudTitle:'Cloud AI is opt-in',aiCloudText:'If cloud AI/API is used, send only the minimum facts, reduce personal details, and require human approval.',aiHumanTitle:'AI is only a helper',aiHumanText:'AI can suggest summaries, category, priority, or KB drafts. A person confirms before status, assignment, SLA, or published knowledge changes.',roadmapTitle:'Development roadmap',contactTitle:'Interested in trying it?',contactText:'This is an interview demo. Contact the developer on GitHub if you want a deeper walkthrough.'},
+  pm:{heroTitle:'ITSM Demo',heroText:'Sistem urus kerja IT untuk koperasi banyak cawangan<br>Ticket · Barang IT · Staff · Knowledge · Route Planner',whatTitle:'Sistem ni buat apa?',whatText:'Demo ni bantu urus kerja IT กีตอ: terima masalah, tengok status, jaga barang IT, dan plan jalan pi cawangan.',loginCta:'Masuk sistem',featuresTitle:'Fungsi utama',paperlessTitle:'Data lama pun masuk boleh — kurang kertas',aiPrivacyTitle:'AI bantu kerja, data private jaga elok',aiPrivateModeTitle:'Local LLM / private mode',aiPrivateModeText:'Ticket, barang IT, staff, dan data cawangan yang private boleh proses dalam server/private mode. Default tak hantar raw data keluar.',aiCloudTitle:'Cloud AI pilih buka sendiri',aiCloudText:'Kalau guna Cloud AI/API, hantar sikit yang perlu saja, kurangkan detail orang, dan bagi manusia approve dulu.',aiHumanTitle:'AI cuma pembantu',aiHumanText:'AI boleh cadang summary, kategori, priority, atau draft KB. Tapi tukar status, assign kerja, SLA, atau publish knowledge mesti manusia confirm.',roadmapTitle:'Plan tambah feature',contactTitle:'Nak cuba demo?',contactText:'Demo ni buat untuk interview. Kalau nak tengok lebih, hubungi developer dekat GitHub.'}
+};
+function setPublicLang(lang){
+  const dict=pageCopy[lang]||pageCopy.th;
+  localStorage.setItem('uiLanguage',lang);
+  document.documentElement.lang=lang==='en'?'en':(lang==='pm'?'ms':'th');
+  document.querySelectorAll('.lang-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.lang===lang));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(dict[key]) el.textContent=dict[key];});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{const key=el.dataset.i18nHtml;if(dict[key]) el.innerHTML=dict[key];});
+}
+document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>setPublicLang(btn.dataset.lang)));
+setPublicLang(localStorage.getItem('uiLanguage')||'th');
+</script>
 </body>
 </html>

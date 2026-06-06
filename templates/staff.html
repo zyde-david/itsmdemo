@@ -126,6 +126,15 @@
       <select class="form-select form-select-sm" id="sBranch">{% for b in branches %}<option value="{{ b.branch }}">{{ b.short }} ({{ b.province }})</option>{% endfor %}</select>
      </div>
     </div>
+    <div class="border rounded p-2 bg-light" id="staffAssetHistoryBox">
+     <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="fw-semibold small"><i class="bi bi-box-seam me-1"></i>ประวัติ Asset / ของที่เคยถือ</div>
+      <span class="badge bg-secondary" id="staffAssetSummary">-</span>
+     </div>
+     <div class="small text-muted mb-2" id="staffAssetHint">กดชื่อพนักงานเพื่อโหลด Asset ปัจจุบันและประวัติเดิม</div>
+     <div id="staffCurrentAssets" class="mb-2"></div>
+     <div id="staffPreviousAssets"></div>
+    </div>
    </div>
    <div class="modal-footer d-flex justify-content-between">
     <button class="btn btn-sm btn-outline-danger" id="sDeleteBtn" onclick="deleteStaff()"><i class="bi bi-trash"></i> ลบ</button>
@@ -235,6 +244,43 @@ function handleRowClick(e, url, staffId){
  else if(staffId){editStaff(staffId);}
 }
 
+function assetTagLabel(a){
+  return a.asset_tag || a.asset_code || ('#' + a.asset_id);
+}
+
+function renderStaffAssetHistory(data){
+  const summary = document.getElementById('staffAssetSummary');
+  const hint = document.getElementById('staffAssetHint');
+  const currentBox = document.getElementById('staffCurrentAssets');
+  const previousBox = document.getElementById('staffPreviousAssets');
+  if(!data || !data.success){
+    summary.textContent = 'ไม่มีสิทธิ์/ไม่มีข้อมูล';
+    hint.textContent = data && data.error ? data.error : 'โหลดข้อมูลไม่ได้';
+    currentBox.innerHTML = '';
+    previousBox.innerHTML = '';
+    return;
+  }
+  const current = data.current_assets || data.assets || [];
+  const previous = data.previous_assets || [];
+  summary.textContent = 'ตอนนี้ ' + current.length + ' / เคยก่อน ' + previous.length;
+  hint.textContent = 'Asset Tag/ID เป็นรหัสหลัก วันที่มาจากประวัติการโอนเท่าที่ระบบเก็บไว้';
+  currentBox.innerHTML = '<div class="small fw-semibold mb-1">กำลังถืออยู่</div>' + (current.length ? current.map(function(a){
+    return '<span class="badge bg-info text-dark me-1 mb-1">' + assetTagLabel(a) + ' — ' + (a.asset_type || a.name || '') + '</span>';
+  }).join('') : '<div class="small text-muted">ยังไม่มี Asset ที่ผูกกับชื่อนี้</div>');
+  previousBox.innerHTML = '<div class="small fw-semibold mb-1">เคยถือก่อนนี้</div>' + (previous.length ? previous.map(function(h){
+    return '<div class="small border-top py-1"><code>' + assetTagLabel(h) + '</code> ' + (h.asset_type || h.asset_name || '') + '<br><span class="text-muted">รับ: ' + (h.started_at || '-') + ' | คืน/โอน: ' + (h.ended_at || '-') + '</span></div>';
+  }).join('') : '<div class="small text-muted">ยังไม่มีประวัติเดิม (ระบบเริ่มเก็บจากตอนนี้)</div>');
+}
+
+function loadStaffAssetHistory(id){
+  document.getElementById('staffAssetSummary').textContent = 'กำลังโหลด';
+  document.getElementById('staffAssetHint').textContent = 'กำลังอ่านประวัติ Asset...';
+  fetch('/api/staff/' + id + '/assets')
+    .then(r => r.json())
+    .then(renderStaffAssetHistory)
+    .catch(() => renderStaffAssetHistory({success:false,error:'โหลดข้อมูลไม่ได้'}));
+}
+
 function editStaff(id){
  const rows=document.querySelectorAll('#staffTable tbody tr');
  rows.forEach(r=>{
@@ -254,6 +300,7 @@ function editStaff(id){
    for(let i=0;i<brSel.options.length;i++){if(brSel.options[i].text.includes(brText)){brSel.selectedIndex=i;break}}
   }
  });
+ loadStaffAssetHistory(id);
  new bootstrap.Modal(document.getElementById('staffModal')).show();
 }
 
@@ -263,6 +310,7 @@ function openNewStaff(){
  document.getElementById('sDeleteBtn').style.display='none';
  document.getElementById('sName').value='';
  document.getElementById('sIsIt').value='0';
+ renderStaffAssetHistory({success:false,error:'บันทึกพนักงานก่อน แล้วค่อยดูประวัติ Asset'});
  new bootstrap.Modal(document.getElementById('staffModal')).show();
 }
 

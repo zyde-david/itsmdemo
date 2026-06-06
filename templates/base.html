@@ -22,10 +22,10 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 .quick-dial-btn{background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.4);color:#2ecc71;font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;transition:background .15s}
 .quick-dial-btn:hover{background:rgba(46,204,113,.3);color:#fff;text-decoration:none}
 .quick-dial-btn i{margin-right:4px}
-.lang-switcher{background:rgba(255,255,255,.12);border-radius:18px;padding:3px;display:inline-flex;align-items:center;gap:2px}
-.lang-switcher .btn{font-size:11px;font-weight:700;padding:2px 8px;border-radius:15px;border:none;color:rgba(255,255,255,.78);background:transparent}
+.lang-switcher{background:rgba(255,255,255,.12);border-radius:18px;padding:3px;display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+.lang-switcher .btn{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:15px;border:none;color:rgba(255,255,255,.78);background:transparent;line-height:1.25}
 .lang-switcher .btn.active{background:#fff;color:#1a5276}
-@media(max-width:575.98px){.lang-switcher .btn{padding:2px 6px;font-size:10px}.navbar .nav-user-section{right:8px;gap:4px!important}}
+@media(max-width:575.98px){.lang-switcher .btn{padding:2px 4px;font-size:9px}.navbar .nav-user-section{right:8px;gap:4px!important}}
 .card{border:none;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
 .card-stat{transition:transform .2s}.card-stat:hover{transform:translateY(-3px)}
 .stat-icon{font-size:2rem;opacity:.8}
@@ -203,6 +203,7 @@ body[data-theme="custom"]{
   background:var(--bg-surface);border-color:var(--border-dark);color:var(--text-surface);
 }
 .card-header{background:var(--bg-elevated);color:var(--text-elevated)}
+.card-header h1,.card-header h2,.card-header h3,.card-header h4,.card-header h5,.card-header h6{color:var(--text-elevated)}
 .card-body{color:var(--text-surface)}
 .card-stat{border-left-color:var(--border-dark)}
 
@@ -224,7 +225,9 @@ body[data-theme="custom"]{
 .form-text{color:var(--text-muted)}
 
 /* Tables — stay white for readability */
-.table{color:var(--text-table)}
+.table{background:var(--bg-table);color:var(--text-table)}
+.table > :not(caption) > * > *{background-color:var(--bg-table);color:var(--text-table)}
+.table-light{--bs-table-bg:var(--bg-table);--bs-table-color:var(--text-table);color:var(--text-table)}
 .table-striped tbody tr:nth-of-type(odd){background:rgba(0,0,0,0.03);color:var(--text-table)}
 .table-hover tbody tr:hover{background:rgba(0,0,0,0.06);color:var(--text-table)}
 
@@ -239,11 +242,15 @@ body[data-theme="custom"]{
 
 /* Headings & text */
 h1,h2,h3,h4,h5,h6{color:var(--text-body)}
+.text-dark{color:var(--text-surface)!important}
 .text-muted{color:var(--text-muted)!important}
 small,.small{color:var(--text-muted)}
+a{color:var(--link-color)}
+a:hover{color:var(--link-hover)}
 
 /* Badges */
 .badge{color:#fff}
+.badge.bg-warning.text-dark,.badge.bg-info.text-dark{color:#212529!important}
 .ai-badge{background:var(--ai-badge-bg);color:var(--ai-badge-text)}
 .branch-tag{background:var(--bg-surface);color:var(--text-muted)}
 
@@ -262,6 +269,7 @@ small,.small{color:var(--text-muted)}
 
 /* Alerts */
 .alert{color:var(--text-body)}
+.alert-light{background:var(--bg-elevated);border-color:var(--border-dark);color:var(--text-elevated)}
 .alert-info{background:#0f3460;border-color:#1a5276;color:#aed6f1}
 .alert-success{background:#0e4d2b;border-color:#196f3d;color:#abebc6}
 .alert-warning{background:#4d3800;border-color:#7d6608;color:#f9e79f}
@@ -272,8 +280,14 @@ small,.small{color:var(--text-muted)}
 .dropdown-item{color:var(--text-surface)}
 .dropdown-item:hover{background:#1a1a4e;color:var(--primary)}
 
-/* bg-light override */
+/* Bootstrap light utility overrides */
+.bg-white{background:var(--bg-surface)!important;color:var(--text-surface)!important}
 .bg-light{background:var(--bg-surface)!important;color:var(--text-surface)}
+
+/* Semantic click surfaces: replace inline light hover colors */
+.theme-click-surface{color:var(--text-surface)!important;cursor:pointer;transition:background .15s,color .15s}
+.theme-click-surface:hover{background:var(--bg-elevated)!important;color:var(--text-elevated)!important}
+.theme-click-surface .text-muted{color:var(--text-muted)!important}
 
 /* Footer */
 .footer{color:var(--text-footer)}
@@ -315,13 +329,13 @@ small,.small{color:var(--text-muted)}
     <button type="button" class="btn btn-sm" id="tv1" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:15px;background:#fff;color:#1a5276;border:none" onclick="setTableVersion('v1')">v1</button>
     <button type="button" class="btn btn-sm" id="tv2" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:15px;background:transparent;color:rgba(255,255,255,.7);border:none" onclick="setTableVersion('v2')">v2</button>
    </div>
-   <div class="lang-switcher" aria-label="Language switcher">
-    <button type="button" class="btn active" data-lang="en" onclick="setUiLanguage('en')">EN</button>
-    <button type="button" class="btn" data-lang="th" onclick="setUiLanguage('th')">ไทย</button>
-    <button type="button" class="btn" data-lang="pm" onclick="setUiLanguage('pm')">Patani</button>
+   <div class="lang-switcher" aria-label="Language switcher: English, Thai, Bahasa Nayu / Melayu Pattani">
+    <button type="button" class="btn active" data-lang="en" title="English" aria-label="English" onclick="setUiLanguage('en')">English</button>
+    <button type="button" class="btn" data-lang="th" title="ภาษาไทย" aria-label="ไทย" onclick="setUiLanguage('th')">ไทย</button>
+    <button type="button" class="btn" data-lang="pm" title="Bahasa Nayu / Melayu Pattani" aria-label="นายูบ้านเรา — Bahasa Nayu / Melayu Pattani" onclick="setUiLanguage('pm')">นายูบ้านเรา</button>
    </div>
    <button class="btn btn-sm btn-outline-light" type="button" id="themeToggleBtn" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง"><i class="bi bi-moon-fill" id="themeToggleIcon"></i></button>
-   <span class="text-white small d-none d-lg-inline"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</span>
+   <a class="text-white small d-none d-lg-inline text-decoration-none" href="/profile"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</a>
    <span class="ai-badge d-none d-sm-inline"><i class="bi bi-stars me-1"></i>AI-Powered</span>
    <a href="/logout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i></a>
   </div>
@@ -346,8 +360,10 @@ small,.small{color:var(--text-muted)}
    <a class="nav-link" href="/calendar" data-label="Calendar"><i class="bi bi-calendar3"></i><span class="nav-text">Calendar</span></a>
    <a class="nav-link" href="/staff" data-label="ทีมงาน"><i class="bi bi-people"></i><span class="nav-text">ทีมงาน</span></a>
    <a class="nav-link" href="/interview" data-label="Interview"><i class="bi bi-qr-code"></i><span class="nav-text">Interview</span></a>
+   <a class="nav-link" href="/vision" data-label="Vision"><i class="bi bi-stars"></i><span class="nav-text">Vision</span></a>
    <a class="nav-link" href="/sitemap" data-label="Site Map"><i class="bi bi-diagram-3"></i><span class="nav-text">Site Map</span></a>
    <a class="nav-link" href="/howto" data-label="How To"><i class="bi bi-question-circle"></i><span class="nav-text">How To</span></a>
+   {% if is_kanban_operator %}<a class="nav-link" href="/ops/kanban" data-label="qq"><i class="bi bi-sign-stoplights"></i><span class="nav-text">qq</span></a>{% endif %}
    {% if is_admin %}<a class="nav-link" href="/projects" data-label="Projects"><i class="bi bi-kanban"></i><span class="nav-text">Projects</span></a>{% endif %}
    <a class="nav-link" href="/settings" data-label="ตั้งค่า"><i class="bi bi-gear"></i><span class="nav-text">ตั้งค่า</span></a>
   </div>
@@ -437,8 +453,13 @@ function setUiLanguage(lang){
   document.querySelectorAll('.lang-switcher [data-lang]').forEach(function(btn){
     btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
   });
+  var dict = (window.pageI18n && window.pageI18n[lang]) ? window.pageI18n[lang] : null;
+  if(dict){
+    document.querySelectorAll('[data-i18n]').forEach(function(el){ var key=el.getAttribute('data-i18n'); if(dict[key]) el.textContent=dict[key]; });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el){ var key=el.getAttribute('data-i18n-html'); if(dict[key]) el.innerHTML=dict[key]; });
+  }
 }
-setUiLanguage(localStorage.getItem('uiLanguage') || 'en');
+setUiLanguage(localStorage.getItem('uiLanguage') || 'th');
 
 function toggleChat(){const b=document.getElementById('chatBox');b.style.display=b.style.display==='block'?'none':'block'}
 async function sendChat(){

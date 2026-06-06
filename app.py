@@ -2,7 +2,7 @@
 import hashlib
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, g
 import calendar
-import sqlite3, random, os, logging
+import sqlite3, random, os, logging, json
 from datetime import date, datetime, timedelta
 from functools import wraps
 
@@ -128,12 +128,88 @@ def forbidden_response(message='ไม่มีสิทธิ์เข้าถ
         return jsonify(success=False, error=message), 403
     return message, 403
 
+def get_staff_for_user(user=None):
+    user = user or get_current_user()
+    if not user:
+        return None
+    c = get_db()
+    staff = None
+    if int(user.get('staff_id') or 0):
+        staff = c.execute('SELECT * FROM staff WHERE id=?', (user['staff_id'],)).fetchone()
+    if not staff:
+        staff = c.execute('SELECT * FROM staff WHERE name=?', (user.get('username', ''),)).fetchone()
+    return staff
+
+def manager_staff_branch():
+    staff = get_staff_for_user()
+    return staff['branch'] if staff else ''
+
+def can_view_staff_asset_history(staff):
+    if not staff:
+        return False
+    role = current_role()
+    user = get_current_user()
+    if role in ('admin', 'hr'):
+        return True
+    if role == 'manager':
+        branch = manager_staff_branch()
+        return not branch or staff['branch'] == branch
+    if user and int(user.get('staff_id') or 0) == staff['id']:
+        return True
+    return session.get('username', '') == staff['name']
+
+def ensure_asset_history_baseline(c):
+    c.execute('''CREATE TABLE IF NOT EXISTS asset_ownership_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        asset_id INTEGER,
+        staff_name TEXT,
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ended_at TIMESTAMP,
+        action TEXT DEFAULT 'assigned',
+        note TEXT DEFAULT '',
+        created_by TEXT DEFAULT 'System',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
+    c.execute('''
+        INSERT INTO asset_ownership_history (asset_id, staff_name, started_at, action, note, created_by)
+        SELECT a.id, a.assigned_to, CURRENT_TIMESTAMP, 'baseline', 'เจ้าของปัจจุบันตอนเริ่มเก็บประวัติ', 'System'
+        FROM assets a
+        WHERE COALESCE(a.assigned_to, '') <> ''
+          AND NOT EXISTS (
+              SELECT 1 FROM asset_ownership_history h
+              WHERE h.asset_id = a.id AND h.ended_at IS NULL
+          )
+    ''')
+
+def staff_asset_history_payload(c, staff):
+    ensure_asset_history_baseline(c)
+    current_assets = [dict(a) for a in c.execute(
+        'SELECT * FROM assets WHERE assigned_to=? ORDER BY asset_type, asset_tag, name',
+        (staff['name'],)
+    ).fetchall()]
+    history = [dict(h) for h in c.execute('''
+        SELECT h.*, a.asset_tag, a.asset_code, a.asset_type, a.name AS asset_name, a.serial, a.status
+        FROM asset_ownership_history h
+        LEFT JOIN assets a ON a.id = h.asset_id
+        WHERE h.staff_name=?
+        ORDER BY COALESCE(h.ended_at, h.started_at) DESC, h.id DESC
+    ''', (staff['name'],)).fetchall()]
+    previous_assets = [h for h in history if h.get('ended_at')]
+    return {
+        'current_assets': current_assets,
+        'history': history,
+        'previous_assets': previous_assets,
+        'current_count': len(current_assets),
+        'previous_count': len(previous_assets),
+    }
+
 @app.context_processor
 def inject_rbac():
     return dict(ROLE_LABELS=ROLE_LABELS, current_role=current_role(),
                 can_manage_users=can_manage_users(), can_view_assets=can_view_assets(),
                 can_view_staff=can_view_staff(), can_manage_staff=can_manage_staff(),
-                can_manage_kb=can_manage_kb(), is_manager=is_manager(), is_admin=is_admin())
+                can_manage_kb=can_manage_kb(), is_manager=is_manager(), is_admin=is_admin(),
+                is_kanban_operator=is_kanban_operator())
 
 ALL_BRANCHES = [
  {"branch":"สาขาเมืองปัตตานี","district":"เมืองปัตตานี","province":"ปัตตานี","type":"main"},
@@ -206,6 +282,38 @@ TICKET_CATS = {
  "คอมพิวเตอร์เสีย":{"titles":["PC เปิดไม่ติด","จอฟ้า","คีย์บอร์ดเสีย","เมาส์เสีย","ฮาร์ดดิสเต็ม","RAM ไม่พอ","ลำโพงไม่ดัง","USB ไม่ทำงาน","ไวรัส"],"priority":"low","ai":"1. เช็คสาย\n2. รีสตาร์ท\n3. เช็ค RAM/HDD\n4. เช็ค VGA"},
  "ไฟฟ้า/สาธารณูปโภค":{"titles":["ไฟดับ","แอร์ไม่ทำงาน","UPS แบตหมด","ไฟกระพริบ","UPS Alarm ดัง","แบต UPS บวม"],"priority":"high","ai":"1. เช็คสวิตช์\n2. เช็ค UPS\n3. Circuit Breaker\n4. แจ้งผู้ดูแลอาคาร"},
 }
+
+ASSET_TICKET_RULES = {
+    'Router': {'category': 'เครือข่าย/อินเทอร์เน็ต', 'priority': 'high'},
+    'Switch': {'category': 'เครือข่าย/อินเทอร์เน็ต', 'priority': 'high'},
+    'UPS': {'category': 'ไฟฟ้า/สาธารณูปโภค', 'priority': 'high'},
+    'เครื่องพิมพ์': {'category': 'เครื่องพิมพ์/สมุด', 'priority': 'medium'},
+    'Scanner': {'category': 'เครื่องพิมพ์/สมุด', 'priority': 'medium'},
+    'คอมพิวเตอร์': {'category': 'คอมพิวเตอร์เสีย', 'priority': 'low'},
+}
+
+PRIORITY_HELP_TH = {
+    'critical': 'Critical: ระบบหลักล่ม/ทำธุรกรรมไม่ได้ กระทบหลายคน ต้องรีบแจ้ง IT ทันที',
+    'high': 'High: งานสาขาสะดุด เช่น network/VPN/ไฟ/UPS ต้องแก้ไวในวันเดียวกัน',
+    'medium': 'Medium: ยังทำงานได้บางส่วน เช่น printer/scanner มีปัญหา ควรวางคิวแก้',
+    'low': 'Low: กระทบคนเดียวหรือมีทางเลี่ยง เช่น mouse/keyboard/PC ช้า จัดคิวปกติ',
+}
+
+CATEGORY_HELP_TH = {
+    'ระบบ Core Banking': 'ระบบทำธุรกรรม/สมาชิก/ปิดรอบวัน ถ้าล่มให้ถือว่าวิกฤต',
+    'เครือข่าย/อินเทอร์เน็ต': 'Internet, WiFi, LAN, Router, Switch ทำให้สาขาต่อระบบไม่ได้',
+    'VPN/ระบบเสีย': 'Tunnel เชื่อม HQ/Core หลุดหรือช้า กระทบงานสาขาโดยตรง',
+    'เครื่องพิมพ์/สมุด': 'Printer, passbook, scanner งานเอกสาร/สมุดสมาชิกติดขัด',
+    'คอมพิวเตอร์เสีย': 'PC, keyboard, mouse, disk, จอฟ้า กระทบผู้ใช้งานรายเครื่อง',
+    'ไฟฟ้า/สาธารณูปโภค': 'ไฟ, UPS, แอร์, อุปกรณ์ไฟฟ้าที่ทำให้ระบบ IT เสี่ยงหยุด',
+}
+
+def suggest_ticket_defaults(asset=None, category=''):
+    rule = ASSET_TICKET_RULES.get(asset['asset_type'] if asset else '', {})
+    suggested_category = category or rule.get('category') or 'คอมพิวเตอร์เสีย'
+    suggested_priority = rule.get('priority') or TICKET_CATS.get(suggested_category, {}).get('priority', 'medium')
+    return suggested_category, suggested_priority
+
 
 TM = ["สมชาย","สมศักดิ์","สมหมาย","สมบูรณ์","ประเสริฐ","วิชัย","ศุภชัย","ธนากร","รัตนชัย","ชัยวัฒน์","ธีรวัฒน์","นเรศ","พีรพัฒน์","สุรศักดิ์"]
 TF = ["ปราณี","ประไพ","วิไล","ศิริพร","กนกพร","ชลิดา","ธนพร","นงลักษณ์","บุญสม","พรทิพย์","รัตนา","สุนิสา","อรพรรณ"]
@@ -285,6 +393,7 @@ def _assets():
             c2 = AC[at]; mdl=random.choice(c2["m"]); p=c2["p"]; sp=c2["spec"]
             sc[p]=sc.get(p,100)+1
             seq = sc[p] - 100
+            sn = f"{p}-{sc[p]}"
             prov_code = PROVINCE_CODES.get(b['province'],'0')
             br_code = BRANCH_CODES.get(b['branch'],'0')
             cat_code = CATEGORY_CODES.get(at,'XX')
@@ -341,6 +450,7 @@ def init_db():
     c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_code TEXT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,brand TEXT,spec TEXT,assigned_to TEXT,last_check DATE,next_check DATE,notes TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
     c.execute('CREATE TABLE IF NOT EXISTS asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
+    ensure_asset_history_baseline(c)
     c.execute("CREATE TABLE IF NOT EXISTS leave_requests (id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,username TEXT,leave_type TEXT,start_date DATE,end_date DATE,days REAL,reason TEXT,status TEXT DEFAULT 'pending',approver_id INTEGER DEFAULT 0,approval_note TEXT DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     # Migrations for existing persistent Fly/SQLite volumes. CREATE TABLE IF NOT EXISTS
     # does not add columns to old tables, so keep every route/template dependency here.
@@ -366,8 +476,13 @@ def init_db():
         'last_check': 'DATE',
         'next_check': 'DATE',
         'asset_tag': "TEXT DEFAULT ''",
+        'province': "TEXT DEFAULT ''",
     }.items():
         ensure_column('assets', column, definition)
+
+    branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+    for branch, province in branch_to_province.items():
+        c.execute('UPDATE assets SET province=? WHERE branch=? AND (province IS NULL OR province="")', (province, branch))
 
     for column, definition in {
         'role': "TEXT DEFAULT 'user'",
@@ -399,6 +514,10 @@ def howto_public():
 @app.route('/interview')
 def interview_page():
     return render_template('interview.html')
+
+@app.route('/vision')
+def vision_page():
+    return render_template('vision.html')
 
 @app.route('/login',methods=['GET','POST'])
 def login():
@@ -508,6 +627,11 @@ def tickets_page():
     province_to_branches_short = {prov: [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district']} for b in blist] for prov, blist in PROVINCE_TO_BRANCHES.items()}
     branch_to_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
     branches_short = [{'branch': b['branch'], 'short': SHORT_BRANCHES.get(b['branch'], b['district']), 'district': b['district'], 'province': b['province']} for b in ALL_BRANCHES]
+    assets = c.execute('SELECT id, asset_tag, asset_type, name, branch, province, status FROM assets WHERE status="active" ORDER BY asset_tag, serial').fetchall()
+    asset_suggestions = []
+    for a in assets:
+        cat, pri = suggest_ticket_defaults(a)
+        asset_suggestions.append(dict(a, suggested_category=cat, suggested_priority=pri))
     current_user = get_current_user()
     return render_template('tickets.html',tickets=rows,branches=branches_short,
         filter_status=status, filter_priority=priority, filter_branch=branch,
@@ -518,6 +642,10 @@ def tickets_page():
         province_to_branches=province_to_branches,
         province_to_branches_short=province_to_branches_short,
         critical_tickets=critical_tickets,
+        assets=asset_suggestions,
+        ticket_categories=list(TICKET_CATS.keys()),
+        priority_help=PRIORITY_HELP_TH,
+        category_help=CATEGORY_HELP_TH,
         current_user=current_user)
 
 @app.route('/api/tickets')
@@ -691,6 +819,23 @@ def knowledge_v2_page():
     return render_template('knowledge_v2.html', current_user=current_user)
 
 
+@app.route('/profile')
+@app.route('/about')
+def about_page():
+    return render_template('about.html')
+
+
+@login_required
+def profile_page():
+    c = get_db()
+    current_user = get_current_user()
+    staff = get_staff_for_user(current_user)
+    asset_payload = None
+    if staff and can_view_staff_asset_history(staff):
+        asset_payload = staff_asset_history_payload(c, staff)
+        c.commit()
+    return render_template('profile.html', current_user=current_user, staff=staff, asset_payload=asset_payload)
+
 @app.route('/assets')
 @login_required
 def assets_page():
@@ -763,14 +908,20 @@ def kb_detail(kb_id):
 @app.route('/api/ticket',methods=['POST'])
 @login_required
 def api_create():
-    d=request.json;cat=d.get('category','');ai='';pri='medium'
-    for k,v in TICKET_CATS.items():
-        if k==cat:ai=v['ai'];pri=v['priority'];break
-    c=get_db()
+    d = request.json or {}
+    c = get_db()
+    asset_id = int(d.get('asset_id') or 0)
+    asset = c.execute('SELECT * FROM assets WHERE id=?', (asset_id,)).fetchone() if asset_id else None
+    cat, suggested_pri = suggest_ticket_defaults(asset, d.get('category',''))
+    pri = d.get('priority') if d.get('priority') in ('critical','high','medium','low') else suggested_pri
+    ai = TICKET_CATS.get(cat, {}).get('ai', '')
+    branch = d.get('branch') or (asset['branch'] if asset else '')
+    province = d.get('province') or (asset['province'] if asset else '')
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',(d.get('branch',''),d.get('province',''),cat,d.get('title',''),d.get('description',''),pri,'open',d.get('reported_by',''),'',now_str,now_str,ai,round(random.uniform(0.7,0.98),2)))
+    c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+              (branch, province, cat, d.get('title',''), d.get('description',''), pri, 'open', d.get('reported_by',''), '', asset_id, now_str, now_str, ai, round(random.uniform(0.7,0.98),2)))
     c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
-    return jsonify(success=True,ticket_id=tid)
+    return jsonify(success=True,ticket_id=tid, suggested_category=cat, suggested_priority=pri)
 
 @app.route('/api/ticket/<int:tid>/status',methods=['POST'])
 @login_required
@@ -954,12 +1105,12 @@ def api_asset_edit(aid):
     # Build change log
     changes = []
     STATUS_LABELS = {'active':'Active','maintenance':'Maintenance','retired':'Retired'}
-    field_labels = {'name':'รุ่ม','serial':'Serial','asset_type':'ประเภท','status':'สถานะ','branch':'สาขา','next_check':'ตรวจครั้งต่อไป','notes':'หมายเหตุ'}
+    field_labels = {'name':'รุ่น','serial':'Serial','asset_type':'ประเภท','status':'สถานะ','branch':'สาขา','assigned_to':'ผู้ถือครอง','next_check':'ตรวจครั้งต่อไป','notes':'หมายเหตุ'}
     for field, label in field_labels.items():
         old_val = old[field] or ''
         new_val = d.get('field', '')  # will check below
     # Actually compare each field
-    for field in ('name','serial','asset_type','status','branch','next_check','notes'):
+    for field in ('name','serial','asset_type','status','branch','assigned_to','next_check','notes'):
         old_val = old[field] or ''
         new_val = d.get(field, '') or ''
         if str(old_val) != str(new_val):
@@ -972,9 +1123,19 @@ def api_asset_edit(aid):
                 new_val = SHORT_BRANCHES.get(new_val, new_val)
             changes.append(f'{label}: {old_val} → {new_val}')
     
-    c.execute('UPDATE assets SET name=?,serial=?,asset_type=?,status=?,branch=?,next_check=?,notes=? WHERE id=?',
-              (d.get('name',''),d.get('serial',''),d.get('asset_type',''),d.get('status','active'),d.get('branch',''),d.get('next_check',''),d.get('notes',''),aid))
-    
+    new_assigned_to = d.get('assigned_to', old['assigned_to'] or '')
+    c.execute('UPDATE assets SET name=?,serial=?,asset_type=?,status=?,branch=?,assigned_to=?,next_check=?,notes=? WHERE id=?',
+              (d.get('name',''),d.get('serial',''),d.get('asset_type',''),d.get('status','active'),d.get('branch',''),new_assigned_to,d.get('next_check',''),d.get('notes',''),aid))
+
+    if str(old['assigned_to'] or '') != str(new_assigned_to or ''):
+        now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        author = d.get('changed_by','System')
+        c.execute("UPDATE asset_ownership_history SET ended_at=?, note=CASE WHEN note='' THEN ? ELSE note END WHERE asset_id=? AND ended_at IS NULL",
+                  (now_str, 'โอน/เปลี่ยนผู้ถือครอง', aid))
+        if new_assigned_to:
+            c.execute('INSERT INTO asset_ownership_history (asset_id, staff_name, started_at, action, note, created_by, created_at) VALUES (?,?,?,?,?,?,?)',
+                      (aid, new_assigned_to, now_str, 'assigned', 'รับครอง Asset', author, now_str))
+
     # Log changes
     if changes:
         now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -1346,6 +1507,20 @@ def route_planner_page():
         priority_counts.setdefault(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
         priority_counts[d][r['priority']] = priority_counts[d].get(r['priority'], 0) + r['cnt']
 
+    category_counts = {}
+    cat_rows = c.execute("""
+        SELECT branch, category, COUNT(*) as cnt
+        FROM tickets
+        WHERE status NOT IN ('resolved','closed')
+        GROUP BY branch, category
+    """).fetchall()
+    for r in cat_rows:
+        d = branch_district.get(r['branch'], '')
+        if not d:
+            continue
+        category_counts.setdefault(d, {})
+        category_counts[d][r['category']] = category_counts[d].get(r['category'], 0) + r['cnt']
+
     ticket_counts = {}
     rows = c.execute("SELECT branch, COUNT(*) as cnt FROM tickets WHERE status NOT IN ('resolved','closed') GROUP BY branch").fetchall()
     for r in rows:
@@ -1376,6 +1551,8 @@ def route_planner_page():
         p = priority_counts.get(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
         active = ticket_counts.get(d, 0)
         assets = asset_counts.get(d, 0)
+        cats = category_counts.get(d, {})
+        cat_summary = ' · '.join(f'{k} {v}' for k, v in sorted(cats.items(), key=lambda item: item[1], reverse=True)[:3])
         dispatch_score = p.get('critical',0)*100 + p.get('high',0)*40 + p.get('medium',0)*12 + p.get('low',0)*5 + active*2
         lat, lng = district_coords.get(d, (6.45, 101.45))
         if active <= 0:
@@ -1390,6 +1567,7 @@ def route_planner_page():
             'name': d, 'short_branch': _short_branch(b['branch']), 'branch': b['branch'], 'province': b['province'],
             'tickets': active, 'assets': assets, 'critical': p.get('critical',0), 'high': p.get('high',0),
             'medium': p.get('medium',0), 'low': p.get('low',0), 'score': dispatch_score,
+            'categories': cats, 'category_summary': cat_summary or '-',
             'priority': 'สูง' if color == 'orange' else ('กลาง' if color == 'yellow' else ('ต่ำ' if color == 'green' else '-')),
             'color': color, 'lat': lat, 'lng': lng, 'distance_from_hq': distance_km((hq['lat'], hq['lng']), (lat, lng))
         })
@@ -1479,19 +1657,21 @@ def api_district_tickets():
     c = get_db()
     branch_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
     rows = c.execute("""
-        SELECT branch, priority, COUNT(*) as cnt
+        SELECT branch, priority, category, COUNT(*) as cnt
         FROM tickets
         WHERE status NOT IN ('resolved','closed')
-        GROUP BY branch, priority
+        GROUP BY branch, priority, category
     """).fetchall()
     result = {}
     for r in rows:
         d = branch_district.get(r['branch'], '')
         if not d:
             continue
-        result.setdefault(d, {'tickets': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
+        result.setdefault(d, {'tickets': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'categories': {}})
         result[d]['tickets'] += r['cnt']
         result[d][r['priority']] = result[d].get(r['priority'], 0) + r['cnt']
+        cats = result[d]['categories']
+        cats[r['category']] = cats.get(r['category'], 0) + r['cnt']
     return jsonify(result)
 
 
@@ -1586,6 +1766,154 @@ def projects_page():
         p['time_spent'] = total_min or p.get('time_spent_minutes', 0)
         result.append(p)
     return render_template('projects.html', projects=result, current_user=session.get('username'))
+
+
+KANBAN_DB_PATH = os.environ.get('KANBAN_DB_PATH', os.path.expanduser('~/.hermes/kanban.db'))
+KANBAN_OPERATOR_USERS = tuple(
+    user.strip().lower()
+    for user in os.environ.get('KANBAN_OPERATOR_USERS', 'zyde').split(',')
+    if user.strip()
+)
+KANBAN_STATUS_GROUPS = {
+    'done': ('done', 'completed', 'archived'),
+    'processing': ('running', 'claimed'),
+    'next': ('ready', 'todo', 'blocked', 'triage'),
+}
+
+
+def _kanban_ts(value):
+    if not value:
+        return ''
+    try:
+        return datetime.fromtimestamp(int(value)).strftime('%Y-%m-%d %H:%M')
+    except (TypeError, ValueError, OSError):
+        return ''
+
+
+def _safe_summary(text, limit=180):
+    text = (text or '').replace('\n', ' ').strip()
+    return text[:limit - 1] + '…' if len(text) > limit else text
+
+
+def _kanban_progress(metadata_text):
+    if not metadata_text:
+        return None
+    try:
+        metadata = json.loads(metadata_text)
+    except (TypeError, ValueError):
+        return None
+    for key in ('progress_percent', 'percent', 'progress'):
+        if key in metadata:
+            try:
+                value = float(metadata[key])
+                if 0 <= value <= 1:
+                    value *= 100
+                return max(0, min(100, round(value)))
+            except (TypeError, ValueError):
+                pass
+    done = metadata.get('steps_done') or metadata.get('tests_passed')
+    total = metadata.get('steps_total') or metadata.get('tests_run')
+    try:
+        if total and float(total) > 0:
+            return max(0, min(100, round(float(done or 0) / float(total) * 100)))
+    except (TypeError, ValueError):
+        return None
+    return None
+
+
+def is_kanban_operator():
+    username = (session.get('username') or '').strip().lower()
+    return bool(username and username in KANBAN_OPERATOR_USERS)
+
+
+def _fetch_kanban_cards(limit=80):
+    if not os.path.exists(KANBAN_DB_PATH):
+        return [], {'done': 0, 'processing': 0, 'next': 0, 'other': 0}, f'Kanban DB not found: {KANBAN_DB_PATH}'
+    con = sqlite3.connect(KANBAN_DB_PATH)
+    con.row_factory = sqlite3.Row
+    rows = con.execute('''
+        SELECT
+            t.id, t.title, t.assignee, t.status, t.priority, t.created_by,
+            t.created_at, t.started_at, t.completed_at,
+            COALESCE(MAX(e.created_at), t.completed_at, t.started_at, t.created_at) AS updated_at,
+            r.status AS run_status, r.outcome, r.summary, r.metadata,
+            r.started_at AS run_started_at, r.ended_at AS run_ended_at,
+            r.last_heartbeat_at
+        FROM tasks t
+        LEFT JOIN task_events e ON e.task_id = t.id
+        LEFT JOIN task_runs r ON r.id = (
+            SELECT id FROM task_runs WHERE task_id = t.id ORDER BY id DESC LIMIT 1
+        )
+        GROUP BY t.id
+        ORDER BY
+            CASE t.status WHEN 'running' THEN 0 WHEN 'ready' THEN 1 WHEN 'blocked' THEN 2 WHEN 'todo' THEN 3 WHEN 'done' THEN 4 ELSE 5 END,
+            updated_at DESC
+        LIMIT ?
+    ''', (limit,)).fetchall()
+    con.close()
+    cards = []
+    counts = {'done': 0, 'processing': 0, 'next': 0, 'other': 0}
+    for row in rows:
+        status = row['status'] or 'unknown'
+        if status in KANBAN_STATUS_GROUPS['done']:
+            group = 'done'
+        elif status in KANBAN_STATUS_GROUPS['processing']:
+            group = 'processing'
+        elif status in KANBAN_STATUS_GROUPS['next']:
+            group = 'next'
+        else:
+            group = 'other'
+        counts[group] += 1
+        cards.append({
+            'id': row['id'],
+            'title': row['title'],
+            'assignee': row['assignee'] or 'unassigned',
+            'status': status,
+            'group': group,
+            'priority': row['priority'] or 0,
+            'created_by': row['created_by'] or '',
+            'created_at': _kanban_ts(row['created_at']),
+            'started_at': _kanban_ts(row['started_at'] or row['run_started_at']),
+            'completed_at': _kanban_ts(row['completed_at'] or row['run_ended_at']),
+            'updated_at': _kanban_ts(row['updated_at']),
+            'last_heartbeat_at': _kanban_ts(row['last_heartbeat_at']),
+            'summary': _safe_summary(row['summary'] or row['outcome'] or ''),
+            'progress': _kanban_progress(row['metadata']),
+        })
+    return cards, counts, None
+
+
+@app.route('/kanban')
+@login_required
+def kanban_dashboard_page():
+    if not is_kanban_operator():
+        return redirect('/')
+    return redirect('/ops/kanban')
+
+
+@app.route('/ops/kanban')
+@login_required
+def kanban_operator_dashboard_page():
+    if not is_kanban_operator():
+        return redirect('/')
+    cards, counts, error = _fetch_kanban_cards()
+    return render_template(
+        'kanban_dashboard.html',
+        cards=cards,
+        counts=counts,
+        error=error,
+        operator_user=session.get('username', ''),
+    )
+
+
+@app.route('/api/kanban/cards')
+@app.route('/ops/api/kanban/cards')
+@login_required
+def api_kanban_cards():
+    if not is_kanban_operator():
+        return jsonify(success=False, error='forbidden'), 403
+    cards, counts, error = _fetch_kanban_cards()
+    return jsonify(success=error is None, error=error, cards=cards, counts=counts)
 
 
 @app.route('/project/<slug>')
@@ -1684,8 +2012,11 @@ def api_staff_assets(sid):
     staff = c.execute('SELECT * FROM staff WHERE id=?', (sid,)).fetchone()
     if not staff:
         return jsonify(success=False, error='not found'), 404
-    assets = c.execute('SELECT * FROM assets WHERE assigned_to=? ORDER BY asset_type, name', (staff['name'],)).fetchall()
-    return jsonify(success=True, staff=dict(staff), assets=[dict(a) for a in assets])
+    if not can_view_staff_asset_history(staff):
+        return jsonify(success=False, error='ไม่มีสิทธิ์ดูประวัติ Asset ของพนักงานคนนี้'), 403
+    payload = staff_asset_history_payload(c, staff)
+    c.commit()
+    return jsonify(success=True, staff=dict(staff), assets=payload['current_assets'], **payload)
 
 
 @app.route('/api/asset/<int:aid>/history')

@@ -65,7 +65,7 @@
         </div></a>
     </div>
     <div class="col-4 col-md-2">
-        <a href="/tickets" class="text-decoration-none text-dark">
+        <a href="/tickets" class="text-decoration-none theme-click-surface">
         <div class="card card-stat p-2 p-md-3 border-primary" style="cursor:pointer">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -122,11 +122,11 @@
     <!-- Province Summary -->
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header bg-white fw-bold"><i class="bi bi-geo-alt me-2"></i>สรุปตามจังหวัด</div>
+            <div class="card-header fw-bold"><i class="bi bi-geo-alt me-2"></i>สรุปตามจังหวัด</div>
             <div class="card-body">
                 {% for pv in by_province %}
-                <a href="/tickets?province={{ pv.province }}" class="text-decoration-none text-dark">
-                <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='#f0f0ff'" onmouseout="this.style.background=''">
+                <a href="/tickets?province={{ pv.province }}" class="text-decoration-none">
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded theme-click-surface">
                     <div>
                         <span class="fw-bold">{{ pv.province }}</span>
                         <small class="text-muted">{{ pv.open_cnt }} เปิด</small>
@@ -143,10 +143,10 @@
     <!-- Category Chart -->
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header bg-white fw-bold"><i class="bi bi-pie-chart me-2"></i>หมวดหมู่ปัญหา</div>
+            <div class="card-header fw-bold"><i class="bi bi-pie-chart me-2"></i>หมวดหมู่ปัญหา</div>
             <div class="card-body p-2">
                 {% for cat in by_category[:5] %}
-                <a href="/tickets?category={{ cat.category }}" class="d-flex justify-content-between align-items-center mb-2 p-2 rounded text-decoration-none" style="color:inherit;transition:background .15s" onmouseover="this.style.background='#f0f0ff'" onmouseout="this.style.background=''">
+                <a href="/tickets?category={{ cat.category }}" class="d-flex justify-content-between align-items-center mb-2 p-2 rounded text-decoration-none theme-click-surface">
                     <div class="d-flex align-items-center">
                         <span class="badge bg-primary me-2" style="font-size:0.65rem;width:22px;height:22px;display:flex;align-items:center;justify-content:center">{{ loop.index }}</span>
                         <span style="font-size:0.8rem">{{ cat.category }}</span>
@@ -161,7 +161,7 @@
     <!-- AI Insight -->
     <div class="col-md-4">
         <div class="card h-100 border-primary">
-            <div class="card-header bg-white fw-bold text-primary">
+            <div class="card-header fw-bold text-primary">
                 <span class="ai-badge"><i class="bi bi-stars me-1"></i>AI Insight</span>
             </div>
             <div class="card-body">
@@ -181,7 +181,7 @@
 
 <!-- Recent Tickets -->
 <div class="card mt-3">
-    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+    <div class="card-header fw-bold d-flex justify-content-between align-items-center">
         <span><i class="bi bi-clock-history me-2"></i>Ticket ล่าสุด</span>
         <a href="/tickets" class="btn btn-sm btn-outline-primary">ดูทั้งหมด</a>
     </div>

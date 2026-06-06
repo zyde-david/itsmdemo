@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Vision — ITSM Demo</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+:root{
+  --navy:#0f2f4a;
+  --blue:#1a5276;
+  --green:#27ae60;
+  --soft:#f3f8fc;
+  --ink:#243447;
+  --muted:#64748b;
+}
+*{box-sizing:border-box}
+body{
+  font-family:'Segoe UI','Noto Sans Thai',Arial,sans-serif;
+  background:linear-gradient(180deg,#eef6fb 0%,#fff 46%,#f7fafc 100%);
+  color:var(--ink);
+}
+.page-shell{max-width:1120px;margin:0 auto;padding:18px 14px 30px}
+.hero{
+  background:radial-gradient(circle at 18% 18%,rgba(39,174,96,.25),transparent 24%),linear-gradient(135deg,var(--navy),var(--blue) 72%,#2980b9);
+  color:#fff;
+  border-radius:26px;
+  padding:30px 22px;
+  box-shadow:0 16px 42px rgba(15,47,74,.22);
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{content:'';position:absolute;right:-80px;bottom:-90px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.08)}
+.hero-content{position:relative;z-index:1}
+.top-links a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:7px 12px;font-size:.78rem;font-weight:700}
+.top-links a:hover{background:rgba(255,255,255,.12)}
+.lang-switch{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px;display:inline-flex;gap:4px;flex-wrap:wrap}
+.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.78);font-size:.78rem;padding:6px 11px;font-weight:800}
+.lang-btn.active{background:#fff;color:var(--blue)}
+.hero h1{font-size:clamp(1.8rem,5vw,3.35rem);line-height:1.06;font-weight:850;letter-spacing:-.04em;margin:18px 0 12px}
+.hero p{max-width:790px;color:rgba(255,255,255,.84);font-size:1rem;line-height:1.7}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.pill-row span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px;font-size:.78rem}
+.vision-card{background:#fff;border:1px solid #e7edf3;border-radius:22px;padding:22px;box-shadow:0 8px 28px rgba(21,54,82,.08);height:100%}
+.card-icon{width:48px;height:48px;border-radius:16px;background:#eaf5ff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.45rem;margin-bottom:12px}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#5d7890;font-weight:850;margin-bottom:8px}
+.vision-card h2,.vision-card h3{font-size:1.15rem;font-weight:850;color:var(--blue);margin-bottom:10px}
+.vision-card p,.vision-card li{font-size:.9rem;line-height:1.62;color:#536675}
+.step-list{display:grid;gap:10px}
+.step-item{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid #dcebf6;border-radius:16px;padding:12px}
+.step-num{min-width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:850}
+.roadmap-pill{display:inline-flex;align-items:center;gap:6px;background:#f6faf7;border:1px solid #dbeee2;border-radius:999px;padding:8px 11px;margin:4px;font-size:.82rem;color:#315b42}
+.future-card{background:#f8fbfd;border:1px solid #e2edf5;border-radius:16px;padding:14px;height:100%}
+.future-card strong{display:block;color:var(--blue);font-size:.9rem;margin-bottom:5px}
+.future-card p{font-size:.82rem;line-height:1.55;margin:0;color:#5d6f7d}
+.trust-box{background:linear-gradient(135deg,#fff,#f2f9f5);border-left:5px solid var(--green)}
+.footer-note{text-align:center;color:#7b8b99;font-size:.78rem;margin-top:24px}
+.lang-panel{display:none}.lang-panel.active{display:block}
+.cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn-open{background:#fff;color:var(--blue);border:0;border-radius:14px;padding:11px 18px;font-weight:850;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-ghost{color:#fff;border:1px solid rgba(255,255,255,.34);border-radius:14px;padding:10px 16px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.section-title{font-weight:850;color:var(--blue);font-size:1.05rem;margin:4px 0 10px}
+@media(max-width:767.98px){
+  .page-shell{padding:10px 10px 24px}
+  .hero{border-radius:20px;padding:22px 16px}
+  .vision-card{padding:18px}
+  .top-links{width:100%;margin-top:8px}
+  .top-links a{font-size:.72rem;padding:6px 9px}
+  .lang-btn{font-size:.72rem;padding:6px 9px}
+  .btn-open,.btn-ghost{width:100%;justify-content:center}
+  .step-item{padding:10px}
+}
+</style>
+</head>
+<body>
+<div class="page-shell">
+  <section class="hero mb-3 mb-md-4">
+    <div class="hero-content">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div class="small fw-bold opacity-75"><i class="bi bi-stars me-1"></i>Vision · Working strategy · Privacy-first AI</div>
+        <div class="top-links d-flex gap-2 flex-wrap">
+          <a href="/interview"><i class="bi bi-qr-code me-1"></i>Interview</a>
+          <a href="/howto-public"><i class="bi bi-info-circle me-1"></i>Overview</a>
+          <a href="/login"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a>
+        </div>
+        <div class="lang-switch" aria-label="Language switcher: English, Thai, Bahasa Nayu / Melayu Pattani">
+          <button class="lang-btn active" data-lang="th">ไทย</button>
+          <button class="lang-btn" data-lang="en">English</button>
+          <button class="lang-btn" data-lang="pm" title="Bahasa Nayu / Melayu Pattani">นายูบ้านเรา</button>
+        </div>
+      </div>
+
+      <div class="lang-panel active" data-panel="th">
+        <h1>Vision: ระบบ ITSM ที่ทำเป็นขั้นตอนและไว้ใจได้</h1>
+        <p>เดโมนี้ไม่ได้โชว์แค่หน้า Ticket หรือ AI แต่โชว์วิธีทำงานด้วย: คิดก่อนทำ เก็บงานเป็น Kanban ทำทีละ batch เล็ก ทดสอบก่อน deploy และออกแบบให้คนสาขาใช้บนมือถือ/แท็บเล็ตได้ง่าย</p>
+      </div>
+      <div class="lang-panel" data-panel="en">
+        <h1>Vision: practical ITSM built with a careful process</h1>
+        <p>This demo shows more than features. It shows a working style: plan first, capture work in Kanban, ship in small approved batches, test before deploy, and keep the UI friendly for branch teams on mobile or tablet.</p>
+      </div>
+      <div class="lang-panel" data-panel="pm">
+        <h1>Vision: ITSM demo yang buat kerja elok-elok</h1>
+        <p>Demo ni bukan tunjuk feature saja. Cara kerja pun penting: fikir dulu, simpan kerja dalam Kanban, buat sikit-sikit lepas approve/GG, test dulu sebelum deploy, dan UI mudah untuk orang cawangan guna atas phone atau tablet.</p>
+      </div>
+
+      <div class="pill-row">
+        <span><i class="bi bi-kanban me-1"></i>Kanban-first</span>
+        <span><i class="bi bi-check2-circle me-1"></i>QA before deploy</span>
+        <span><i class="bi bi-phone me-1"></i>Mobile/tablet friendly</span>
+        <span><i class="bi bi-shield-lock me-1"></i>Local/private AI path</span>
+      </div>
+      <div class="cta mt-4">
+        <a class="btn-open" href="/login"><i class="bi bi-box-arrow-in-right"></i><span data-i18n="openDemo">Open demo</span></a>
+        <a class="btn-ghost" href="/howto-public"><i class="bi bi-grid"></i><span data-i18n="seeOverview">ดูระบบโดยรวม</span></a>
+      </div>
+    </div>
+  </section>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="vision-card">
+        <div class="card-icon"><i class="bi bi-pencil-square"></i></div>
+        <div class="eyebrow">Plan first</div>
+        <h2 data-i18n="planTitle">ไม่ใช้เครื่องมือแบบสุ่ม</h2>
+        <p data-i18n="planText">เริ่มจากเข้าใจปัญหา เลือกทางที่เสี่ยงน้อย แล้วค่อยลงมือ เพื่อให้เดโมดูเป็นระบบและอธิบายกับผู้สัมภาษณ์ได้ง่าย</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="vision-card">
+        <div class="card-icon"><i class="bi bi-kanban"></i></div>
+        <div class="eyebrow">Kanban + gates</div>
+        <h2 data-i18n="kanbanTitle">เก็บงานเป็นการ์ด รออนุมัติ/GG</h2>
+        <p data-i18n="kanbanText">ไอเดียและบั๊กถูกแยกเป็น card ชัดเจน ทำเป็น batch เล็ก ๆ ก่อนงาน build/fix/deploy สำคัญจะมี approval gate ลดงานหลุดและลดความเสี่ยง</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="vision-card">
+        <div class="card-icon"><i class="bi bi-ui-checks-grid"></i></div>
+        <div class="eyebrow">UX matters</div>
+        <h2 data-i18n="uxTitle">รายละเอียดเล็ก ๆ ทำให้คนใช้สบายขึ้น</h2>
+        <p data-i18n="uxText">เน้น card/step layout, ข้อความไม่รก, ปุ่มกดง่าย, คำอธิบายภาษาคนทำงาน และ local wording อย่าง นายูบ้านเรา เมื่อช่วยให้ demo เข้าถึงง่ายขึ้น</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-6">
+      <div class="vision-card">
+        <div class="eyebrow">How we ship</div>
+        <h3 data-i18n="processTitle">กระบวนการทำงานที่ใช้จริง</h3>
+        <div class="step-list">
+          <div class="step-item"><div class="step-num">1</div><div data-i18n="processOne">วางแผนและเขียน scope ให้ชัด: ทำเฉพาะสิ่งที่เกี่ยวกับเป้าหมาย ไม่ปนงานอื่น</div></div>
+          <div class="step-item"><div class="step-num">2</div><div data-i18n="processTwo">ทำทีละส่วนเล็ก ๆ ผ่าน Kanban เพื่อให้ตรวจง่ายและย้อนกลับง่าย</div></div>
+          <div class="step-item"><div class="step-num">3</div><div data-i18n="processThree">QA, audit, smoke test หน้าเว็บที่เกี่ยวข้อง ก่อนเสนอ deploy หรือปล่อยจริง</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="vision-card">
+        <div class="eyebrow">Privacy-first AI</div>
+        <h3 data-i18n="aiTitle">AI เป็นผู้ช่วย ไม่ใช่คนตัดสินใจแทน</h3>
+        <div class="step-list">
+          <div class="step-item"><div class="step-num">1</div><div data-i18n="aiOne">ข้อมูลอ่อนไหวควรใช้ local LLM / private mode เป็นทางหลักเมื่อเป็นงานจริง</div></div>
+          <div class="step-item"><div class="step-num">2</div><div data-i18n="aiTwo">Cloud AI หรือ API ต้อง opt-in ส่งเฉพาะข้อมูลจำเป็น และให้คนอนุมัติก่อนเปลี่ยนสถานะงาน</div></div>
+          <div class="step-item"><div class="step-num">3</div><div data-i18n="aiThree">AI เหมาะกับสรุป ticket, แนะนำ category/priority, หา similar ticket, draft KB และช่วยดู insight</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-6">
+      <div class="vision-card">
+        <div class="eyebrow">Product direction</div>
+        <h3 data-i18n="productTitle">ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง</h3>
+        <p data-i18n="productText">How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก</p>
+        <div>
+          <span class="roadmap-pill"><i class="bi bi-tags"></i>Asset-tag tickets</span>
+          <span class="roadmap-pill"><i class="bi bi-graph-up"></i>Branch dashboard</span>
+          <span class="roadmap-pill"><i class="bi bi-map"></i>BI maps/routes</span>
+          <span class="roadmap-pill"><i class="bi bi-robot"></i>Human-approved AI helper</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="vision-card">
+        <div class="eyebrow">Mobile demo</div>
+        <h3 data-i18n="mobileTitle">ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย</h3>
+        <p data-i18n="mobileText">หน้า public ใช้ข้อความสั้น การ์ดอ่านง่าย และ link ชัดเจน เพื่อให้คนที่ไม่ใช่ IT เปิดจาก QR, tablet หรือมือถือแล้วเข้าใจทันทีว่าระบบช่วยงานอะไร ต่อไป How To จะเป็นคู่มือใช้งานสั้น ๆ และ Vision จะเก็บแผนอนาคตที่ลึกกว่า</p>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="vision-card mb-3">
+    <div class="eyebrow">Future principles</div>
+    <h3 data-i18n="futureTitle">หลักคิดระยะยาว: ใช้เครื่องมือให้ถูกที่ ปลอดภัย และคุ้มค่า</h3>
+    <div class="row g-3">
+      <div class="col-md-6 col-lg-3">
+        <div class="future-card">
+          <strong><i class="bi bi-hdd-stack me-1"></i><span data-i18n="futureLocalTitle">Local-first เมื่อข้อมูลอ่อนไหว</span></strong>
+          <p data-i18n="futureLocalText">งานจริงควรเก็บข้อมูลสำคัญใน local database/server และใช้ local LLM/private mode ก่อนส่ง raw data ไปข้างนอก</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="future-card">
+          <strong><i class="bi bi-database-gear me-1"></i><span data-i18n="futureEngineTitle">เลือก engine ให้เหมาะกับงาน</span></strong>
+          <p data-i18n="futureEngineText">ถ้า Excel/Sheets เริ่มช้า ให้ย้ายงานหนักไป DB, Power Query หรือ local processing แต่ยังให้หน้าจอใช้ง่ายเหมือนเดิม</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="future-card">
+          <strong><i class="bi bi-pc-display me-1"></i><span data-i18n="futureReuseTitle">Reuse เครื่องเก่าแบบมืออาชีพ</span></strong>
+          <p data-i18n="futureReuseText">Linux Mint/เครื่องเก่าสามารถเป็นทางเลือก low-bloat, cost-aware และ private ได้ ถ้าจัดการ patch, backup และ policy ให้ดี</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="future-card">
+          <strong><i class="bi bi-shield-check me-1"></i><span data-i18n="futureSecTitle">Security ที่อธิบายง่าย</span></strong>
+          <p data-i18n="futureSecText">พูดเรื่อง data leak, encryption, recovery, audit และ central management เป็นภาษาคนทำงาน เพื่อให้ผู้ใช้รู้ว่าระบบป้องกันอะไร</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vision-card trust-box">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-8">
+        <div class="eyebrow">Trust & safety</div>
+        <h3 data-i18n="trustTitle">ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย</h3>
+        <p class="mb-0" data-i18n="trustText">แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="/howto-public" class="btn btn-outline-success rounded-pill fw-bold" data-i18n="learnMore">ดูภาพรวมระบบ</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">ITSM Demo Vision · Public page · Demo data only · <a href="/login" class="text-decoration-none">Login</a></div>
+</div>
+
+<script>
+const copy={
+  th:{
+    openDemo:'Open demo',seeOverview:'ดูระบบโดยรวม',
+    planTitle:'ไม่ใช้เครื่องมือแบบสุ่ม',planText:'เริ่มจากเข้าใจปัญหา เลือกทางที่เสี่ยงน้อย แล้วค่อยลงมือ เพื่อให้เดโมดูเป็นระบบและอธิบายกับผู้สัมภาษณ์ได้ง่าย',
+    kanbanTitle:'เก็บงานเป็นการ์ด รออนุมัติ/GG',kanbanText:'ไอเดียและบั๊กถูกแยกเป็น card ชัดเจน ทำเป็น batch เล็ก ๆ ก่อนงาน build/fix/deploy สำคัญจะมี approval gate ลดงานหลุดและลดความเสี่ยง',
+    uxTitle:'รายละเอียดเล็ก ๆ ทำให้คนใช้สบายขึ้น',uxText:'เน้น card/step layout, ข้อความไม่รก, ปุ่มกดง่าย, คำอธิบายภาษาคนทำงาน และ local wording อย่าง นายูบ้านเรา เมื่อช่วยให้ demo เข้าถึงง่ายขึ้น',
+    processTitle:'กระบวนการทำงานที่ใช้จริง',processOne:'วางแผนและเขียน scope ให้ชัด: ทำเฉพาะสิ่งที่เกี่ยวกับเป้าหมาย ไม่ปนงานอื่น',processTwo:'ทำทีละส่วนเล็ก ๆ ผ่าน Kanban เพื่อให้ตรวจง่ายและย้อนกลับง่าย',processThree:'QA, audit, smoke test หน้าเว็บที่เกี่ยวข้อง ก่อนเสนอ deploy หรือปล่อยจริง',
+    aiTitle:'AI เป็นผู้ช่วย ไม่ใช่คนตัดสินใจแทน',aiOne:'ข้อมูลอ่อนไหวควรใช้ local LLM / private mode เป็นทางหลักเมื่อเป็นงานจริง',aiTwo:'Cloud AI หรือ API ต้อง opt-in ส่งเฉพาะข้อมูลจำเป็น และให้คนอนุมัติก่อนเปลี่ยนสถานะงาน',aiThree:'AI เหมาะกับสรุป ticket, แนะนำ category/priority, หา similar ticket, draft KB และช่วยดู insight',
+    productTitle:'ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง',productText:'How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก',
+    mobileTitle:'ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย',mobileText:'หน้า public ใช้ข้อความสั้น การ์ดอ่านง่าย และ link ชัดเจน เพื่อให้คนที่ไม่ใช่ IT เปิดจาก QR, tablet หรือมือถือแล้วเข้าใจทันทีว่าระบบช่วยงานอะไร ต่อไป How To จะเป็นคู่มือใช้งานสั้น ๆ และ Vision จะเก็บแผนอนาคตที่ลึกกว่า',
+    trustTitle:'ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย',trustText:'แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ',learnMore:'ดูภาพรวมระบบ'
+  },
+  en:{
+    openDemo:'Open demo',seeOverview:'System overview',
+    planTitle:'No blind tool use',planText:'We start by understanding the problem, choosing the lower-risk path, and then acting so the demo is explainable and trustworthy.',
+    kanbanTitle:'Work captured as cards with approval/GG gates',kanbanText:'Ideas and bugs become clear cards. Important build, fix, and deploy work is handled in small batches with approval gates to reduce surprises.',
+    uxTitle:'Small UX details matter',uxText:'The UI favors cards, steps, short copy, easy taps, plain wording, and local flavor when it helps non-IT users understand the demo.',
+    processTitle:'The working process behind the demo',processOne:'Plan the scope clearly and avoid mixing unrelated changes.',processTwo:'Ship small Kanban batches so review and rollback stay easy.',processThree:'Run QA, audit, and smoke checks on affected pages before deploy.',
+    aiTitle:'AI helps; people decide',aiOne:'For sensitive real data, the preferred path is local LLM / private mode.',aiTwo:'Cloud AI or APIs should be opt-in, minimal, and require human approval before state changes.',aiThree:'Good AI uses include ticket summaries, category/priority suggestions, similar-ticket hints, KB drafts, and dashboard insight.',
+    productTitle:'From ITSM workflow to practical insight',productText:'How To stays practical for today; Vision holds the longer-term direction: from Tickets + Assets + Staff + Knowledge toward dashboards, maps/routes, AI helpers, and decision workflows without clutter.',
+    mobileTitle:'Designed for showing and sharing',mobileText:'Public pages use short copy, readable cards, and clear links so non-IT viewers can scan a QR or open a tablet and understand the system quickly. How To stays a short guide; Vision carries the deeper future plan.',
+    trustTitle:'Trust comes from roles, review, and QA',trustText:'The direction is role-based access, audit trails, demo data separated from real data, review/QA before deploy, encryption/recovery for real use, and no silent AI/automation changes to important work.',learnMore:'See system overview'
+  },
+  pm:{
+    openDemo:'Open demo',seeOverview:'Tengok overview',
+    planTitle:'Bukan guna tool ikut rasa saja',planText:'Mula dengan faham masalah dulu, pilih jalan yang kurang risiko, baru buat. Senang cerita masa interview dan demo pun nampak kemas.',
+    kanbanTitle:'Kerja simpan jadi card, tunggu approve/GG',kanbanText:'Idea dan bug masuk Kanban card. Kerja build/fix/deploy buat batch kecil dengan gate approve supaya tak terlepas benda penting.',
+    uxTitle:'Benda kecil dalam UI pun penting',uxText:'Guna card, step pendek, button senang tekan, ayat orang kerja faham, dan rasa lokal macam นายูบ้านเรา bila sesuai.',
+    processTitle:'Cara kerja belakang demo ni',processOne:'Plan scope jelas: buat yang kena dengan tujuan saja, jangan campur kerja lain.',processTwo:'Buat sikit-sikit dalam Kanban supaya senang review dan undur kalau perlu.',processThree:'QA, audit, smoke test page berkaitan dulu sebelum deploy.',
+    aiTitle:'AI tolong, manusia tetap decide',aiOne:'Data sensitif elok guna local LLM / private mode bila masuk kerja sebenar.',aiTwo:'Cloud AI/API kena opt-in, hantar data perlu saja, dan manusia approve dulu sebelum tukar status kerja.',aiThree:'AI sesuai untuk ringkas ticket, cadang category/priority, cari ticket hampir sama, draft KB, dan bantu baca insight.',
+    productTitle:'Dari ITSM ke insight yang pakai betul',productText:'How To untuk cara guna hari ni; Vision simpan hala tuju panjang: dari Ticket + Asset + Staff + Knowledge pergi dashboard, map/route, AI helper, dan workflow bantu decide tanpa serabutkan skrin.',
+    mobileTitle:'Senang buka tunjuk dan kongsi',mobileText:'Page public guna ayat pendek, card mudah baca, link jelas. Orang bukan IT scan QR atau buka tablet pun faham sistem ni bantu apa. How To jadi guide pendek; Vision simpan plan masa depan yang lebih dalam.',
+    trustTitle:'Percaya sebab ada role, review, dan QA',trustText:'Arah sistem ialah role-based access, audit trail, demo data asing dari data sebenar, review/QA sebelum deploy, encryption/recovery untuk kerja sebenar, dan AI/automation tak tukar kerja penting senyap-senyap.',learnMore:'Tengok overview'
+  }
+};
+function setLang(lang){
+  const dict=copy[lang]||copy.th;
+  localStorage.setItem('uiLanguage',lang);
+  document.documentElement.lang=lang==='en'?'en':(lang==='pm'?'ms':'th');
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+  document.querySelectorAll('.lang-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===lang));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(dict[key]) el.textContent=dict[key];});
+}
+document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+setLang(localStorage.getItem('uiLanguage')||'th');
+</script>
+</body>
+</html>

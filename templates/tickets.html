@@ -127,17 +127,27 @@
    <div class="modal-body">
     <input type="hidden" id="mTicketId">
     <div class="row g-2 mb-2">
-     <div class="col-md-6"><label class="form-label small">ปัญหา</label><input type="text" class="form-control form-control-sm" id="mTitle"></div>
-     <div class="col-md-3"><label class="form-label small">หมวด</label>
-      <select class="form-select form-select-sm" id="mCategory">
-       <option>ระบบ Core Banking</option><option>เครือข่าย/อินเทอร์เน็ต</option><option>VPN/ระบบเสีย</option>
-       <option>เครื่องพิมพ์/สมุด</option><option>คอมพิวเตอร์เสีย</option><option>ไฟฟ้า/สาธารณูปโภค</option>
+     <div class="col-md-6">
+      <label class="form-label small">Asset Tag <span class="text-muted">(เลือกก่อน ระบบช่วยแนะนำหมวด/ระดับ)</span></label>
+      <select class="form-select form-select-sm" id="mAsset" onchange="applyAssetSuggestion()">
+       <option value="">ไม่ผูก asset / กรอกเอง</option>
+       {% for a in assets %}<option value="{{ a.id }}">{{ a.asset_tag }} — {{ a.asset_type }} — {{ a.name }} ({{ a.branch.replace('สาขา','') }})</option>{% endfor %}
       </select>
      </div>
-     <div class="col-md-3"><label class="form-label small">ความสำคัญ</label>
+     <div class="col-md-6"><label class="form-label small">ปัญหา</label><input type="text" class="form-control form-control-sm" id="mTitle"></div>
+    </div>
+    <div class="row g-2 mb-2">
+     <div class="col-md-6"><label class="form-label small">หมวด <i class="bi bi-question-circle text-muted" title="เลือก asset tag เพื่อให้ระบบแนะนำหมวดจากชนิดอุปกรณ์ เช่น Router/Switch = Network"></i></label>
+      <select class="form-select form-select-sm" id="mCategory">
+       {% for cat in ticket_categories %}<option title="{{ category_help[cat] }}">{{ cat }}</option>{% endfor %}
+      </select>
+     </div>
+     <div class="col-md-6"><label class="form-label small">ความสำคัญ <i class="bi bi-question-circle text-muted" title="แนะนำจาก asset ได้ แต่ผู้แจ้งยังแก้เองได้"></i></label>
       <select class="form-select form-select-sm" id="mPriority">
-       <option value="critical">Critical</option><option value="high">High</option>
-       <option value="medium">Medium</option><option value="low">Low</option>
+       <option value="critical" title="{{ priority_help.critical }}">Critical — ระบบหลักล่ม</option>
+       <option value="high" title="{{ priority_help.high }}">High — งานสาขาสะดุด</option>
+       <option value="medium" title="{{ priority_help.medium }}">Medium — ยังมีทางเลี่ยง</option>
+       <option value="low" title="{{ priority_help.low }}">Low — จัดคิวปกติ</option>
       </select>
      </div>
     </div>
@@ -153,6 +163,13 @@
      </div>
      <div class="col-md-3"><label class="form-label small">ผู้แจ้ง</label><input type="text" class="form-control form-control-sm" id="mReporter"></div>
      <div class="col-md-3"><label class="form-label small">มอบหมาย</label><input type="text" class="form-control form-control-sm" id="mAssignee"></div>
+    </div>
+    <div class="alert alert-info py-2 small" id="assetSuggestBox">
+     เลือก Asset Tag ก่อน เช่น Router/Switch → เครือข่าย/High, Printer/Scanner → เครื่องพิมพ์/Medium, PC → คอมพิวเตอร์/Low. ผู้ใช้ยังเปลี่ยนหมวดและระดับเองได้เสมอ.
+    </div>
+    <div class="row g-2 mb-2 small">
+     <div class="col-md-6"><div class="border rounded p-2 h-100"><b>ระดับความสำคัญแบบภาษาง่าย</b><br>{% for key, text in priority_help.items() %}<div>{{ text }}</div>{% endfor %}</div></div>
+     <div class="col-md-6"><div class="border rounded p-2 h-100"><b>หมวด Ticket</b><br>{% for key, text in category_help.items() %}<div><b>{{ key }}:</b> {{ text }}</div>{% endfor %}</div></div>
     </div>
     <div class="mb-2"><label class="form-label small">รายละเอียด</label><textarea class="form-control form-control-sm" id="mDesc" rows="2"></textarea></div>
    </div>
@@ -179,6 +196,31 @@ function toggleTicketFilter(){
 
 var branchToProvince = {{ branch_to_province|tojson }};
 var provinceToBranches = {{ province_to_branches_short|tojson }};
+var assetSuggestions = {{ assets|tojson }};
+var assetById = {};
+assetSuggestions.forEach(function(a){ assetById[String(a.id)] = a; });
+
+function selectOptionByValueOrText(selectId, value){
+  var sel = document.getElementById(selectId);
+  if(!sel) return;
+  for(var i=0;i<sel.options.length;i++){
+    if(sel.options[i].value === value || sel.options[i].text === value){ sel.selectedIndex = i; return; }
+  }
+}
+
+function applyAssetSuggestion(){
+  var assetId = document.getElementById('mAsset').value;
+  var a = assetById[String(assetId)];
+  var box = document.getElementById('assetSuggestBox');
+  if(!a){
+    box.innerHTML = 'ไม่เลือก asset: กรุณาเลือกหมวด/ระดับเอง ระบบจะไม่เดาสุ่ม';
+    return;
+  }
+  selectOptionByValueOrText('mCategory', a.suggested_category);
+  selectOptionByValueOrText('mPriority', a.suggested_priority);
+  selectOptionByValueOrText('mBranch', a.branch);
+  box.innerHTML = '<b>แนะนำจาก Asset Tag '+a.asset_tag+'</b>: '+a.asset_type+' → '+a.suggested_category+' / '+a.suggested_priority+'<br>ยังแก้เองได้ถ้าหน้างานจริงเร่งกว่าหรือเบากว่า';
+}
 
 function filterBranchByProvince(province){
   var sel = document.getElementById('tFilterBranch');
@@ -319,8 +361,10 @@ function openNewTicket(){
   document.getElementById('mReporter').value='';
   document.getElementById('mAssignee').value='';
   document.getElementById('mDesc').value='';
+  document.getElementById('mAsset').value='';
   document.getElementById('mStatus').value='open';
   document.getElementById('mPriority').value='medium';
+  document.getElementById('assetSuggestBox').innerHTML='เลือก Asset Tag ก่อน เช่น Router/Switch → เครือข่าย/High, Printer/Scanner → เครื่องพิมพ์/Medium, PC → คอมพิวเตอร์/Low. ผู้ใช้ยังเปลี่ยนหมวดและระดับเองได้เสมอ.';
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
@@ -334,6 +378,7 @@ function saveTicket(){
     branch:document.getElementById('mBranch').value,
     reported_by:document.getElementById('mReporter').value,
     assigned_to:document.getElementById('mAssignee').value,
+    asset_id:document.getElementById('mAsset').value,
     description:document.getElementById('mDesc').value
   };
   const url=id?'/api/ticket/'+id+'/edit':'/api/ticket';

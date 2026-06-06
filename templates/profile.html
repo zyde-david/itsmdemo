@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}โปรไฟล์ของฉัน — ITSM Demo{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+ <h4 class="mb-0"><i class="bi bi-person-circle me-2"></i>โปรไฟล์ของฉัน</h4>
+ <a class="btn btn-sm btn-outline-secondary" href="/staff"><i class="bi bi-people me-1"></i>ทีมงาน</a>
+</div>
+
+<div class="row g-3">
+ <div class="col-lg-4">
+  <div class="card h-100">
+   <div class="card-body">
+    <div class="text-muted small">บัญชีที่เข้าใช้</div>
+    <h5 class="mb-1">{{ current_user.username if current_user else session.get('username','') }}</h5>
+    <span class="badge bg-primary">{{ current_user.role if current_user else session.get('role','user') }}</span>
+    <hr>
+    {% if staff %}
+    <div class="small text-muted">ผูกกับพนักงาน</div>
+    <div class="fw-semibold">{{ staff.name }}</div>
+    <div class="small">{{ staff.role }}</div>
+    <div class="small text-muted">{{ staff.branch }} / {{ staff.province }}</div>
+    {% else %}
+    <div class="alert alert-warning small mb-0">บัญชียังไม่ผูกกับชื่อพนักงาน จึงยังไม่มีประวัติ Asset ส่วนตัวให้แสดง</div>
+    {% endif %}
+   </div>
+  </div>
+ </div>
+ <div class="col-lg-8">
+  <div class="card">
+   <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+     <h6 class="mb-0"><i class="bi bi-box-seam me-1"></i>Asset ของฉัน / ประวัติการถือครอง</h6>
+     {% if asset_payload %}<span class="badge bg-info text-dark">ตอนนี้ {{ asset_payload.current_count }} / เคยก่อน {{ asset_payload.previous_count }}</span>{% endif %}
+    </div>
+    <p class="small text-muted mb-3">แสดงเฉพาะบัญชีตัวเอง ยกเว้น Admin / HR / Manager ที่มีสิทธิ์ดูจากหน้าทีมงาน</p>
+    {% if asset_payload %}
+    <div class="mb-3">
+     <div class="fw-semibold small mb-1">กำลังถืออยู่</div>
+     {% if asset_payload.current_assets %}
+      <div class="d-flex flex-wrap gap-1">
+       {% for a in asset_payload.current_assets %}
+       <span class="badge bg-info text-dark"><code>{{ a.asset_tag or a.asset_code or ('#' ~ a.id) }}</code> — {{ a.asset_type }} {{ a.name }}</span>
+       {% endfor %}
+      </div>
+     {% else %}
+      <div class="small text-muted">ยังไม่มี Asset ที่ผูกกับบัญชีนี้</div>
+     {% endif %}
+    </div>
+    <div>
+     <div class="fw-semibold small mb-1">เคยถือก่อนนี้</div>
+     {% if asset_payload.previous_assets %}
+      <div class="table-responsive">
+       <table class="table table-sm align-middle">
+        <thead><tr><th>Asset Tag/ID</th><th>ประเภท</th><th>รับ</th><th>คืน/โอน</th></tr></thead>
+        <tbody>
+         {% for h in asset_payload.previous_assets %}
+         <tr><td><code>{{ h.asset_tag or h.asset_code or ('#' ~ h.asset_id) }}</code></td><td>{{ h.asset_type or h.asset_name }}</td><td>{{ h.started_at or '-' }}</td><td>{{ h.ended_at or '-' }}</td></tr>
+         {% endfor %}
+        </tbody>
+       </table>
+      </div>
+     {% else %}
+      <div class="small text-muted">ยังไม่มีประวัติเดิม ระบบเริ่มเก็บจากตอนนี้และจะเห็นรายการเมื่อมีการโอน/เปลี่ยนผู้ถือครอง</div>
+     {% endif %}
+    </div>
+    {% else %}
+    <div class="alert alert-secondary small mb-0">ไม่มีข้อมูล Asset สำหรับบัญชีนี้ หรือไม่มีสิทธิ์ดู</div>
+    {% endif %}
+   </div>
+  </div>
+ </div>
+</div>
+{% endblock %}
