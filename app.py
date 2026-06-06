@@ -205,11 +205,19 @@ def staff_asset_history_payload(c, staff):
 
 @app.context_processor
 def inject_rbac():
-    return dict(ROLE_LABELS=ROLE_LABELS, current_role=current_role(),
-                can_manage_users=can_manage_users(), can_view_assets=can_view_assets(),
-                can_view_staff=can_view_staff(), can_manage_staff=can_manage_staff(),
-                can_manage_kb=can_manage_kb(), is_manager=is_manager(), is_admin=is_admin(),
-                is_kanban_operator=is_kanban_operator())
+    try:
+        kanban_op = is_kanban_operator()
+        return dict(ROLE_LABELS=ROLE_LABELS, current_role=current_role(),
+                    can_manage_users=can_manage_users(), can_view_assets=can_view_assets(),
+                    can_view_staff=can_view_staff(), can_manage_staff=can_manage_staff(),
+                    can_manage_kb=can_manage_kb(), is_manager=is_manager(), is_admin=is_admin(),
+                    is_kanban_operator=kanban_op)
+    except Exception:
+        return dict(ROLE_LABELS=ROLE_LABELS, current_role='user',
+                    can_manage_users=False, can_view_assets=False,
+                    can_view_staff=False, can_manage_staff=False,
+                    can_manage_kb=False, is_manager=False, is_admin=False,
+                    is_kanban_operator=False)
 
 ALL_BRANCHES = [
  {"branch":"สาขาเมืองปัตตานี","district":"เมืองปัตตานี","province":"ปัตตานี","type":"main"},
