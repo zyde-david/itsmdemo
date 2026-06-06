@@ -140,6 +140,7 @@ function setLang(lang){
   document.documentElement.lang=lang==='en'?'en':(lang==='pm'?'ms':'th');
 }
 document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+setLang(localStorage.getItem('uiLanguage')||'th');
 </script>
 </body>
 </html>

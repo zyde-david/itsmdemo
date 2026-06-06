@@ -2,7 +2,7 @@
 {% block title %}Site Map — ITSM Demo{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h4 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Site Map</h4>
+  <h4 class="mb-0"><i class="bi bi-diagram-3 me-2"></i><span data-i18n="siteMapTitle">Site Map</span></h4>
 </div>
 
 <!-- System Stats -->
@@ -10,7 +10,7 @@
   <div class="col-6 col-md-3">
     <div class="card card-stat p-3">
       <div class="d-flex justify-content-between align-items-center">
-        <div><h6 class="text-muted mb-1">Tickets</h6><h3 class="mb-0 fw-bold text-primary">{{ total_tickets }}</h3></div>
+        <div><h6 class="text-muted mb-1" data-i18n="tickets">Tickets</h6><h3 class="mb-0 fw-bold text-primary">{{ total_tickets }}</h3></div>
         <i class="bi bi-ticket-perforated stat-icon text-primary"></i>
       </div>
     </div>
@@ -18,7 +18,7 @@
   <div class="col-6 col-md-3">
     <div class="card card-stat p-3">
       <div class="d-flex justify-content-between align-items-center">
-        <div><h6 class="text-muted mb-1">Assets</h6><h3 class="mb-0 fw-bold text-success">{{ total_assets }}</h3></div>
+        <div><h6 class="text-muted mb-1" data-i18n="assets">Assets</h6><h3 class="mb-0 fw-bold text-success">{{ total_assets }}</h3></div>
         <i class="bi bi-box-seam stat-icon text-success"></i>
       </div>
     </div>
@@ -26,7 +26,7 @@
   <div class="col-6 col-md-3">
     <div class="card card-stat p-3">
       <div class="d-flex justify-content-between align-items-center">
-        <div><h6 class="text-muted mb-1">Staff</h6><h3 class="mb-0 fw-bold text-info">{{ total_staff }}</h3></div>
+        <div><h6 class="text-muted mb-1" data-i18n="staff">Staff</h6><h3 class="mb-0 fw-bold text-info">{{ total_staff }}</h3></div>
         <i class="bi bi-people stat-icon text-info"></i>
       </div>
     </div>
@@ -34,7 +34,7 @@
   <div class="col-6 col-md-3">
     <div class="card card-stat p-3">
       <div class="d-flex justify-content-between align-items-center">
-        <div><h6 class="text-muted mb-1">KB Articles</h6><h3 class="mb-0 fw-bold text-secondary">{{ total_kb }}</h3></div>
+        <div><h6 class="text-muted mb-1" data-i18n="kbArticles">KB Articles</h6><h3 class="mb-0 fw-bold text-secondary">{{ total_kb }}</h3></div>
         <i class="bi bi-book stat-icon text-secondary"></i>
       </div>
     </div>
@@ -42,217 +42,217 @@
 </div>
 
 <!-- Page Map -->
-<h5 class="mb-3"><i class="bi bi-grid me-2"></i>Pages</h5>
+<h5 class="mb-3"><i class="bi bi-grid me-2"></i><span data-i18n="pages">Pages</span></h5>
 <div class="row g-3 mb-4">
   <!-- Dashboard -->
   <div class="col-md-4">
     <div class="card h-100 border-primary" style="border-left:4px solid var(--bs-primary)">
-      <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-speedometer2 me-2"></i>Dashboard</div>
+      <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-speedometer2 me-2"></i><span data-i18n="dashboard">Dashboard</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Ticket stats by status</li>
-          <li>✓ Asset/Staff/KB summary</li>
-          <li>✓ Province breakdown</li>
-          <li>✓ Category breakdown</li>
-          <li>✓ Recent tickets list</li>
+          <li data-i18n="dashFeat1">✓ Ticket stats by status</li>
+          <li data-i18n="dashFeat2">✓ Asset/Staff/KB summary</li>
+          <li data-i18n="dashFeat3">✓ Province breakdown</li>
+          <li data-i18n="dashFeat4">✓ Category breakdown</li>
+          <li data-i18n="dashFeat5">✓ Recent tickets list</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/" class="btn btn-sm btn-outline-primary w-100">Go to Dashboard</a></div>
+      <div class="card-footer"><a href="/" class="btn btn-sm btn-outline-primary w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Tickets -->
   <div class="col-md-4">
     <div class="card h-100 border-danger" style="border-left:4px solid var(--bs-danger)">
-      <div class="card-header bg-danger text-white fw-bold"><i class="bi bi-ticket-perforated me-2"></i>Tickets</div>
+      <div class="card-header bg-danger text-white fw-bold"><i class="bi bi-ticket-perforated me-2"></i><span data-i18n="tickets">Tickets</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Ticket list with DataTables</li>
-          <li>✓ Filter: status/priority/branch/province/category</li>
-          <li>✓ Cascade: สาขา ↔ จังหวัด</li>
-          <li>✓ Create/Edit/Delete tickets</li>
-          <li>✓ Yearly code: TK-YY-NNNN</li>
-          <li>✓ Assign to IT staff</li>
-          <li>✓ Attach KB articles</li>
-          <li>✓ Work notes</li>
+          <li data-i18n="ticketFeat1">✓ Ticket list with DataTables</li>
+          <li data-i18n="ticketFeat2">✓ Filter: status/priority/branch/province/category</li>
+          <li data-i18n="ticketFeat3">✓ Cascade: สาขา ↔ จังหวัด</li>
+          <li data-i18n="ticketFeat4">✓ Create/Edit/Delete tickets</li>
+          <li data-i18n="ticketFeat5">✓ Yearly code: TK-YY-NNNN</li>
+          <li data-i18n="ticketFeat6">✓ Assign to IT staff</li>
+          <li data-i18n="ticketFeat7">✓ Attach KB articles</li>
+          <li data-i18n="ticketFeat8">✓ Work notes</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/tickets" class="btn btn-sm btn-outline-danger w-100">Go to Tickets</a></div>
+      <div class="card-footer"><a href="/tickets" class="btn btn-sm btn-outline-danger w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Assets -->
   <div class="col-md-4">
     <div class="card h-100 border-success" style="border-left:4px solid var(--bs-success)">
-      <div class="card-header bg-success text-white fw-bold"><i class="bi bi-box-seam me-2"></i>Assets</div>
+      <div class="card-header bg-success text-white fw-bold"><i class="bi bi-box-seam me-2"></i><span data-i18n="assets">Assets</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Asset list with smart tags</li>
-          <li>✓ Tag format: 1B-PC01</li>
-          <li>✓ Filter: status/type/branch/province</li>
-          <li>✓ Cascade: สาขา ↔ จังหวัด</li>
-          <li>✓ Create/Edit/Delete assets</li>
-          <li>✓ Link assets to tickets</li>
-          <li>✓ Retire score (ticket count)</li>
+          <li data-i18n="assetFeat1">✓ Asset list with smart tags</li>
+          <li data-i18n="assetFeat2">✓ Tag format: 1B-PC01</li>
+          <li data-i18n="assetFeat3">✓ Filter: status/type/branch/province</li>
+          <li data-i18n="assetFeat4">✓ Cascade: สาขา ↔ จังหวัด</li>
+          <li data-i18n="assetFeat5">✓ Create/Edit/Delete assets</li>
+          <li data-i18n="assetFeat6">✓ Link assets to tickets</li>
+          <li data-i18n="assetFeat7">✓ Retire score (ticket count)</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/assets" class="btn btn-sm btn-outline-success w-100">Go to Assets</a></div>
+      <div class="card-footer"><a href="/assets" class="btn btn-sm btn-outline-success w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Staff -->
   <div class="col-md-4">
     <div class="card h-100 border-info" style="border-left:4px solid var(--bs-info)">
-      <div class="card-header bg-info text-white fw-bold"><i class="bi bi-people me-2"></i>Staff</div>
+      <div class="card-header bg-info text-white fw-bold"><i class="bi bi-people me-2"></i><span data-i18n="staff">Staff</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Staff list with DataTables</li>
-          <li>✓ Filter: branch/province/role/IT</li>
-          <li>✓ Province summary cards</li>
-          <li>✓ IT team indicator</li>
-          <li>✓ Create/Edit/Delete staff</li>
+          <li data-i18n="staffFeat1">✓ Staff list with DataTables</li>
+          <li data-i18n="staffFeat2">✓ Filter: branch/province/role/IT</li>
+          <li data-i18n="staffFeat3">✓ Province summary cards</li>
+          <li data-i18n="staffFeat4">✓ IT team indicator</li>
+          <li data-i18n="staffFeat5">✓ Create/Edit/Delete staff</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/staff" class="btn btn-sm btn-outline-info w-100">Go to Staff</a></div>
+      <div class="card-footer"><a href="/staff" class="btn btn-sm btn-outline-info w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Knowledge Base -->
   <div class="col-md-4">
     <div class="card h-100 border-secondary" style="border-left:4px solid var(--bs-secondary)">
-      <div class="card-header bg-secondary text-white fw-bold"><i class="bi bi-book me-2"></i>Knowledge Base</div>
+      <div class="card-header bg-secondary text-white fw-bold"><i class="bi bi-book me-2"></i><span data-i18n="knowledgeBase">Knowledge Base</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ KB article list</li>
-          <li>✓ Filter by category</li>
-          <li>✓ Search articles</li>
-          <li>✓ Create/Edit/Delete articles</li>
-          <li>✓ View count tracking</li>
-          <li>✓ Attach to tickets</li>
+          <li data-i18n="kbFeat1">✓ KB article list</li>
+          <li data-i18n="kbFeat2">✓ Filter by category</li>
+          <li data-i18n="kbFeat3">✓ Search articles</li>
+          <li data-i18n="kbFeat4">✓ Create/Edit/Delete articles</li>
+          <li data-i18n="kbFeat5">✓ View count tracking</li>
+          <li data-i18n="kbFeat6">✓ Attach to tickets</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/knowledge" class="btn btn-sm btn-outline-secondary w-100">Go to KB</a></div>
+      <div class="card-footer"><a href="/knowledge" class="btn btn-sm btn-outline-secondary w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Route Planner -->
   <div class="col-md-4">
     <div class="card h-100 border-warning" style="border-left:4px solid var(--bs-warning)">
-      <div class="card-header bg-warning text-dark fw-bold"><i class="bi bi-map me-2"></i>Route Planner</div>
+      <div class="card-header bg-warning text-dark fw-bold"><i class="bi bi-map me-2"></i><span data-i18n="routePlanner">Route Planner</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Interactive Leaflet map</li>
-          <li>✓ Choropleth: 3 southern provinces</li>
-          <li>✓ 33 districts color-coded</li>
-          <li>✓ Toggle: tickets/assets/combined</li>
-          <li>✓ Priority ranking (visit order)</li>
-          <li>✓ Nearest-neighbor route</li>
+          <li data-i18n="routeFeat1">✓ Interactive Leaflet map</li>
+          <li data-i18n="routeFeat2">✓ Choropleth: 3 southern provinces</li>
+          <li data-i18n="routeFeat3">✓ 33 districts color-coded</li>
+          <li data-i18n="routeFeat4">✓ Toggle: tickets/assets/combined</li>
+          <li data-i18n="routeFeat5">✓ Priority ranking (visit order)</li>
+          <li data-i18n="routeFeat6">✓ Nearest-neighbor route</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/route-planner" class="btn btn-sm btn-outline-warning w-100">Go to Route Planner</a></div>
+      <div class="card-footer"><a href="/route-planner" class="btn btn-sm btn-outline-warning w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Leave Calendar -->
   <div class="col-md-4">
     <div class="card h-100 border-primary" style="border-left:4px solid var(--bs-primary)">
-      <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-calendar3 me-2"></i>Leave Calendar</div>
+      <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-calendar3 me-2"></i><span data-i18n="leaveCalendar">Leave Calendar</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Monthly leave overview</li>
-          <li>✓ Previous/next month navigation</li>
-          <li>✓ Status chips for approved/pending/rejected</li>
-          <li>✓ Linked back to Leave requests</li>
+          <li data-i18n="calFeat1">✓ Monthly leave overview</li>
+          <li data-i18n="calFeat2">✓ Previous/next month navigation</li>
+          <li data-i18n="calFeat3">✓ Status chips for approved/pending/rejected</li>
+          <li data-i18n="calFeat4">✓ Linked back to Leave requests</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/calendar" class="btn btn-sm btn-outline-primary w-100">Go to Calendar</a></div>
+      <div class="card-footer"><a href="/calendar" class="btn btn-sm btn-outline-primary w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Projects -->
   <div class="col-md-4">
     <div class="card h-100 border-dark" style="border-left:4px solid var(--bs-dark)">
-      <div class="card-header bg-dark text-white fw-bold"><i class="bi bi-kanban me-2"></i>Projects</div>
+      <div class="card-header bg-dark text-white fw-bold"><i class="bi bi-kanban me-2"></i><span data-i18n="projects">Projects</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Personal project tracker</li>
-          <li>✓ Status and progress cards</li>
-          <li>✓ Detail pages for interview notes</li>
-          <li>✓ Admin-only navigation</li>
+          <li data-i18n="projFeat1">✓ Personal project tracker</li>
+          <li data-i18n="projFeat2">✓ Status and progress cards</li>
+          <li data-i18n="projFeat3">✓ Detail pages for interview notes</li>
+          <li data-i18n="projFeat4">✓ Admin-only navigation</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/projects" class="btn btn-sm btn-outline-dark w-100">Go to Projects</a></div>
+      <div class="card-footer"><a href="/projects" class="btn btn-sm btn-outline-dark w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- Interview Landing -->
   <div class="col-md-4">
     <div class="card h-100 border-primary" style="border-left:4px solid var(--bs-primary)">
-      <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-qr-code me-2"></i>Interview Landing</div>
+      <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-qr-code me-2"></i><span data-i18n="interviewLanding">Interview Landing</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ QR-friendly public page at /interview</li>
-          <li>✓ English / ไทย / นายูบ้านเรา switcher</li>
-          <li>✓ Interview pitch for ITSM workflow</li>
-          <li>✓ Future Geo BI ideas marked as future only</li>
-          <li>✓ Login page has tablet QR card to this share page</li>
+          <li data-i18n="interviewFeat1">✓ QR-friendly public page at /interview</li>
+          <li data-i18n="interviewFeat2">✓ English / ไทย / นายูบ้านเรา switcher</li>
+          <li data-i18n="interviewFeat3">✓ Interview pitch for ITSM workflow</li>
+          <li data-i18n="interviewFeat4">✓ Future Geo BI ideas marked as future only</li>
+          <li data-i18n="interviewFeat5">✓ Login page has tablet QR card to this share page</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/interview" class="btn btn-sm btn-outline-primary w-100">Open Interview Page</a></div>
+      <div class="card-footer"><a href="/interview" class="btn btn-sm btn-outline-primary w-100" data-i18n="goToPage">Open page</a></div>
     </div>
   </div>
 
   <!-- Vision -->
   <div class="col-md-4">
     <div class="card h-100 border-success" style="border-left:4px solid var(--bs-success)">
-      <div class="card-header bg-success text-white fw-bold"><i class="bi bi-stars me-2"></i>Vision</div>
+      <div class="card-header bg-success text-white fw-bold"><i class="bi bi-stars me-2"></i><span data-i18n="vision">Vision</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Public page at /vision</li>
-          <li>✓ Privacy-first AI / local LLM direction</li>
-          <li>✓ Roadmap for BI maps, routes, asset-tag flow</li>
-          <li>✓ Human approval before AI actions</li>
+          <li data-i18n="visionFeat1">✓ Public page at /vision</li>
+          <li data-i18n="visionFeat2">✓ Privacy-first AI / local LLM direction</li>
+          <li data-i18n="visionFeat3">✓ Roadmap for BI maps, routes, asset-tag flow</li>
+          <li data-i18n="visionFeat4">✓ Human approval before AI actions</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/vision" class="btn btn-sm btn-outline-success w-100">Open Vision Page</a></div>
+      <div class="card-footer"><a href="/vision" class="btn btn-sm btn-outline-success w-100" data-i18n="goToPage">Open page</a></div>
     </div>
   </div>
 
   <!-- Settings -->
   <div class="col-md-4">
     <div class="card h-100 border-secondary" style="border-left:4px solid var(--bs-secondary)">
-      <div class="card-header bg-secondary text-white fw-bold"><i class="bi bi-gear me-2"></i>Settings</div>
+      <div class="card-header bg-secondary text-white fw-bold"><i class="bi bi-gear me-2"></i><span data-i18n="settings">Settings</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ Password change</li>
-          <li>✓ Admin user management</li>
-          <li>✓ Theme and custom color settings</li>
-          <li>✓ Mobile sidebar preference</li>
+          <li data-i18n="settingsFeat1">✓ Password change</li>
+          <li data-i18n="settingsFeat2">✓ Admin user management</li>
+          <li data-i18n="settingsFeat3">✓ Theme and custom color settings</li>
+          <li data-i18n="settingsFeat4">✓ Mobile sidebar preference</li>
         </ul>
       </div>
-      <div class="card-footer"><a href="/settings" class="btn btn-sm btn-outline-secondary w-100">Go to Settings</a></div>
+      <div class="card-footer"><a href="/settings" class="btn btn-sm btn-outline-secondary w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 
   <!-- v2 React Tables -->
   <div class="col-md-4">
     <div class="card h-100 border-success" style="border-left:4px solid var(--bs-success)">
-      <div class="card-header bg-success text-white fw-bold"><i class="bi bi-table me-2"></i>v2 Tables</div>
+      <div class="card-header bg-success text-white fw-bold"><i class="bi bi-table me-2"></i><span data-i18n="v2Tables">v2 Tables</span></div>
       <div class="card-body">
         <ul class="list-unstyled small mb-0">
-          <li>✓ React/TanStack table versions</li>
-          <li>✓ Tickets, Assets, Staff, KB v2</li>
-          <li>✓ Original v1 pages remain available</li>
-          <li>✓ Use navbar switch on each module</li>
+          <li data-i18n="v2Feat1">✓ React/TanStack table versions</li>
+          <li data-i18n="v2Feat2">✓ Tickets, Assets, Staff, KB v2</li>
+          <li data-i18n="v2Feat3">✓ Original v1 pages remain available</li>
+          <li data-i18n="v2Feat4">✓ Use navbar switch on each module</li>
         </ul>
       </div>
       <div class="card-footer">
         <div class="d-grid gap-1">
-          <a href="/tickets/v2" class="btn btn-sm btn-outline-success">Tickets v2</a>
+          <a href="/tickets/v2" class="btn btn-sm btn-outline-success" data-i18n="tickets">Tickets v2</a>
           <div class="btn-group btn-group-sm" role="group" aria-label="Other v2 table pages">
-            <a href="/assets/v2" class="btn btn-outline-success">Assets</a>
-            <a href="/staff/v2" class="btn btn-outline-success">Staff</a>
-            <a href="/knowledge/v2" class="btn btn-outline-success">KB</a>
+            <a href="/assets/v2" class="btn btn-outline-success" data-i18n="assets">Assets</a>
+            <a href="/staff/v2" class="btn btn-outline-success" class="btn btn-outline-success" data-i18n="staff">Staff</a>
+            <a href="/knowledge/v2" class="btn btn-outline-success" data-i18n="knowledgeBase">KB</a>
           </div>
         </div>
       </div>
@@ -260,4 +260,46 @@
   </div>
 </div>
 
+<script>
+window.pageI18n = {
+  th: {
+    siteMapTitle: 'Site Map',
+    tickets: 'Tickets', assets: 'Assets', staff: 'Staff', kbArticles: 'KB Articles',
+    pages: 'Pages',
+    dashboard: 'Dashboard',
+    dashFeat1: '✓ Ticket stats by status', dashFeat2: '✓ Asset/Staff/KB summary', dashFeat3: '✓ Province breakdown', dashFeat4: '✓ Category breakdown', dashFeat5: '✓ Recent tickets list',
+    ticketFeat1: '✓ Ticket list with DataTables', ticketFeat2: '✓ Filter: status/priority/branch/province/category', ticketFeat3: '✓ Cascade: สาขา ↔ จังหวัด', ticketFeat4: '✓ Create/Edit/Delete tickets', ticketFeat5: '✓ Yearly code: TK-YY-NNNN', ticketFeat6: '✓ Assign to IT staff', ticketFeat7: '✓ Attach KB articles', ticketFeat8: '✓ Work notes',
+    assetFeat1: '✓ Asset list with smart tags', assetFeat2: '✓ Tag format: 1B-PC01', assetFeat3: '✓ Filter: status/type/branch/province', assetFeat4: '✓ Cascade: สาขา ↔ จังหวัด', assetFeat5: '✓ Create/Edit/Delete assets', assetFeat6: '✓ Link assets to tickets', assetFeat7: '✓ Retire score (ticket count)',
+    staffFeat1: '✓ Staff list with DataTables', staffFeat2: '✓ Filter: branch/province/role/IT', staffFeat3: '✓ Province summary cards', staffFeat4: '✓ IT team indicator', staffFeat5: '✓ Create/Edit/Delete staff',
+    knowledgeBase: 'Knowledge Base', kbFeat1: '✓ KB article list', kbFeat2: '✓ Filter by category', kbFeat3: '✓ Search articles', kbFeat4: '✓ Create/Edit/Delete articles', kbFeat5: '✓ View count tracking', kbFeat6: '✓ Attach to tickets',
+    routePlanner: 'Route Planner', routeFeat1: '✓ Interactive Leaflet map', routeFeat2: '✓ Choropleth: 3 southern provinces', routeFeat3: '✓ 33 districts color-coded', routeFeat4: '✓ Toggle: tickets/assets/combined', routeFeat5: '✓ Priority ranking (visit order)', routeFeat6: '✓ Nearest-neighbor route',
+    leaveCalendar: 'Leave Calendar', calFeat1: '✓ Monthly leave overview', calFeat2: '✓ Previous/next month navigation', calFeat3: '✓ Status chips for approved/pending/rejected', calFeat4: '✓ Linked back to Leave requests',
+    projects: 'Projects', projFeat1: '✓ Personal project tracker', projFeat2: '✓ Status and progress cards', projFeat3: '✓ Detail pages for interview notes', projFeat4: '✓ Admin-only navigation',
+    interviewLanding: 'Interview Landing', interviewFeat1: '✓ QR-friendly public page at /interview', interviewFeat2: '✓ English / ไทย / นายูบ้านเรา switcher', interviewFeat3: '✓ Interview pitch for ITSM workflow', interviewFeat4: '✓ Future Geo BI ideas marked as future only', interviewFeat5: '✓ Login page has tablet QR card to this share page',
+    vision: 'Vision', visionFeat1: '✓ Public page at /vision', visionFeat2: '✓ Privacy-first AI / local LLM direction', visionFeat3: '✓ Roadmap for BI maps, routes, asset-tag flow', visionFeat4: '✓ Human approval before AI actions',
+    settings: 'Settings', settingsFeat1: '✓ Password change', settingsFeat2: '✓ Admin user management', settingsFeat3: '✓ Theme and custom color settings', settingsFeat4: '✓ Mobile sidebar preference',
+    v2Tables: 'v2 Tables', v2Feat1: '✓ React/TanStack table versions', v2Feat2: '✓ Tickets, Assets, Staff, KB v2', v2Feat3: '✓ Original v1 pages remain available', v2Feat4: '✓ Use navbar switch on each module',
+    goToPage: 'Go to page'
+  },
+  en: {
+    siteMapTitle: 'Site Map',
+    tickets: 'Tickets', assets: 'Assets', staff: 'Staff', kbArticles: 'KB Articles',
+    pages: 'Pages',
+    dashboard: 'Dashboard',
+    dashFeat1: '✓ Ticket stats by status', dashFeat2: '✓ Asset/Staff/KB summary', dashFeat3: '✓ Province breakdown', dashFeat4: '✓ Category breakdown', dashFeat5: '✓ Recent tickets list',
+    ticketFeat1: '✓ Ticket list with DataTables', ticketFeat2: '✓ Filter: status/priority/branch/province/category', ticketFeat3: '✓ Cascade: Branch ↔ Province', ticketFeat4: '✓ Create/Edit/Delete tickets', ticketFeat5: '✓ Yearly code: TK-YY-NNNN', ticketFeat6: '✓ Assign to IT staff', ticketFeat7: '✓ Attach KB articles', ticketFeat8: '✓ Work notes',
+    assetFeat1: '✓ Asset list with smart tags', assetFeat2: '✓ Tag format: 1B-PC01', assetFeat3: '✓ Filter: status/type/branch/province', assetFeat4: '✓ Cascade: Branch ↔ Province', assetFeat5: '✓ Create/Edit/Delete assets', assetFeat6: '✓ Link assets to tickets', assetFeat7: '✓ Retire score (ticket count)',
+    staffFeat1: '✓ Staff list with DataTables', staffFeat2: '✓ Filter: branch/province/role/IT', staffFeat3: '✓ Province summary cards', staffFeat4: '✓ IT team indicator', staffFeat5: '✓ Create/Edit/Delete staff',
+    knowledgeBase: 'Knowledge Base', kbFeat1: '✓ KB article list', kbFeat2: '✓ Filter by category', kbFeat3: '✓ Search articles', kbFeat4: '✓ Create/Edit/Delete articles', kbFeat5: '✓ View count tracking', kbFeat6: '✓ Attach to tickets',
+    routePlanner: 'Route Planner', routeFeat1: '✓ Interactive Leaflet map', routeFeat2: '✓ Choropleth: 3 southern provinces', routeFeat3: '✓ 33 districts color-coded', routeFeat4: '✓ Toggle: tickets/assets/combined', routeFeat5: '✓ Priority ranking (visit order)', routeFeat6: '✓ Nearest-neighbor route',
+    leaveCalendar: 'Leave Calendar', calFeat1: '✓ Monthly leave overview', calFeat2: '✓ Previous/next month navigation', calFeat3: '✓ Status chips for approved/pending/rejected', calFeat4: '✓ Linked back to Leave requests',
+    projects: 'Projects', projFeat1: '✓ Personal project tracker', projFeat2: '✓ Status and progress cards', projFeat3: '✓ Detail pages for interview notes', projFeat4: '✓ Admin-only navigation',
+    interviewLanding: 'Interview Landing', interviewFeat1: '✓ QR-friendly public page at /interview', interviewFeat2: '✓ English / ไทย / Patani Malay switcher', interviewFeat3: '✓ Interview pitch for ITSM workflow', interviewFeat4: '✓ Future Geo BI ideas marked as future only', interviewFeat5: '✓ Login page has tablet QR card to this share page',
+    vision: 'Vision', visionFeat1: '✓ Public page at /vision', visionFeat2: '✓ Privacy-first AI / local LLM direction', visionFeat3: '✓ Roadmap for BI maps, routes, asset-tag flow', visionFeat4: '✓ Human approval before AI actions',
+    settings: 'Settings', settingsFeat1: '✓ Password change', settingsFeat2: '✓ Admin user management', settingsFeat3: '✓ Theme and custom color settings', settingsFeat4: '✓ Mobile sidebar preference',
+    v2Tables: 'v2 Tables', v2Feat1: '✓ React/TanStack table versions', v2Feat2: '✓ Tickets, Assets, Staff, KB v2', v2Feat3: '✓ Original v1 pages remain available', v2Feat4: '✓ Use navbar switch on each module',
+    goToPage: 'Go to page'
+  }
+};
+</script>
 {% endblock %}
