@@ -79,17 +79,22 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
 
 <div class="row g-3 mb-3">
   <div class="col-6 col-md-3">
+    <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">พนักงาน Active</div><div class="h4 mb-0 text-primary">{{ total_active_staff }}</div></div></div>
+  </div>
+  <div class="col-6 col-md-3">
     <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">รออนุมัติ</div><div class="h4 mb-0 text-warning">{{ ns.pending }}</div></div></div>
   </div>
   <div class="col-6 col-md-3">
     <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">อนุมัติแล้ว</div><div class="h4 mb-0 text-success">{{ ns.approved }}</div></div></div>
   </div>
   <div class="col-6 col-md-3">
-    <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">ไม่อนุมัติ</div><div class="h4 mb-0 text-danger">{{ ns.rejected }}</div></div></div>
-  </div>
-  <div class="col-6 col-md-3">
     <div class="card shadow-sm text-center h-100"><div class="card-body py-3"><div class="text-muted small">รายการในเดือน</div><div class="h4 mb-0 text-primary">{{ leave_requests|length }}</div></div></div>
   </div>
+</div>
+
+<div class="alert alert-info py-2 px-3 mb-3 small d-flex align-items-center gap-2">
+  <i class="bi bi-info-circle"></i>
+  <span>เลข <span class="badge bg-success" style="font-size:.65rem">N↗</span> = พนักงานที่เหลือพร้อมทำงานในวันนั้น (Active - ลาที่อนุมัติแล้ว) · สีเหลือง = มีคนลา</span>
 </div>
 
 <div class="card shadow-sm">
@@ -108,10 +113,16 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
       {% endfor %}
       {% for week in month_weeks %}
         {% for day in week %}
+        {% set mp = manpower_by_day.get(day.iso, {}) %}
         <div class="calendar-day {% if not day.in_month %}is-muted{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.leaves %}has-leave{% endif %}" data-date="{{ day.iso }}">
           <div class="calendar-date">
             <span class="day-num">{{ day.day }}</span>
-            {% if day.leaves %}<span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">{{ day.leaves|length }}</span>{% endif %}
+            <div class="d-flex align-items-center gap-1">
+              {% if day.leaves %}<span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">{{ day.leaves|length }}</span>{% endif %}
+              {% if mp and mp.remaining is not none %}
+              <span class="badge {% if mp.on_leave > 0 %}bg-warning text-dark{% else %}bg-success{% endif %}" title="Manpower: {{ mp.remaining }}/{{ mp.total }} available" style="font-size:.65rem">{{ mp.remaining }}↗</span>
+              {% endif %}
+            </div>
           </div>
           {% if day.leaves %}
           <div class="calendar-leave-list">

@@ -1380,11 +1380,46 @@ def calendar_page():
             for day in week
         ])
 
+    # Manpower calculation
+    total_active_staff = c.execute("SELECT COUNT(*) FROM staff").fetchone()[0] or 0
+
+    # Count approved leave per day
+    approved_leave_by_day = {}
+    for req in leave_requests:
+        if req['status'] != 'approved':
+            continue
+        try:
+            start_dt = datetime.strptime(req['start_date'], '%Y-%m-%d').date()
+            end_dt = datetime.strptime(req['end_date'], '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            continue
+        cursor = max(start_dt, first_day)
+        end_limit = min(end_dt, last_day)
+        while cursor <= end_limit:
+            key = cursor.isoformat()
+            # Track unique staff on leave per day (avoid double-counting overlapping leave)
+            approved_leave_by_day.setdefault(key, set()).add(req.get('username', ''))
+            cursor += timedelta(days=1)
+
+    # Build manpower per day
+    manpower_by_day = {}
+    for week_data in month_weeks:
+        for day in week_data:
+            iso = day['iso']
+            on_leave = len(approved_leave_by_day.get(iso, set()))
+            remaining = total_active_staff - on_leave
+            manpower_by_day[iso] = {
+                'total': total_active_staff,
+                'on_leave': on_leave,
+                'remaining': remaining,
+            }
+
     return render_template('calendar.html', current_user=get_current_user(), month_weeks=month_weeks,
                            month_name=first_day.strftime('%B %Y'), month=month, year=year,
                            prev_year=prev_month.year, prev_month=prev_month.month,
                            next_year=next_month.year, next_month=next_month.month,
-                           leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS)
+                           leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS,
+                           manpower_by_day=manpower_by_day, total_active_staff=total_active_staff)
 
 @app.route('/leave', methods=['GET','POST'])
 @login_required

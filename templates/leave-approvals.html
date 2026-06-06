@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Leave Approvals — ITSM Demo{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="bi bi-check2-square me-2"></i>Leave Approvals</h4>
+  <a href="/leave" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-left me-1"></i>Back to My Leave</a>
+</div>
+
+{% if message %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">{{ message }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endif %}
+{% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">{{ error }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endif %}
+
+<!-- Pending Approvals -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-warning text-dark fw-bold"><i class="bi bi-hourglass-split me-2"></i>Pending Approval</div>
+  <div class="card-body p-0">
+    {% if pending_requests %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Staff</th>
+            <th>Branch</th>
+            <th>Type</th>
+            <th>Dates</th>
+            <th>Days</th>
+            <th>Reason</th>
+            <th style="width:200px">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in pending_requests %}
+          <tr>
+            <td><b>{{ r.username }}</b></td>
+            <td><span class="branch-tag">{{ r.branch or '-' }}</span></td>
+            <td><span class="badge bg-info">{{ r.leave_type }}</span></td>
+            <td><small>{{ r.start_date }} → {{ r.end_date }}</small></td>
+            <td><span class="badge bg-secondary">{{ r.days }}d</span></td>
+            <td><small class="text-muted">{{ r.reason[:80] }}{% if r.reason|length > 80 %}…{% endif %}</small></td>
+            <td>
+              <form method="POST" class="d-flex gap-1">
+                <input type="hidden" name="request_id" value="{{ r.id }}">
+                <input type="text" name="approval_note" class="form-control form-control-sm" placeholder="Note (optional)" style="width:120px">
+                <button name="action" value="approve" class="btn btn-sm btn-success" title="Approve"><i class="bi bi-check-lg"></i></button>
+                <button name="action" value="reject" class="btn btn-sm btn-danger" title="Reject"><i class="bi bi-x-lg"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted"><i class="bi bi-inbox d-block mb-2" style="font-size:2rem"></i>No pending requests</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent Decisions -->
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold"><i class="bi bi-clock-history me-2"></i>Recent Decisions</div>
+  <div class="card-body p-0">
+    {% if recent_requests %}
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Staff</th>
+            <th>Type</th>
+            <th>Dates</th>
+            <th>Days</th>
+            <th>Reason</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recent_requests %}
+          <tr>
+            <td><b>{{ r.username }}</b></td>
+            <td><span class="badge bg-light text-dark">{{ r.leave_type }}</span></td>
+            <td><small>{{ r.start_date }} → {{ r.end_date }}</small></td>
+            <td><span class="badge bg-secondary">{{ r.days }}d</span></td>
+            <td><small class="text-muted">{{ r.reason[:60] }}{% if r.reason|length > 60 %}…{% endif %}</small></td>
+            <td>
+              {% if r.status == 'approved' %}<span class="badge bg-success">Approved</span>
+              {% elif r.status == 'rejected' %}<span class="badge bg-danger">Rejected</span>
+              {% else %}<span class="badge bg-warning text-dark">{{ r.status }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-3 text-center text-muted">No recent decisions</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
