@@ -1601,12 +1601,104 @@ def leave_approvals_page():
     mpct = round(remaining / total_staff * 100) if total_staff > 0 else 100
     mp_roles = list(set(r['role'] for r in on_leave_rows if r.get('role')))
 
+    # ── Calendar data for manager's branch ──
+    today_cal = date.today()
+    try:
+        cal_year = int(request.args.get('year', today_cal.year))
+        cal_month = int(request.args.get('month', today_cal.month))
+        if cal_month < 1 or cal_month > 12:
+            raise ValueError
+    except ValueError:
+        cal_year = today_cal.year
+        cal_month = today_cal.month
+
+    cal_first = date(cal_year, cal_month, 1)
+    _, cal_days_in_month = calendar.monthrange(cal_year, cal_month)
+    cal_last = date(cal_year, cal_month, cal_days_in_month)
+    cal_prev = cal_first.replace(day=1) - timedelta(days=1)
+    cal_next = cal_last + timedelta(days=1)
+
+    # Get all leave requests for this month (for manager's branch)
+    if manager_branch:
+        cal_rows = c.execute(
+            "SELECT lr.*, u.role as user_role FROM leave_requests lr JOIN users u ON lr.user_id=u.id WHERE lr.start_date <= ? AND lr.end_date >= ? AND u.branch=? ORDER BY lr.start_date ASC",
+            (cal_last.isoformat(), cal_first.isoformat(), manager_branch)
+        ).fetchall()
+    else:
+        cal_rows = c.execute(
+            "SELECT lr.*, u.role as user_role FROM leave_requests lr LEFT JOIN users u ON lr.user_id=u.id WHERE lr.start_date <= ? AND lr.end_date >= ? ORDER BY lr.start_date ASC",
+            (cal_last.isoformat(), cal_first.isoformat())
+        ).fetchall()
+    cal_leave_requests = [dict(r) for r in cal_rows]
+
+    cal_leave_by_day = {}
+    for req in cal_leave_requests:
+        try:
+            start_dt = datetime.strptime(req['start_date'], '%Y-%m-%d').date()
+            end_dt = datetime.strptime(req['end_date'], '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            continue
+        cursor = max(start_dt, cal_first)
+        end_limit = min(end_dt, cal_last)
+        while cursor <= end_limit:
+            cal_leave_by_day.setdefault(cursor.isoformat(), []).append(req)
+            cursor += timedelta(days=1)
+
+    cal_month_weeks = []
+    for week in calendar.Calendar(firstweekday=6).monthdatescalendar(cal_year, cal_month):
+        cal_month_weeks.append([
+            {
+                'date': day,
+                'iso': day.isoformat(),
+                'day': day.day,
+                'in_month': day.month == cal_month,
+                'is_today': day == today_cal,
+                'leaves': cal_leave_by_day.get(day.isoformat(), []),
+            }
+            for day in week
+        ])
+
+    # Manpower per day for manager's branch
+    cal_approved_by_day = {}
+    for req in cal_leave_requests:
+        if req['status'] != 'approved':
+            continue
+        try:
+            start_dt = datetime.strptime(req['start_date'], '%Y-%m-%d').date()
+            end_dt = datetime.strptime(req['end_date'], '%Y-%m-%d').date()
+        except (TypeError, ValueError):
+            continue
+        cursor = max(start_dt, cal_first)
+        end_limit = min(end_dt, cal_last)
+        while cursor <= end_limit:
+            cal_approved_by_day.setdefault(cursor.isoformat(), set()).add(req.get('username', ''))
+            cursor += timedelta(days=1)
+
+    cal_manpower_by_day = {}
+    for week_data in cal_month_weeks:
+        for day in week_data:
+            iso = day['iso']
+            on_leave_count = len(cal_approved_by_day.get(iso, set()))
+            rem = total_staff - on_leave_count
+            cal_manpower_by_day[iso] = {
+                'total': total_staff,
+                'on_leave': on_leave_count,
+                'remaining': rem,
+            }
+
     return render_template('leave-approvals.html', current_user=current_user,
                            pending_requests=[dict(r) for r in pending_rows],
                            recent_requests=[dict(r) for r in recent_rows],
                            status_labels=LEAVE_STATUS_LABELS, message=message, error=error,
                            manager_branch=manager_branch, total_staff=total_staff,
-                           on_leave_now=on_leave_now, remaining=remaining, mpct=mpct, mp_roles=mp_roles)
+                           on_leave_now=on_leave_now, remaining=remaining, mpct=mpct, mp_roles=mp_roles,
+                           # Calendar data
+                           cal_month_weeks=cal_month_weeks,
+                           cal_month_name=cal_first.strftime('%B %Y'),
+                           cal_month=cal_month, cal_year=cal_year,
+                           cal_prev_year=cal_prev.year, cal_prev_month=cal_prev.month,
+                           cal_next_year=cal_next.year, cal_next_month=cal_next.month,
+                           cal_manpower_by_day=cal_manpower_by_day)
 
 # ─── Feedback ────────────────────────────────────────────────
 

@@ -29,6 +29,68 @@
 <div class="alert alert-danger alert-dismissible fade show" role="alert">{{ error }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 {% endif %}
 
+<!-- Leave Calendar for Manager -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="fw-bold"><i class="bi bi-calendar-month me-2"></i>ปฏิทินการลา — {{ cal_month_name }}</div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="/leave-approvals?year={{ cal_prev_year }}&month={{ cal_prev_month }}"><i class="bi bi-chevron-left"></i></a>
+      <a class="btn btn-sm btn-outline-primary" href="/leave-approvals">เดือนนี้</a>
+      <a class="btn btn-sm btn-outline-secondary" href="/leave-approvals?year={{ cal_next_year }}&month={{ cal_next_month }}"><i class="bi bi-chevron-right"></i></a>
+    </div>
+  </div>
+  <div class="card-body p-2 p-md-3">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm mb-0" style="min-width:700px">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center" style="width:40px">#</th>
+            {% for wd in ['อา','จ','อ','พ','พฤ','ศ','ส'] %}
+            <th class="text-center" style="width:100px">{{ wd }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for week in cal_month_weeks %}
+          <tr>
+            <td class="text-center text-muted small">{{ loop.index }}</td>
+            {% for day in week %}
+            {% set mp = cal_manpower_by_day.get(day.iso, {}) %}
+            {% set pct = (mp.remaining / mp.total * 100)|round|int if mp.total > 0 else 100 %}
+            {% set badge_color = 'bg-danger' if pct < 50 else ('bg-warning text-dark' if pct < 80 else 'bg-success') %}
+            <td class="p-1 {% if not day.in_month %}bg-light text-muted{% endif %} {% if day.is_today %}table-primary{% endif %}" style="vertical-align:top;min-height:60px">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="small fw-bold">{{ day.day }}</span>
+                {% if mp and mp.total > 0 %}
+                <span class="badge {{ badge_color }}" style="font-size:.6rem" title="Manpower: {{ mp.remaining }}/{{ mp.total }}">{{ mp.remaining }}/{{ mp.total }}</span>
+                {% endif %}
+              </div>
+              {% if day.leaves %}
+              <div class="d-flex flex-wrap gap-1">
+                {% for leave in day.leaves[:3] %}
+                {% set st = leave.status|default('pending') %}
+                <span class="badge {% if st == 'approved' %}bg-success{% elif st == 'rejected' %}bg-danger{% elif st == 'cancelled' %}bg-secondary{% else %}bg-warning text-dark{% endif %}" style="font-size:.55rem" title="{{ leave.username }} — {{ leave.leave_type }} ({{ status_labels.get(st, st) }})">{{ leave.username[:6] }}</span>
+                {% endfor %}
+                {% if day.leaves|length > 3 %}
+                <span class="badge bg-light text-dark" style="font-size:.55px">+{{ day.leaves|length - 3 }}</span>
+                {% endif %}
+              </div>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex gap-3 mt-2 small text-muted">
+      <span><span class="badge bg-success" style="font-size:.6rem">80-100%</span> ปกติ</span>
+      <span><span class="badge bg-warning text-dark" style="font-size:.6rem">50-79%</span> ระวัง</span>
+      <span><span class="badge bg-danger" style="font-size:.6rem">&lt;50%</span> วิกฤต</span>
+    </div>
+  </div>
+</div>
+
 <!-- Pending Approvals -->
 <div class="card shadow-sm mb-4">
   <div class="card-header bg-warning text-dark fw-bold"><i class="bi bi-hourglass-split me-2"></i>Pending Approval</div>
