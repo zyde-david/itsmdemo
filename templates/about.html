@@ -1,60 +1,199 @@
 {% extends "base.html" %}
-{% block title %}เกี่ยวกับฉัน — ITSM Demo{% endblock %}
+{% block title %}About Me — Zyde | ITSM Demo{% endblock %}
+{% block extra_head %}
+<style>
+  .about-hero{background:linear-gradient(135deg,#1a5276,#2c3e50);color:#fff;padding:2rem 1.5rem;border-radius:12px;margin-bottom:1.5rem}
+  .about-hero h1{font-size:1.6rem;margin-bottom:.25rem}
+  .about-hero .tagline{color:rgba(255,255,255,.8);font-size:.95rem}
+  .contact-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+  .contact-chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .75rem;border-radius:20px;font-size:.8rem;text-decoration:none;display:inline-flex;align-items:center;gap:.35rem}
+  .contact-chip:hover{background:rgba(255,255,255,.25);color:#fff;text-decoration:none}
+  .contact-chip.primary{background:#25D366;border-color:#25D366}
+  .contact-chip.messenger{background:#0084ff;border-color:#0084ff}
+  .section-title{font-size:1rem;font-weight:700;color:#1a5276;border-bottom:2px solid #1a5276;padding-bottom:.3rem;margin-bottom:.75rem}
+  .exp-item{margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid #eee}
+  .exp-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+  .exp-role{font-weight:600;color:#333}
+  .exp-company{color:#666;font-size:.85rem}
+  .exp-years{color:#999;font-size:.8rem}
+  .skill-tag{display:inline-block;background:#e8f4fd;color:#1a5276;padding:.2rem .6rem;border-radius:12px;font-size:.75rem;margin:.15rem}
+</style>
+{% endblock %}
 {% block content %}
 <div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-body text-center">
-                    <h2 class="card-title mb-3"><i class="bi bi-person-circle me-2"></i>เกี่ยวกับฉัน</h2>
-                    <div class="ratio ratio-16x9 mb-3">
-                        <img src="https://via.placeholder.com/300x300?format=jpg&amp;text=Profile+Photo" alt="Profile Picture" class="img-fluid rounded-circle border border-3" style="object-fit: cover;">
-                    </div>
-                    <h4 class="mb-2">Zyde David</h4>
-                    <p class="text-muted mb-3">IT Service Management Specialist</p>
-                    <div class="mb-4">
-                        <p><strong>ความเชี่ยวชาญ:</strong></p>
-                        <ul class="list-unstyled mb-0">
-                            <li><i class="bi bi-check-circle me-2"></i>การจัดการเหตุการณ์และปัญหา IT</li>
-                            <li><i class="bi bi-check-circle me-2"></i>การบริการลูกค้าและการสนับสนุนผู้ใช้</li>
-                            <li><i class="bi bi-check-circle me-2"></i>การจัดการความรู้และฐานความรู้</li>
-                            <li><i class="bi bi-check-circle me-2"></i>การวางแผนเส้นทางและการจัดส่งบริการ</li>
-                            <li><i class="bi bi-check-circle me-2"></i>การบริหารจัดการทรัพย์สินและสินทรัพย์ IT</li>
-                        </ul>
-                    </div>
-                    <div class="mb-4">
-                        <p><strong>ประสบการณ์:</strong></p>
-                        <p>มีประสบการณ์ในการทำงานด้าน IT Service Management ในสภาพแวดล้อมสหกรณ์และสถาบันการเงิน ช่วยให้องค์กรสามารถให้บริการ IT ที่มีคุณภาพและเชื่อถือได้แก่สมาชิกและพนักงาน</p>
-                    </div>
-                    <div class="mb-4">
-                        <p><strong>ภาษาที่ใช้:</strong></p>
-                        <span class="badge bg-me-1 me-1 mb-1">English</span>
-                        <span class="badge bg-me-2 me-1 mb-1">ภาษาไทย</span>
-                        <span class="badge bg-me-3 me-1 mb-1">นายูบ้านเรา</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>ข้อมูลเพิ่มเติม</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <h6>การติดต่อ</h6>
-                            <p class="mb-0"><i class="bi bi-telephone-fill me-2"></i>สายด่วน IT: 888</p>
-                            <p class="mb-0"><i class="bi bi-envelope-fill me-2"></i>support@itsdemo.local</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>เวลาทำการ</h6>
-                            <p class="mb-0"><i class="bi bi-clock-fill me-2"></i>จันทร์ - ศุกร์: 8:00 - 17:00</p>
-                            <p class="mb-0"><i class="bi bi-calendar-check-fill me-2"></i>เสาร์ - อาทิตย์: หยุดทำการ</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <!-- Hero / Contact Card -->
+      <div class="about-hero">
+        <h1><i class="bi bi-person-circle me-2"></i>Chemuhamad Zaidee Dauh</h1>
+        <div class="tagline">Data Analyst · Business Intelligence · IT Operations & Automation</div>
+        <div class="tagline"><i class="bi bi-geo-alt me-1"></i>Pattani, Thailand</div>
+        <div class="contact-row">
+          <a class="contact-chip primary" href="https://wa.me/66873911252" target="_blank"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+          <a class="contact-chip messenger" href="https://www.messenger.com/t/zyde" target="_blank"><i class="bi bi-messenger"></i> Messenger</a>
+          <a class="contact-chip" href="mailto:zodas13031@gmail.com" target="_blank"><i class="bi bi-envelope"></i> zodas13031@gmail.com</a>
+          <a class="contact-chip" href="https://linkedin.com/in/zaidee-dauh" target="_blank"><i class="bi bi-linkedin"></i> LinkedIn</a>
+          <a class="contact-chip" href="https://github.com/zyde" target="_blank"><i class="bi bi-github"></i> GitHub</a>
+          <span class="contact-chip"><i class="bi bi-telephone"></i> +66 87-391-1252</span>
         </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="section-title">Professional Summary</div>
+          <p class="mb-1">Data-driven IT professional with 12+ years in technical support, system administration, and workflow analytics across Fortune 500 enterprises (IBM, HCL/Electrolux, Huawei TAC).</p>
+          <ul class="mb-0" style="padding-left:1.1rem">
+            <li>SQL-based automated reporting — reduced financial reporting latency by 95% (20 days → real-time)</li>
+            <li>Disaster recovery automation (7zip encryption, Windows Task Scheduler, cloud upload)</li>
+            <li>KPI dashboards, dynamic shift rosters, and ServiceNow ticket tracking (30%+ efficiency gain)</li>
+            <li>Multilingual client-facing support (Thai/English/Malay) across Southeast Asia</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Experience -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="section-title">Professional Experience</div>
+
+          <div class="exp-item">
+            <div class="exp-role">Customer Support Engineer — Technical Assistance Center (TAC)</div>
+            <div class="exp-company">Huawei Malaysia (TRX), Kuala Lumpur</div>
+            <div class="exp-years">Feb 2025 – Jan 2026</div>
+            <ul class="mb-0" style="padding-left:1.1rem;font-size:.9rem">
+              <li>Managed client-to-engineer communication flow ensuring SLA compliance for Huawei networking products across Southeast Asia</li>
+              <li>Built Dynamic Shift Roster + Daily Task Tracker via advanced Excel filtering for real-time workload monitoring</li>
+              <li>Analyzed historical ticket data — improved shift hand-over efficiency by 30%+</li>
+              <li>Created automated daily/weekly performance reports: ticket resolution, escalation patterns, SLA adherence</li>
+              <li>Resolved L1–3 network issues; coordinated multilingual support (Thai/English/Malay)</li>
+            </ul>
+          </div>
+
+          <div class="exp-item">
+            <div class="exp-role">Senior Analyst – Service Desk / IT Operations</div>
+            <div class="exp-company">HCL Technologies (Client: Electrolux / MRANTI-TPM Malaysia)</div>
+            <div class="exp-years">Apr 2019 – Oct 2024</div>
+            <ul class="mb-0" style="padding-left:1.1rem;font-size:.9rem">
+              <li>Tier 1–2 IT support for 500+ end-users via ServiceNow — maintained 95%+ satisfaction scores</li>
+              <li>Built real-time Excel dashboards for KPI tracking: ticket volume, resolution times, SLA adherence</li>
+              <li>Mentored 10+ junior agents on troubleshooting, documentation, and escalation protocols</li>
+              <li>Resolved cross-platform issues across Windows, Citrix, SAP, AD, SCCM, and Bomgar environments</li>
+            </ul>
+          </div>
+
+          <div class="exp-item">
+            <div class="exp-role">IPT Request & QA Team Member</div>
+            <div class="exp-company">Tech Mahindra, Cyberjaya, Malaysia</div>
+            <div class="exp-years">Jun 2018 – Apr 2019</div>
+            <ul class="mb-0" style="padding-left:1.1rem;font-size:.9rem">
+              <li>Managed IP Telephony service requests and telecom provisioning verification for enterprise clients</li>
+              <li>Promoted from Sr. Associate – Customer Support (Oct 2017 – Jun 2018) after process improvement initiatives</li>
+            </ul>
+          </div>
+
+          <div class="exp-item">
+            <div class="exp-role">Helpdesk Specialist</div>
+            <div class="exp-company">IBM Regional Contact Centre, Malaysia</div>
+            <div class="exp-years">Apr 2015 – Oct 2017</div>
+            <ul class="mb-0" style="padding-left:1.1rem;font-size:.9rem">
+              <li>Phone-based technical support for BMW, DOW Chemical, TE Connectivity, American Express — 50+ daily tickets, 85%+ first-call resolution</li>
+              <li>Received 2 IBM ASEAN Certificates of Compliment for Excellence (2016, 2017)</li>
+            </ul>
+          </div>
+
+          <div class="exp-item">
+            <div class="exp-role">System Administrator</div>
+            <div class="exp-company">Bina Co-op, Pattani, Thailand</div>
+            <div class="exp-years">Sep 2011 – Apr 2015</div>
+            <ul class="mb-0" style="padding-left:1.1rem;font-size:.9rem">
+              <li>Built automated disaster recovery (7zip + batch scripts + encryption + cloud upload) — eliminated manual backup dependency</li>
+              <li>Engineered SQL-based reporting pipelines — reduced financial reporting from 20 days to near real-time</li>
+              <li>Maintained Windows/Linux servers, AD, network infrastructure for 100+ user environment</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="section-title">Key Skills & Competencies</div>
+          <div>
+            <span class="skill-tag">SQL</span>
+            <span class="skill-tag">Data Analytics</span>
+            <span class="skill-tag">Business Intelligence</span>
+            <span class="skill-tag">Excel Dashboards</span>
+            <span class="skill-tag">ServiceNow</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">pandas</span>
+            <span class="skill-tag">matplotlib</span>
+            <span class="skill-tag">Google Sheets API</span>
+            <span class="skill-tag">Windows Server</span>
+            <span class="skill-tag">Linux</span>
+            <span class="skill-tag">Active Directory</span>
+            <span class="skill-tag">Citrix</span>
+            <span class="skill-tag">SAP</span>
+            <span class="skill-tag">SCCM</span>
+            <span class="skill-tag">Network Troubleshooting</span>
+            <span class="skill-tag">Disaster Recovery</span>
+            <span class="skill-tag">KPI Tracking</span>
+            <span class="skill-tag">SLA Management</span>
+            <span class="skill-tag">ITIL</span>
+            <span class="skill-tag">Process Automation</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Education & Certifications -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="section-title">Education & Certifications</div>
+          <div class="exp-item">
+            <div class="exp-role">B.Tech Computer Science — Graduated with Honors (GPA: 3.65)</div>
+            <div class="exp-company">Yala Islamic University, Pattani, Thailand · 2011</div>
+          </div>
+          <div class="mb-1"><strong>Certifications:</strong></div>
+          <ul class="mb-0" style="padding-left:1.1rem;font-size:.9rem">
+            <li>Huawei TAC Enterprise Network Support Certification (2025)</li>
+            <li>IBM ASEAN — Certificate of Compliment x2 (2016, 2017)</li>
+            <li>Tech Mahindra — Bravo Certificate x2 (2018, 2019)</li>
+            <li>SQL, Data Analytics, Excel Dashboard — Coursera / FutureSkill / Kaggle</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Languages -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="section-title">Languages</div>
+          <div class="row g-2">
+            <div class="col-md-4">Thai — Native</div>
+            <div class="col-md-4">English — Professional</div>
+            <div class="col-md-4">Bahasa Melayu — Working</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projects -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="section-title">Technical Projects</div>
+          <ul class="mb-0" style="padding-left:1.1rem;font-size:.9rem">
+            <li><strong>Home Network Security Lab:</strong> Pi-hole DNS filtering + Docker/Portainer on Raspberry Pi 4; custom routing with pfSense VM</li>
+            <li><strong>AI Agent Automation:</strong> Self-hosted Hermes AI agent on Linux Ubuntu with Ollama/llama.cpp, NotebookLM integration, automated vault sync to Google Drive</li>
+            <li><strong>Data Analytics (In Progress):</strong> Building portfolio in SQL dashboarding, Python (pandas, matplotlib), Google Sheets API for automated reporting pipelines</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer note -->
+      <div class="text-center text-muted" style="font-size:.8rem;padding:1rem 0">
+        References available upon request · Available for immediate start · Remote / WFH preferred
+      </div>
+
     </div>
+  </div>
 </div>
 {% endblock %}
