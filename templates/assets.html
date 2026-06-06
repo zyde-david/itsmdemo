@@ -183,6 +183,7 @@ function filterAssetBranchByProvince(province){
 
 // Persistent custom filter for assets — uses data attributes on <tr>
 // Guard every DOM lookup so one missing element cannot break DataTables sorting/cards.
+$.fn.dataTable.ext.search = [];
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   if(!settings || !settings.nTable || settings.nTable.id !== 'assetsTable') return true;
   var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;

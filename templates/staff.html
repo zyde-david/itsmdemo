@@ -178,6 +178,7 @@ function filterStaffBranchByProvince(province){
 
 // Persistent custom filter for staff — survives sorting and pagination
 // Uses data attributes on <tr> instead of cell text (cells contain HTML badges)
+$.fn.dataTable.ext.search = [];
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   if(!settings || !settings.nTable || settings.nTable.id !== 'staffTable') return true;
   var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
