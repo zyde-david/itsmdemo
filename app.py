@@ -503,6 +503,36 @@ def init_db():
     for username, role in demo_users:
         if c.execute('SELECT COUNT(*) FROM users WHERE username=?', (username,)).fetchone()[0] == 0:
             c.execute('INSERT INTO users (username,password_hash,role) VALUES (?,?,?)', (username, demo_hash, role))
+
+    # Seed Pattani branch users linked to staff (idempotent)
+    pattani_users = [
+        ('rokayah', 'manager', 1),
+        ('somchai', 'user', 2),
+        ('hasnan', 'hr', 3),
+        ('maryam', 'user', 4),
+        ('abdul', 'user', 5),
+        ('hawa', 'user', 9),
+        ('nafisa', 'user', 10),
+        ('zyde', 'admin', 1),
+        ('arif', 'user', 370),
+        ('sameehah', 'user', 371),
+        ('mohamad', 'user', 372),
+        ('aziyah', 'hr', 373),
+        ('hanafi', 'user', 374),
+        ('fatimah', 'user', 375),
+        ('rosli', 'manager', 376),
+        ('nuraini', 'user', 377),
+        ('rahman', 'user', 378),
+        ('maslina', 'hr', 379),
+    ]
+    for username, role, staff_id in pattani_users:
+        if c.execute('SELECT COUNT(*) FROM users WHERE username=?', (username,)).fetchone()[0] == 0:
+            c.execute('INSERT INTO users (username,password_hash,role,staff_id,branch) VALUES (?,?,?,?,?)',
+                      (username, demo_hash, role, staff_id, 'สาขาเมืองปัตตานี'))
+        else:
+            c.execute('UPDATE users SET staff_id=?, branch=? WHERE username=?',
+                      (staff_id, 'สาขาเมืองปัตตานี', username))
+
     c.commit()
     if c.execute('SELECT COUNT(*) FROM staff').fetchone()[0]>0:
         return
@@ -1515,150 +1545,158 @@ def leave_approvals_page():
 @app.route('/route-planner')
 @login_required
 def route_planner_page():
-    c = get_db()
-    branch_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
-    branch_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
-    district_branch = {b['district']: b['branch'] for b in ALL_BRANCHES}
+    try:
+        c = get_db()
+        branch_district = {b['branch']: b['district'] for b in ALL_BRANCHES}
+        branch_province = {b['branch']: b['province'] for b in ALL_BRANCHES}
+        district_branch = {b['district']: b['branch'] for b in ALL_BRANCHES}
 
-    # Approximate district center points for dispatch planning map.
-    district_coords = {
-        'เมืองปัตตานี': (6.8690, 101.2500), 'โคกโพธิ์': (6.7200, 101.0900), 'หนองจิก': (6.8400, 101.1800),
-        'ปะนาเระ': (6.8600, 101.4900), 'มายอ': (6.7200, 101.4100), 'ทุ่งยางแดง': (6.6200, 101.4300),
-        'สายบุรี': (6.7000, 101.6200), 'ไม้แก่น': (6.6200, 101.6800), 'ยะหริ่ง': (6.8700, 101.3600),
-        'ยะรัง': (6.7600, 101.2900), 'กะพ้อ': (6.5900, 101.5400), 'แม่ลาน': (6.6700, 101.2400),
-        'เมืองยะลา': (6.5400, 101.2800), 'เบตง': (5.7700, 101.0700), 'บันนังสตา': (6.2700, 101.2700),
-        'ธารโต': (6.0800, 101.1800), 'ยะหา': (6.4800, 101.1300), 'รามัน': (6.4800, 101.4300),
-        'กาบัง': (6.4200, 101.0200), 'กรงปินัง': (6.4100, 101.2800),
-        'เมืองนราธิวาส': (6.4200, 101.8200), 'ตากใบ': (6.2600, 102.0500), 'บาเจาะ': (6.5200, 101.6500),
-        'ยี่งอ': (6.3900, 101.7100), 'ระแงะ': (6.3000, 101.7200), 'รือเสาะ': (6.3900, 101.5200),
-        'ศรีสาคร': (6.2400, 101.5000), 'แว้ง': (5.9300, 101.8900), 'สุคิริน': (5.9400, 101.7700),
-        'สุไหงโก-ลก': (6.0300, 101.9700), 'สุไหงปาดี': (6.0800, 101.8700), 'จะแนะ': (6.0900, 101.6400),
-        'เจาะไอร้อง': (6.2300, 101.8000),
-    }
+        # Approximate district center points for dispatch planning map.
+        district_coords = {
+            'เมืองปัตตานี': (6.8690, 101.2500), 'โคกโพธิ์': (6.7200, 101.0900), 'หนองจิก': (6.8400, 101.1800),
+            'ปะนาเระ': (6.8600, 101.4900), 'มายอ': (6.7200, 101.4100), 'ทุ่งยางแดง': (6.6200, 101.4300),
+            'สายบุรี': (6.7000, 101.6200), 'ไม้แก่น': (6.6200, 101.6800), 'ยะหริ่ง': (6.8700, 101.3600),
+            'ยะรัง': (6.7600, 101.2900), 'กะพ้อ': (6.5900, 101.5400), 'แม่ลาน': (6.6700, 101.2400),
+            'เมืองยะลา': (6.5400, 101.2800), 'เบตง': (5.7700, 101.0700), 'บันนังสตา': (6.2700, 101.2700),
+            'ธารโต': (6.0800, 101.1800), 'ยะหา': (6.4800, 101.1300), 'รามัน': (6.4800, 101.4300),
+            'กาบัง': (6.4200, 101.0200), 'กรงปินัง': (6.4100, 101.2800),
+            'เมืองนราธิวาส': (6.4200, 101.8200), 'ตากใบ': (6.2600, 102.0500), 'บาเจาะ': (6.5200, 101.6500),
+            'ยี่งอ': (6.3900, 101.7100), 'ระแงะ': (6.3000, 101.7200), 'รือเสาะ': (6.3900, 101.5200),
+            'ศรีสาคร': (6.2400, 101.5000), 'แว้ง': (5.9300, 101.8900), 'สุคิริน': (5.9400, 101.7700),
+            'สุไหงโก-ลก': (6.0300, 101.9700), 'สุไหงปาดี': (6.0800, 101.8700), 'จะแนะ': (6.0900, 101.6400),
+            'เจาะไอร้อง': (6.2300, 101.8000),
+        }
 
-    priority_counts = {}
-    rows = c.execute("""
-        SELECT branch, priority, COUNT(*) as cnt
-        FROM tickets
-        WHERE status NOT IN ('resolved','closed')
-        GROUP BY branch, priority
-    """).fetchall()
-    for r in rows:
-        d = branch_district.get(r['branch'], '')
-        if not d:
-            continue
-        priority_counts.setdefault(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
-        priority_counts[d][r['priority']] = priority_counts[d].get(r['priority'], 0) + r['cnt']
+        priority_counts = {}
+        rows = c.execute("""
+            SELECT branch, priority, COUNT(*) as cnt
+            FROM tickets
+            WHERE status NOT IN ('resolved','closed')
+            GROUP BY branch, priority
+        """).fetchall()
+        for r in rows:
+            d = branch_district.get(r['branch'], '')
+            if not d:
+                continue
+            priority_counts.setdefault(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
+            priority_counts[d][r['priority']] = priority_counts[d].get(r['priority'], 0) + r['cnt']
 
-    category_counts = {}
-    cat_rows = c.execute("""
-        SELECT branch, category, COUNT(*) as cnt
-        FROM tickets
-        WHERE status NOT IN ('resolved','closed')
-        GROUP BY branch, category
-    """).fetchall()
-    for r in cat_rows:
-        d = branch_district.get(r['branch'], '')
-        if not d:
-            continue
-        category_counts.setdefault(d, {})
-        category_counts[d][r['category']] = category_counts[d].get(r['category'], 0) + r['cnt']
+        category_counts = {}
+        cat_rows = c.execute("""
+            SELECT branch, category, COUNT(*) as cnt
+            FROM tickets
+            WHERE status NOT IN ('resolved','closed')
+            GROUP BY branch, category
+        """).fetchall()
+        for r in cat_rows:
+            d = branch_district.get(r['branch'], '')
+            if not d:
+                continue
+            category_counts.setdefault(d, {})
+            category_counts[d][r['category']] = category_counts[d].get(r['category'], 0) + r['cnt']
 
-    ticket_counts = {}
-    rows = c.execute("SELECT branch, COUNT(*) as cnt FROM tickets WHERE status NOT IN ('resolved','closed') GROUP BY branch").fetchall()
-    for r in rows:
-        d = branch_district.get(r['branch'], '')
-        if d:
-            ticket_counts[d] = ticket_counts.get(d, 0) + r['cnt']
+        ticket_counts = {}
+        rows = c.execute("SELECT branch, COUNT(*) as cnt FROM tickets WHERE status NOT IN ('resolved','closed') GROUP BY branch").fetchall()
+        for r in rows:
+            d = branch_district.get(r['branch'], '')
+            if d:
+                ticket_counts[d] = ticket_counts.get(d, 0) + r['cnt']
 
-    asset_counts = {}
-    rows = c.execute('SELECT branch, COUNT(*) as cnt FROM assets GROUP BY branch').fetchall()
-    for r in rows:
-        d = branch_district.get(r['branch'], '')
-        if d:
-            asset_counts[d] = asset_counts.get(d, 0) + r['cnt']
+        asset_counts = {}
+        rows = c.execute('SELECT branch, COUNT(*) as cnt FROM assets GROUP BY branch').fetchall()
+        for r in rows:
+            d = branch_district.get(r['branch'], '')
+            if d:
+                asset_counts[d] = asset_counts.get(d, 0) + r['cnt']
 
-    def distance_km(a, b):
-        import math
-        lat1, lon1 = a; lat2, lon2 = b
-        r = 6371
-        p1, p2 = math.radians(lat1), math.radians(lat2)
-        dp = math.radians(lat2-lat1); dl = math.radians(lon2-lon1)
-        h = math.sin(dp/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
-        return 2*r*math.asin(math.sqrt(h))
+        def distance_km(a, b):
+            import math
+            lat1, lon1 = a; lat2, lon2 = b
+            r = 6371
+            p1, p2 = math.radians(lat1), math.radians(lat2)
+            dp = math.radians(lat2-lat1); dl = math.radians(lon2-lon1)
+            h = math.sin(dp/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
+            return 2*r*math.asin(math.sqrt(h))
 
-    hq = {'name': 'HQ เมืองปัตตานี', 'short_branch': 'HQ', 'lat': 6.8690, 'lng': 101.2500, 'x': 0, 'y': 0}
-    districts = []
-    for b in ALL_BRANCHES:
-        d = b['district']
-        p = priority_counts.get(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
-        active = ticket_counts.get(d, 0)
-        assets = asset_counts.get(d, 0)
-        cats = category_counts.get(d, {})
-        cat_summary = ' · '.join(f'{k} {v}' for k, v in sorted(cats.items(), key=lambda item: item[1], reverse=True)[:3])
-        dispatch_score = p.get('critical',0)*100 + p.get('high',0)*40 + p.get('medium',0)*12 + p.get('low',0)*5 + active*2
-        lat, lng = district_coords.get(d, (6.45, 101.45))
-        if active <= 0:
-            color = 'none'
-        elif p.get('critical',0) > 0 or dispatch_score >= 100:
-            color = 'orange'
-        elif p.get('high',0) > 0 or dispatch_score >= 40:
-            color = 'yellow'
-        else:
-            color = 'green'
-        districts.append({
-            'name': d, 'short_branch': _short_branch(b['branch']), 'branch': b['branch'], 'province': b['province'],
-            'tickets': active, 'assets': assets, 'critical': p.get('critical',0), 'high': p.get('high',0),
-            'medium': p.get('medium',0), 'low': p.get('low',0), 'score': dispatch_score,
-            'categories': cats, 'category_summary': cat_summary or '-',
-            'priority': 'สูง' if color == 'orange' else ('กลาง' if color == 'yellow' else ('ต่ำ' if color == 'green' else '-')),
-            'color': color, 'lat': lat, 'lng': lng, 'distance_from_hq': distance_km((hq['lat'], hq['lng']), (lat, lng))
-        })
+        hq = {'name': 'HQ เมืองปัตตานี', 'short_branch': 'HQ', 'lat': 6.8690, 'lng': 101.2500, 'x': 0, 'y': 0}
+        districts = []
+        for b in ALL_BRANCHES:
+            d = b['district']
+            p = priority_counts.get(d, {'critical': 0, 'high': 0, 'medium': 0, 'low': 0})
+            active = ticket_counts.get(d, 0)
+            assets = asset_counts.get(d, 0)
+            cats = category_counts.get(d, {})
+            cat_summary = ' · '.join(f'{k} {v}' for k, v in sorted(cats.items(), key=lambda item: item[1], reverse=True)[:3])
+            dispatch_score = p.get('critical',0)*100 + p.get('high',0)*40 + p.get('medium',0)*12 + p.get('low',0)*5 + active*2
+            lat, lng = district_coords.get(d, (6.45, 101.45))
+            if active <= 0:
+                color = 'none'
+            elif p.get('critical',0) > 0 or dispatch_score >= 100:
+                color = 'orange'
+            elif p.get('high',0) > 0 or dispatch_score >= 40:
+                color = 'yellow'
+            else:
+                color = 'green'
+            districts.append({
+                'name': d, 'short_branch': _short_branch(b['branch']), 'branch': b['branch'], 'province': b['province'],
+                'tickets': active, 'assets': assets, 'critical': p.get('critical',0), 'high': p.get('high',0),
+                'medium': p.get('medium',0), 'low': p.get('low',0), 'score': dispatch_score,
+                'categories': cats, 'category_summary': cat_summary or '-',
+                'priority': 'สูง' if color == 'orange' else ('กลาง' if color == 'yellow' else ('ต่ำ' if color == 'green' else '-')),
+                'color': color, 'lat': lat, 'lng': lng, 'distance_from_hq': distance_km((hq['lat'], hq['lng']), (lat, lng))
+            })
 
-    active_sites = [d for d in districts if d['tickets'] > 0]
-    ranked = sorted(districts, key=lambda x: (x['score'], -x['distance_from_hq']), reverse=True)
+        active_sites = [d for d in districts if d['tickets'] > 0]
+        ranked = sorted(districts, key=lambda x: (x['score'], -x['distance_from_hq']), reverse=True)
 
-    # Dispatch route: start HQ, choose most urgent next; when urgency ties, choose nearer current site.
-    remaining = active_sites[:]
-    route_points = []
-    current = (hq['lat'], hq['lng'])
-    while remaining and len(route_points) < 12:
-        remaining.sort(key=lambda d: (d['score'], -distance_km(current, (d['lat'], d['lng']))), reverse=True)
-        chosen = remaining.pop(0)
-        chosen['leg_km'] = round(distance_km(current, (chosen['lat'], chosen['lng'])), 1)
-        route_points.append(chosen)
-        current = (chosen['lat'], chosen['lng'])
+        remaining = active_sites[:]
+        route_points = []
+        current = (hq['lat'], hq['lng'])
+        while remaining and len(route_points) < 12:
+            remaining.sort(key=lambda d: (d['score'], -distance_km(current, (d['lat'], d['lng']))), reverse=True)
+            chosen = remaining.pop(0)
+            chosen['leg_km'] = round(distance_km(current, (chosen['lat'], chosen['lng'])), 1)
+            route_points.append(chosen)
+            current = (chosen['lat'], chosen['lng'])
 
-    min_lat, max_lat = 5.70, 6.95
-    min_lng, max_lng = 100.95, 102.10
-    def xy(lat, lng):
-        return (60 + ((lng - min_lng) / (max_lng - min_lng)) * 880,
-                470 - ((lat - min_lat) / (max_lat - min_lat)) * 400)
-    hq['x'], hq['y'] = xy(hq['lat'], hq['lng'])
-    for i, d in enumerate(route_points, start=1):
-        d['route_no'] = i
-        d['x'], d['y'] = xy(d['lat'], d['lng'])
-    for d in districts:
-        d['x'], d['y'] = xy(d['lat'], d['lng'])
+        min_lat, max_lat = 5.70, 6.95
+        min_lng, max_lng = 100.95, 102.10
+        def xy(lat, lng):
+            return (60 + ((lng - min_lng) / (max_lng - min_lng)) * 880,
+                    470 - ((lat - min_lat) / (max_lat - min_lat)) * 400)
+        hq['x'], hq['y'] = xy(hq['lat'], hq['lng'])
+        for i, d in enumerate(route_points, start=1):
+            d['route_no'] = i
+            d['x'], d['y'] = xy(d['lat'], d['lng'])
+        for d in districts:
+            d['x'], d['y'] = xy(d['lat'], d['lng'])
 
-    route_segments = []
-    prev = hq
-    for d in route_points:
-        route_segments.append({
-            'x1': prev['x'], 'y1': prev['y'], 'x2': d['x'], 'y2': d['y'],
-            'km': d['leg_km'], 'mx': (prev['x'] + d['x']) / 2, 'my': (prev['y'] + d['y']) / 2
-        })
-        prev = d
+        route_segments = []
+        prev = hq
+        for d in route_points:
+            route_segments.append({
+                'x1': prev['x'], 'y1': prev['y'], 'x2': d['x'], 'y2': d['y'],
+                'km': d['leg_km'], 'mx': (prev['x'] + d['x']) / 2, 'my': (prev['y'] + d['y']) / 2
+            })
+            prev = d
 
-    total_tickets = sum(d['tickets'] for d in districts)
-    total_assets = sum(d['assets'] for d in districts)
-    total_critical = sum(d['critical'] for d in districts)
-    import json as _json
-    geo = _json.loads(open(os.path.join(_BASE_DIR, 'static', 'districts-geo.json'), encoding='utf-8').read())
-    south = {"type": "FeatureCollection", "features": [f for f in geo['features'] if f.get('properties',{}).get('province') in ('ปัตตานี','ยะลา','นราธิวาส')]}
-    return render_template('route-planner.html', districts=ranked, route_points=route_points, route_segments=route_segments, hq=hq,
-                           total_tickets=total_tickets, total_assets=total_assets, total_critical=total_critical,
-                           south_geojson=_json.dumps(south, ensure_ascii=False))
+        total_tickets = sum(d['tickets'] for d in districts)
+        total_assets = sum(d['assets'] for d in districts)
+        total_critical = sum(d['critical'] for d in districts)
+        import json as _json
+        try:
+            geo_path = os.path.join(_BASE_DIR, 'static', 'districts-geo.json')
+            geo = _json.loads(open(geo_path, encoding='utf-8').read())
+            south = {"type": "FeatureCollection", "features": [f for f in geo['features'] if f.get('properties',{}).get('province') in ('ปัตตานี','ยะลา','นราธิวาส')]}
+            south_geojson = _json.dumps(south, ensure_ascii=False)
+        except Exception as _geo_err:
+            south_geojson = '{"type":"FeatureCollection","features":[]}'
+        return render_template('route-planner.html', districts=ranked, route_points=route_points, route_segments=route_segments, hq=hq,
+                               total_tickets=total_tickets, total_assets=total_assets, total_critical=total_critical,
+                               south_geojson=south_geojson)
+    except Exception as _err:
+        import traceback
+        return f'<pre>Route Planner Error:\n{traceback.format_exc()}</pre>', 500
 
 def _start_init_db():
     """Run init_db in a background thread so it doesn't block gunicorn startup."""

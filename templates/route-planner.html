@@ -136,11 +136,17 @@
         <div class="small text-muted mt-1">
           {% set prep_notes = [] %}
           {% for cat in d.categories %}
-            {% if 'เครื่องพิมพ์' in cat or 'printer' in cat.lower() %}{% if 'หมึก/ผงซักฟอก/หัวพิมพ์' not in prep_notes %}{{ prep_notes.append('หมึก/ผงซักฟอก/หัวพิมพ์') }}{% endif %}
-            {% elif 'เครือข่าย' in cat or 'network' in cat.lower() %}{% if 'สาย LAN/tester/switch' not in prep_notes %}{{ prep_notes.append('สาย LAN/tester/switch') }}{% endif %}
-            {% elif 'VPN' in cat %}{% if 'VPN config/credential' not in prep_notes %}{{ prep_notes.append('VPN config/credential') }}{% endif %}
-            {% elif 'คอมพิวเตอร์' in cat or 'computer' in cat.lower() %}{% if 'อะไหล่ PC/SSD/RAM' not in prep_notes %}{{ prep_notes.append('อะไหล่ PC/SSD/RAM') }}{% endif %}
-            {% elif 'Core Banking' in cat or 'banking' in cat.lower() %}{% if 'ติดต่อทีม banking ล่วงหน้า' not in prep_notes %}{{ prep_notes.append('ติดต่อทีม banking ล่วงหน้า') }}{% endif %}
+            {% if 'เครื่องพิมพ์' in cat or 'printer' in cat.lower() %}
+              {% if 'หมึก/ผงซักฟอก/หัวพิมพ์' not in prep_notes %}{{ prep_notes.append('หมึก/ผงซักฟอก/หัวพิมพ์') }}{% endif %}
+            {% elif 'เครือข่าย' in cat or 'network' in cat.lower() %}
+              {% if 'สาย LAN/tester/switch' not in prep_notes %}{{ prep_notes.append('สาย LAN/tester/switch') }}{% endif %}
+            {% elif 'VPN' in cat %}
+              {% if 'VPN config/credential' not in prep_notes %}{{ prep_notes.append('VPN config/credential') }}{% endif %}
+            {% elif 'คอมพิวเตอร์' in cat or 'computer' in cat.lower() %}
+              {% if 'อะไหล่ PC/SSD/RAM' not in prep_notes %}{{ prep_notes.append('อะไหล่ PC/SSD/RAM') }}{% endif %}
+            {% elif 'Core Banking' in cat or 'banking' in cat.lower() %}
+              {% if 'ติดต่อทีม banking ล่วงหน้า' not in prep_notes %}{{ prep_notes.append('ติดต่อทีม banking ล่วงหน้า') }}{% endif %}
+            {% endif %}
           {% endfor %}
           {% if prep_notes %}<i class="bi bi-check2-circle me-1 text-success"></i>{{ prep_notes | join(' · ') }}{% endif %}
         </div>
