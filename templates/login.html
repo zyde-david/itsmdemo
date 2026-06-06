@@ -24,7 +24,7 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:linear-gradie
     <div class="lang-switch" aria-label="Language switcher: English, Thai, Bahasa Nayu / Melayu Pattani">
       <button type="button" class="lang-btn active" data-lang="th">ไทย</button>
       <button type="button" class="lang-btn" data-lang="en">English</button>
-      <button type="button" class="lang-btn" data-lang="pm" title="Bahasa Nayu / Melayu Pattani">นายูบ้านเรา</button>
+      <button type="button" class="lang-btn" data-lang="ms" title="Bahasa Melayu" onclick="setLoginLang('ms')">Malay</button>
     </div>
     <i class="bi bi-bank2" style="font-size:2.5rem;color:#1a5276"></i>
     <h3 class="fw-bold" data-i18n="title">IT Ticket System</h3>
@@ -55,7 +55,7 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:linear-gradie
 const copy={
   th:{title:'IT Ticket System',subtitle:'ระบบจัดการ IT — โปรแกรมสาธิต',username:'ชื่อผู้ใช้',password:'รหัสผ่าน',loginBtn:'เข้าสู่ระบบ',demoCred:'Demo: admin / demo2026',previewLink:'ดูตัวอย่างระบบก่อนเข้าสู่ระบบ',qrTitle:'สแกนจากแท็บเล็ตเพื่อเปิดหน้าแชร์ Demo',qrHelp:'เปิดหน้านี้บน tablet แล้วให้เพื่อนร่วมงานสแกน QR ได้เลย ไม่ต้องยกมือถือของคุณให้คนอื่นดู',openShare:'เปิดหน้าแชร์',visionLink:'วิสัยทัศน์ / แผน AI แบบ privacy-first'},
   en:{title:'IT Ticket System',subtitle:'IT Service Management demo',username:'Username',password:'Password',loginBtn:'Sign in',demoCred:'Demo: admin / demo2026',previewLink:'Preview the system before sign-in',qrTitle:'Scan this tablet to open the demo share page',qrHelp:'Open this login page on a tablet and let colleagues scan the QR directly — no need to hand over your phone.',openShare:'Open share page',visionLink:'Vision / AI privacy roadmap'},
-  pm:{title:'IT Ticket System',subtitle:'Demo urus kerja IT กีตอ',username:'Nama user',password:'Kata laluan',loginBtn:'Masuk sistem',demoCred:'Demo: admin / demo2026',previewLink:'Tengok demo dulu sebelum masuk',qrTitle:'Scan tablet ni untuk buka page share demo',qrHelp:'Buka page ni atas tablet, kawan kerja scan QR terus. Tak payah hulur telefon kita.',openShare:'Buka page share',visionLink:'Vision / AI privacy roadmap'}
+  ms:{title:'IT Ticket System',subtitle:'Demo urus kerja IT กีตอ',username:'Nama user',password:'Kata laluan',loginBtn:'Masuk sistem',demoCred:'Demo: admin / demo2026',previewLink:'Tengok demo dulu sebelum masuk',qrTitle:'Scan tablet ni untuk buka page share demo',qrHelp:'Buka page ni atas tablet, kawan kerja scan QR terus. Tak payah hulur telefon kita.',openShare:'Buka page share',visionLink:'Vision / AI privacy roadmap'}
 };
 function demoShareUrl(){
   const live='https://itsmdemo-zyde.fly.dev';
@@ -65,7 +65,7 @@ function demoShareUrl(){
 function setLoginLang(lang){
   const dict=copy[lang]||copy.th;
   localStorage.setItem('uiLanguage',lang);
-  document.documentElement.lang=lang==='en'?'en':(lang==='pm'?'ms':'th');
+  document.documentElement.lang=lang==='en'?'en':(lang==='ms'?'ms':'th');
   document.querySelectorAll('.lang-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.lang===lang));
   document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(dict[key]) el.textContent=dict[key];});
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const key=el.dataset.i18nPlaceholder;if(dict[key]) el.placeholder=dict[key];});

@@ -136,11 +136,17 @@
   </div>
   <div class="col-lg-4">
     <div class="card shadow-sm mb-3">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-person-badge me-2"></i>ผู้ใช้งาน</div>
+      <div class="card-header bg-white fw-bold"><i class="bi bi-people me-2"></i>Manpower</div>
       <div class="card-body small">
-        <div class="d-flex justify-content-between mb-2"><span class="text-muted">ชื่อ</span><strong>{{ current_user.username if current_user else 'User' }}</strong></div>
-        <div class="d-flex justify-content-between mb-2"><span class="text-muted">Role</span><span class="badge bg-light text-dark border">{{ current_user.role if current_user else 'user' }}</span></div>
-        <div class="d-flex justify-content-between"><span class="text-muted">อนุมัติลา</span><strong>{{ 'ได้' if can_approve else 'ไม่ได้' }}</strong></div>
+        <div class="d-flex justify-content-between mb-2"><span class="text-muted">พนักงาน Active</span><strong>{{ total_branch_staff }}</strong></div>
+        <div class="d-flex justify-content-between mb-2"><span class="text-muted">ลาอยู่</span><strong class="text-warning">{{ branch_on_leave }}</strong></div>
+        <div class="d-flex justify-content-between mb-2"><span class="text-muted">เหลือพร้อมทำงาน</span><strong class="{% if branch_pct < 50 %}text-danger{% elif branch_pct < 80 %}text-warning{% else %}text-success{% endif %}">{{ branch_remaining }}/{{ total_branch_staff }} ({{ branch_pct }}%)</strong></div>
+        <div class="text-muted" style="font-size:.7rem;margin-top:4px"><i class="bi bi-geo-alt me-1"></i>{{ user_branch or 'ทุกสาขา' }}</div>
+        {% if branch_pct < 50 %}
+        <div class="alert alert-danger py-1 px-2 mb-0 mt-2" style="font-size:.75rem"><i class="bi bi-exclamation-triangle me-1"></i>พนักงานเหลือน้อยกว่า 50% — ควรพิจารณาก่อนส่งคำขอเพิ่ม</div>
+        {% elif branch_pct < 80 %}
+        <div class="alert alert-warning py-1 px-2 mb-0 mt-2" style="font-size:.75rem"><i class="bi bi-info-circle me-1"></i>พนักงานเหลือต่ำกว่า 80% — ตรวจสอบก่อนอนุมัติ</div>
+        {% endif %}
       </div>
     </div>
     <div class="card shadow-sm">

@@ -6,6 +6,22 @@
   <a href="/leave" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-left me-1"></i>Back to My Leave</a>
 </div>
 
+<!-- Manpower Banner -->
+<div class="alert py-2 px-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 {% if mpct < 50 %}alert-danger{% elif mpct < 80 %}alert-warning{% else %}alert-success{% endif %}">
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <i class="bi bi-people"></i>
+    <span class="small"><strong>Manpower {{ manager_branch }}:</strong> {{ remaining }}/{{ total_staff }} ({{ mpct }}%) available · {{ on_leave_now }} on leave</span>
+    {% if mp_roles %}
+    <span class="badge bg-dark text-white" style="font-size:.7rem">ตำแหน่งที่ลา: {{ mp_roles|join(', ') }}</span>
+    {% endif %}
+  </div>
+  {% if mpct < 50 %}
+  <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>ต่ำกว่า 50% — ระวังเมื่ออนุมัติเพิ่ม</span>
+  {% elif mpct < 80 %}
+  <span class="badge bg-warning text-dark"><i class="bi bi-info-circle me-1"></i>ต่ำกว่า 80%</span>
+  {% endif %}
+</div>
+
 {% if message %}
 <div class="alert alert-success alert-dismissible fade show" role="alert">{{ message }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 {% endif %}
@@ -23,7 +39,7 @@
         <thead class="table-light">
           <tr>
             <th>Staff</th>
-            <th>Branch</th>
+            <th>Position</th>
             <th>Type</th>
             <th>Dates</th>
             <th>Days</th>
@@ -35,7 +51,7 @@
           {% for r in pending_requests %}
           <tr>
             <td><b>{{ r.username }}</b></td>
-            <td><span class="branch-tag">{{ r.branch or '-' }}</span></td>
+            <td><span class="badge bg-light text-dark" style="font-size:.7rem">{{ r.user_role or '-' }}</span></td>
             <td><span class="badge bg-info">{{ r.leave_type }}</span></td>
             <td><small>{{ r.start_date }} → {{ r.end_date }}</small></td>
             <td><span class="badge bg-secondary">{{ r.days }}d</span></td>

@@ -57,10 +57,11 @@ body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5}
 .small-stat{font-size:0.7rem;color:#888}
 
 /* Sidebar PIN button */
-@media(min-width:768px){ #sidebarNav{padding-top:42px} }
-.sidebar-pin-btn{position:absolute;top:10px;left:14px;right:auto;width:34px;height:34px;background:var(--primary);color:#fff;border-radius:10px;align-items:center;justify-content:center;cursor:pointer;z-index:1060;box-shadow:0 2px 8px rgba(0,0,0,.22);transition:transform .2s,background .15s;font-size:.82rem}
+@media(min-width:768px){ #sidebarNav{padding-top:46px} }
+.sidebar-pin-btn{position:absolute;top:8px;left:14px;right:auto;width:34px;height:34px;background:var(--primary);color:#fff;border-radius:10px;align-items:center;justify-content:center;cursor:pointer;z-index:1060;box-shadow:0 2px 8px rgba(0,0,0,.22);transition:transform .2s,background .15s;font-size:.82rem;display:none}
 .sidebar-pin-btn:hover{background:#2980b9;transform:scale(1.08)}
 .sidebar-collapsed .sidebar{width:56px!important;min-width:56px!important;max-width:56px!important;overflow:hidden}
+.sidebar-collapsed .sidebar-pin-btn{left:50%;right:auto;transform:translateX(-50%) rotate(180deg)}
 .sidebar-collapsed .sidebar .nav-text{display:none!important}
 .sidebar-collapsed .sidebar .nav-link{justify-content:center;padding:10px 0}
 .sidebar-collapsed .sidebar .nav-link i{margin:0!important;font-size:1.1rem}
@@ -131,6 +132,13 @@ body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:v
  .sidebar .nav-link{padding:12px 16px;font-size:0.95rem}
  .chatbot-box{width:calc(100% - 20px);right:10px;bottom:10px}
  .demo-banner{font-size:0.65rem;padding:3px 8px}
+ /* Mobile: sidebar nav scrolls, but first two items (dashboard+pin) stay fixed */
+ .sidebar .py-2::-webkit-scrollbar{width:4px}
+ .sidebar .py-2::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+ /* Mobile pin button: hide inside sidebar, use FAB instead */
+ .sidebar-pin-btn{display:none!important}
+ .mobile-sidebar-fab{position:fixed;bottom:80px;right:20px;z-index:998;display:none}
+ .mobile-sidebar-fab.show{display:flex!important}
  /* Make tables scroll horizontally on small screens */
  .table-responsive-tight{overflow-x:auto;-webkit-overflow-scrolling:touch}
  table{font-size:0.8rem}
@@ -141,6 +149,7 @@ body[data-theme="custom"] .sidebar-pin-btn{background:var(--bg-elevated);color:v
 
 @media(min-width:768px){
  .sidebar{transform:none!important}
+ .sidebar-pin-btn{display:flex!important}
 }
 
 /* ═══════════════════════════════════════════
@@ -329,10 +338,10 @@ a:hover{color:var(--link-hover)}
     <button type="button" class="btn btn-sm" id="tv1" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:15px;background:#fff;color:#1a5276;border:none" onclick="setTableVersion('v1')">v1</button>
     <button type="button" class="btn btn-sm" id="tv2" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:15px;background:transparent;color:rgba(255,255,255,.7);border:none" onclick="setTableVersion('v2')">v2</button>
    </div>
-   <div class="lang-switcher" aria-label="Language switcher: English, Thai, Bahasa Nayu / Melayu Pattani">
-    <button type="button" class="btn active" data-lang="en" title="English" aria-label="English" onclick="setUiLanguage('en')">English</button>
-    <button type="button" class="btn" data-lang="th" title="ภาษาไทย" aria-label="ไทย" onclick="setUiLanguage('th')">ไทย</button>
-    <button type="button" class="btn" data-lang="pm" title="Bahasa Nayu / Melayu Pattani" aria-label="นายูบ้านเรา — Bahasa Nayu / Melayu Pattani" onclick="setUiLanguage('pm')">นายูบ้านเรา</button>
+   <div class="lang-switcher d-none d-lg-flex" aria-label="Language switcher">
+    <button type="button" class="btn active" data-lang="en" title="English" onclick="setUiLanguage('en')">EN</button>
+    <button type="button" class="btn" data-lang="th" title="ภาษาไทย" onclick="setUiLanguage('th')">ไทย</button>
+    <button type="button" class="btn" data-lang="ms" title="Bahasa Melayu" onclick="setUiLanguage('ms')">Malay</button>
    </div>
    <button class="btn btn-sm btn-outline-light" type="button" id="themeToggleBtn" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง"><i class="bi bi-moon-fill" id="themeToggleIcon"></i></button>
    <a class="text-white small d-none d-lg-inline text-decoration-none" href="/profile"><i class="bi bi-person-circle me-1"></i>{{ session.get('username','') }}</a>
@@ -357,6 +366,7 @@ a:hover{color:var(--link-hover)}
    <a class="nav-link" href="/route-planner" data-label="Route Planner"><i class="bi bi-map"></i><span class="nav-text">Route Planner</span></a>
    <a class="nav-link" href="/knowledge" data-label="ความรู้"><i class="bi bi-book"></i><span class="nav-text">ความรู้</span></a>
    <a class="nav-link" href="/leave" data-label="Leave"><i class="bi bi-calendar-check"></i><span class="nav-text">Leave</span></a>
+   {% if is_manager %}<a class="nav-link" href="/leave-approvals" data-label="Approve Leave"><i class="bi bi-check2-square"></i><span class="nav-text">Approve Leave</span></a>{% endif %}
    <a class="nav-link" href="/calendar" data-label="Calendar"><i class="bi bi-calendar3"></i><span class="nav-text">Calendar</span></a>
    <a class="nav-link" href="/staff" data-label="ทีมงาน"><i class="bi bi-people"></i><span class="nav-text">ทีมงาน</span></a>
    <a class="nav-link" href="/interview" data-label="Interview"><i class="bi bi-qr-code"></i><span class="nav-text">Interview</span></a>
@@ -390,6 +400,8 @@ a:hover{color:var(--link-hover)}
 <button class="btn btn-primary btn-sm position-fixed" style="bottom:20px;right:20px;border-radius:50%;width:48px;height:48px;z-index:998" onclick="toggleChat()"><i class="bi bi-chat-dots-fill"></i></button>
 <!-- Mobile Quick Dial FAB -->
 <a href="tel:888" class="btn btn-success btn-sm position-fixed d-md-none" style="bottom:80px;right:20px;border-radius:50%;width:48px;height:48px;z-index:998;display:flex;align-items:center;justify-content:center" title="IT Hotline 888"><i class="bi bi-telephone-fill"></i></a>
+<!-- Mobile Sidebar Toggle FAB -->
+<button class="btn btn-primary btn-sm position-fixed d-md-none mobile-sidebar-fab" id="mobileSidebarFab" onclick="toggleSidebar()" title="เมนู/Sidebar"><i class="bi bi-list" id="mobileSidebarFabIcon"></i></button>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -449,7 +461,7 @@ if(localStorage.getItem('sidebarPinned')==='collapsed') document.body.classList.
 
 function setUiLanguage(lang){
   localStorage.setItem('uiLanguage', lang);
-  document.documentElement.setAttribute('lang', lang === 'pm' ? 'ms' : lang);
+  document.documentElement.setAttribute('lang', lang === 'ms' ? 'ms' : lang);
   document.querySelectorAll('.lang-switcher [data-lang]').forEach(function(btn){
     btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
   });

@@ -94,7 +94,7 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
 
 <div class="alert alert-info py-2 px-3 mb-3 small d-flex align-items-center gap-2">
   <i class="bi bi-info-circle"></i>
-  <span>เลข <span class="badge bg-success" style="font-size:.65rem">N↗</span> = พนักงานที่เหลือพร้อมทำงานในวันนั้น (Active - ลาที่อนุมัติแล้ว) · สีเหลือง = มีคนลา</span>
+  <span>เลข <span class="badge bg-success" style="font-size:.65rem">4/5 (80%)</span> = พนักงานที่เหลือพร้อมทำงานในวันนั้น (Active - ลาที่อนุมัติแล้ว) · <span class="badge bg-danger" style="font-size:.65rem">&lt;50%</span> = พนักงานไม่ถึงครึ่ง ควรระวังเมื่ออนุมัติลา</span>
 </div>
 
 <div class="card shadow-sm">
@@ -120,7 +120,9 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
             <div class="d-flex align-items-center gap-1">
               {% if day.leaves %}<span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">{{ day.leaves|length }}</span>{% endif %}
               {% if mp and mp.remaining is not none %}
-              <span class="badge {% if mp.on_leave > 0 %}bg-warning text-dark{% else %}bg-success{% endif %}" title="Manpower: {{ mp.remaining }}/{{ mp.total }} available" style="font-size:.65rem">{{ mp.remaining }}↗</span>
+              {% set pct = (mp.remaining / mp.total * 100)|round|int if mp.total > 0 else 100 %}
+              {% set badge_color = 'bg-danger' if pct < 50 else ('bg-warning text-dark' if pct < 80 else 'bg-success') %}
+              <span class="badge {{ badge_color }}" title="Manpower: {{ mp.remaining }}/{{ mp.total }} ({{ pct }}%) available" style="font-size:.65rem">{{ mp.remaining }}/{{ mp.total }} ({{ pct }}%)</span>
               {% endif %}
             </div>
           </div>

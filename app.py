@@ -560,10 +560,10 @@ def vision_page():
 @app.route('/login',methods=['GET','POST'])
 def login():
     if request.method=='POST':
-        username = request.form.get('username','').strip()
+        username = request.form.get('username','').strip().lower()
         password = request.form.get('password','')
         c = get_db()
-        u = c.execute('SELECT * FROM users WHERE username=?', (username,)).fetchone()
+        u = c.execute('SELECT * FROM users WHERE LOWER(username)=?', (username,)).fetchone()
         if u and check_pw(password, u['password_hash']):
             session['user_id'] = u['id']
             session['username'] = u['username']
@@ -1488,9 +1488,33 @@ def leave_page():
     pending_count = sum(1 for r in leave_requests if r['status'] == 'pending')
     approved_count = sum(1 for r in leave_requests if r['status'] == 'approved')
     rejected_count = sum(1 for r in leave_requests if r['status'] == 'rejected')
+
+    # Manpower summary — filtered by user's branch
+    user_branch = current_user.get('branch', '') if current_user else ''
+    from datetime import date as _date
+    today = _date.today()
+    thirty_days = today + timedelta(days=30)
+    if user_branch:
+        total_branch_staff = c.execute("SELECT COUNT(*) FROM staff WHERE branch=?", (user_branch,)).fetchone()[0] or 0
+        on_leave_rows = c.execute(
+            "SELECT DISTINCT lr.username FROM leave_requests lr JOIN users u ON lr.user_id=u.id WHERE lr.status='approved' AND lr.start_date <= ? AND lr.end_date >= ? AND u.branch=?",
+            (thirty_days.isoformat(), today.isoformat(), user_branch)
+        ).fetchall()
+    else:
+        total_branch_staff = c.execute("SELECT COUNT(*) FROM staff").fetchone()[0] or 0
+        on_leave_rows = c.execute(
+            "SELECT DISTINCT username FROM leave_requests WHERE status='approved' AND start_date <= ? AND end_date >= ?",
+            (thirty_days.isoformat(), today.isoformat())
+        ).fetchall()
+    branch_on_leave = len(on_leave_rows)
+    branch_remaining = total_branch_staff - branch_on_leave
+    branch_pct = round(branch_remaining / total_branch_staff * 100) if total_branch_staff > 0 else 100
+
     return render_template('leave.html', current_user=current_user, can_approve=is_manager(), leave_types=LEAVE_TYPES,
                            leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS, pending_count=pending_count,
-                           approved_count=approved_count, rejected_count=rejected_count, message=message, error=error)
+                           approved_count=approved_count, rejected_count=rejected_count, message=message, error=error,
+                           total_branch_staff=total_branch_staff, branch_on_leave=branch_on_leave,
+                           branch_remaining=branch_remaining, branch_pct=branch_pct, user_branch=user_branch)
 
 @app.route('/leave-approvals', methods=['GET','POST'])
 @login_required
@@ -1532,15 +1556,40 @@ def leave_approvals_page():
                 message = 'อนุมัติคำขอลาแล้ว' if new_status == 'approved' else 'ไม่อนุมัติคำขอลาแล้ว'
 
     pending_rows = c.execute(
-        "SELECT * FROM leave_requests WHERE status='pending' ORDER BY created_at ASC, id ASC"
+        "SELECT lr.*, u.role as user_role FROM leave_requests lr LEFT JOIN users u ON lr.user_id=u.id WHERE lr.status='pending' ORDER BY lr.created_at ASC, lr.id ASC"
     ).fetchall()
     recent_rows = c.execute(
-        "SELECT * FROM leave_requests WHERE status IN ('approved','rejected') ORDER BY created_at DESC, id DESC LIMIT 20"
+        "SELECT lr.*, u.role as user_role FROM leave_requests lr LEFT JOIN users u ON lr.user_id=u.id WHERE lr.status IN ('approved','rejected') ORDER BY lr.created_at DESC, lr.id DESC LIMIT 20"
     ).fetchall()
+
+    # Manpower summary for manager's branch
+    manager_branch = current_user.get('branch', '') if current_user else ''
+    from datetime import date as _date
+    today = _date.today()
+    thirty_days = today + timedelta(days=30)
+    if manager_branch:
+        total_staff = c.execute("SELECT COUNT(*) FROM staff WHERE branch=?", (manager_branch,)).fetchone()[0] or 0
+        on_leave_rows = c.execute(
+            "SELECT DISTINCT lr.username, u.role FROM leave_requests lr JOIN users u ON lr.user_id=u.id WHERE lr.status='approved' AND lr.start_date <= ? AND lr.end_date >= ? AND u.branch=?",
+            (thirty_days.isoformat(), today.isoformat(), manager_branch)
+        ).fetchall()
+    else:
+        total_staff = c.execute("SELECT COUNT(*) FROM staff").fetchone()[0] or 0
+        on_leave_rows = c.execute(
+            "SELECT DISTINCT lr.username, u.role FROM leave_requests lr LEFT JOIN users u ON lr.user_id=u.id WHERE lr.status='approved' AND lr.start_date <= ? AND lr.end_date >= ?",
+            (thirty_days.isoformat(), today.isoformat())
+        ).fetchall()
+    on_leave_now = len(on_leave_rows)
+    remaining = total_staff - on_leave_now
+    mpct = round(remaining / total_staff * 100) if total_staff > 0 else 100
+    mp_roles = list(set(r['role'] for r in on_leave_rows if r.get('role')))
+
     return render_template('leave-approvals.html', current_user=current_user,
                            pending_requests=[dict(r) for r in pending_rows],
                            recent_requests=[dict(r) for r in recent_rows],
-                           status_labels=LEAVE_STATUS_LABELS, message=message, error=error)
+                           status_labels=LEAVE_STATUS_LABELS, message=message, error=error,
+                           manager_branch=manager_branch, total_staff=total_staff,
+                           on_leave_now=on_leave_now, remaining=remaining, mpct=mpct, mp_roles=mp_roles)
 
 @app.route('/route-planner')
 @login_required
