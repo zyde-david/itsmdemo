@@ -1,0 +1,671 @@
+{% extends "base.html" %}
+{% block title %}How To — ITSM Demo{% endblock %}
+{% block content %}
+<style>
+/* ── ITSM Roadmap Professional Styles ── */
+.roadmap-wrap{--r-primary:#1a5276;--r-primary-light:#2980b9;--r-primary-dark:#0d2f4a;--r-accent:#27ae60;--r-warn:#e67e22;--r-danger:#c0392b;--r-bg:#f0f4f8;--r-card:#fff;--r-border:#dce1e8;--r-text:#2c3e50;--r-text-sub:#6c7a89;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.1);--radius:12px;--radius-sm:8px}
+.roadmap-hero{background:linear-gradient(135deg,var(--r-primary-dark),var(--r-primary),var(--r-primary-light));color:#fff;padding:28px 32px;border-radius:var(--radius);margin-bottom:24px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.roadmap-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;background:rgba(255,255,255,.05);border-radius:50%}
+.roadmap-hero::after{content:'';position:absolute;bottom:-60%;left:-10%;width:200px;height:200px;background:rgba(255,255,255,.03);border-radius:50%}
+.roadmap-hero h4{font-weight:700;font-size:1.3rem;margin-bottom:6px;position:relative;z-index:1}
+.roadmap-hero p{color:rgba(255,255,255,.7);margin:0;font-size:.85rem;position:relative;z-index:1}
+.roadmap-stats{display:flex;gap:16px;margin-top:16px;position:relative;z-index:1}
+.roadmap-stat{background:rgba(255,255,255,.12);border-radius:var(--radius-sm);padding:10px 16px;text-align:center;flex:1;backdrop-filter:blur(4px)}
+.roadmap-stat .num{font-size:1.4rem;font-weight:700;display:block}
+.roadmap-stat .label{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;opacity:.7}
+
+/* Phase Timeline */
+.phase-section{margin-bottom:24px}
+.phase-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.phase-badge{background:linear-gradient(135deg,var(--r-primary),var(--r-primary-light));color:#fff;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.phase-badge.done{background:linear-gradient(135deg,#27ae60,#2ecc71)}
+.phase-badge.future{background:linear-gradient(135deg,#95a5a6,#bdc3c7)}
+.phase-title{font-weight:600;font-size:.95rem;color:var(--r-text);margin:0}
+.phase-sub{font-size:.75rem;color:var(--r-text-sub)}
+
+/* Feature Cards */
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.feature-card{background:var(--r-card);border:1px solid var(--r-border);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden}
+.feature-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.feature-card.done{border-left:4px solid var(--r-accent)}
+.feature-card.future{border-left:4px solid var(--r-border)}
+.feature-card-icon{font-size:1.5rem;margin-bottom:8px;line-height:1}
+.feature-card h6{font-size:.85rem;font-weight:600;color:var(--r-text);margin:0 0 4px}
+.feature-card p{font-size:.72rem;color:var(--r-text-sub);margin:0 0 10px;line-height:1.5}
+.feature-tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:.62rem;padding:2px 8px;border-radius:10px;font-weight:50}
+.tag.itil{background:#e8f4fd;color:var(--r-primary)}
+.tag.security{background:#fdecea;color:var(--r-danger)}
+.tag.ux{background:#e8f8f0;color:var(--r-accent)}
+.tag.future-tag{background:#f0f0f0;color:var(--r-text-sub)}
+.status-badge{position:absolute;top:12px;right:12px;font-size:.6rem;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.status-badge.done{background:#e8f8f0;color:var(--r-accent)}
+.status-badge.future{background:#f5f5f5;color:var(--r-text-sub)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* Real System Notes */
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,fr));gap:12px}
+.note-card{background:var(--r-card);border:1px solid var(--r-border);border-radius:var(--radius-sm);padding:16px;box-shadow:var(--shadow-sm)}
+.note-card strong{font-size:.8rem;color:var(--r-text);display:block;margin-bottom:6px}
+.note-card ul{margin:0;padding-left:16px}
+.note-card li{font-size:.72rem;color:var(--r-text-sub);line-height:1.6}
+
+/* Work Badge for clean numeric display */
+.id-badge{display:inline-block;background:#e8f4fd;color:#1a5276;font-weight:700;font-size:.75rem;padding:2px 8px;border-radius:6px;font-family:monospace}
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="bi bi-question-circle me-2"></i>How To & Development Log</h4>
+</div>
+
+<!-- Internal notice -->
+<div class="alert alert-primary mb-4 small">
+  <i class="bi bi-info-circle me-1"></i><strong>หน้านี้สำหรับผู้ใช้งานแล้ว</strong> — ถ้ายังไม่เคยใช้งาน ดู <a href="/howto-public" class="alert-link">แนะนำระบบ</a> ก่อน
+  <div class="mt-1"><strong>Daily maintenance:</strong> เมื่อเพิ่มหรือแก้ feature ให้ update <a href="/sitemap" class="alert-link">Site Map</a>, How To, และ Development Log ในวันเดียวกัน ด้วยวันที่จริง.</div>
+</div>
+
+<!-- Concept -->
+<div class="card mb-4 border-primary">
+  <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-lightbulb me-2"></i>Concept</div>
+  <div class="card-body">
+    <p class="mb-1"><strong>ทำไมต้องสร้างระบบนี้?</strong></p>
+    <p class="small text-muted mb-2">ระบบนี้เป็น IT Service Management (ITSM) สำหรับสาขาสหกรณ์ใน 3 จังหวัดชายแดนภาคใต้ (ปัตตานี ยะลา นราธิวาส) มีสาขา 33 แห่ง ต้องการระบบที่:</p>
+    <ul class="small text-muted mb-2">
+      <li>จัดการ Ticket แจ้งซ่อม/ปัญหา IT จากสาขาต่าง ๆ</li>
+      <li>ติดตาม Asset คอมพิวเตอร์ อุปกรณ์ต่าง ๆ ในแต่ละสาขา</li>
+      <li>จัดการทีมงานและมอบหมายงานให้ทีม IT</li>
+      <li>เก็บความรู้ (KB) สำหรับแก้ปัญหาที่เจอซ้ำ</li>
+      <li>วางแผนเส้นทางเยี่ยมสาขาอย่างมีประสิทธิภาพ</li>
+    </ul>
+    <p class="mb-1"><strong>Design Decisions ที่สำคัญ:</strong></p>
+    <ul class="small text-muted mb-0">
+      <li><strong>Asset Tag 1B-PC01</strong> — รหัสที่อ่านเข้าใจได้ทันที: จังหวัด+สาขา+ประเภท+ลำดับ ทำให้รู้สถานที่และประเภทโดยไม่ต้องค้นหา</li>
+      <li><strong>Cascade Dropdowns</strong> — เลือกสาขาแล้วจังหวัดเติมอัตโนมัติ และเลือกจังหวัดแล้วสาขากรองให้ ลดขั้นตอนการทำงาน</li>
+      <li><strong>DataTables + data[N]</strong> — filter อ่านค่าจาก data attribute ของ HTML แทน cell text แก้ปัญหาภาษาไทย/อังกฤษ mismatch</li>
+      <li><strong>Choropleth Map</strong> — แสงสีแผนที่ให้เห็นว่าสาขาไหนมีปัญหามาก ช่วยวางแผนเส้นทางเยี่ยม</li>
+      <li><strong>IT-only Assign</strong> — dropdown มอบหมายแสดงเฉพาะทีม IT ป้องกันมอบหมายผิดคน</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Data Flow / ITIL Process -->
+<h5 class="mb-3"><i class="bi bi-arrow-left-right me-2"></i>Data Flow & ITIL Process</h5>
+<div class="card mb-4">
+  <div class="card-body">
+    <p class="small text-muted mb-2">ข้อมูลไหลในระบบตาม ITIL framework — ทุก ticket ผ่านกระบวนการต่อเนื่อง:</p>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
+      <div class="bg-danger text-white rounded-pill px-3 py-2 small"><i class="bi bi-ticket-perforated me-1"></i>Ticket แจ้งปัญหา</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-info text-white rounded-pill px-3 py-2 small"><i class="bi bi-people me-1"></i>IT Assign</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-warning text-dark rounded-pill px-3 py-2 small"><i class="bi bi-gear me-1"></i>Work Notes</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-success text-white rounded-pill px-3 py-2 small"><i class="bi bi-check-circle me-1"></i>Resolved</div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
+      <div class="bg-danger text-white rounded-pill px-3 py-2 small"><i class="bi bi-ticket-perforated me-1"></i>Ticket</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-success text-white rounded-pill px-3 py-2 small"><i class="bi bi-box-seam me-1"></i>Asset Link</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-secondary text-white rounded-pill px-3 py-2 small"><i class="bi bi-book me-1"></i>KB Attach</div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+      <div class="bg-primary text-white rounded-pill px-3 py-2 small"><i class="bi bi-speedometer2 me-1"></i>Dashboard</div>
+      <i class="bi bi-arrow-left-right text-muted"></i>
+      <div class="bg-warning text-dark rounded-pill px-3 py-2 small"><i class="bi bi-map me-1"></i>Route Planner</div>
+      <i class="bi bi-arrow-right text-muted"></i>
+      <div class="bg-info text-white rounded-pill px-3 py-2 small"><i class="bi bi-geo-alt me-1"></i>Geo-Auth</div>
+    </div>
+    <hr>
+    <p class="small text-muted mb-0"><strong>ITIL Process:</strong> Incident (Ticket) → Assign → Work Notes → Resolve → Close → Knowledge Base (เก็บบทเรียน) → Problem Management (root cause) → Change Management (เปลี่ยนแปลงระบบ)</p>
+  </div>
+</div>
+
+<!-- AI Privacy Note -->
+<div class="card mb-4 border-success">
+  <div class="card-header bg-white fw-bold text-success"><i class="bi bi-shield-lock me-2"></i>AI Function &amp; Privacy Direction</div>
+  <div class="card-body small">
+    <div class="row g-3">
+      <div class="col-md-4"><strong>Local LLM / private mode</strong><p class="text-muted mb-0">สำหรับข้อมูล private เช่น ticket, asset, staff และสาขา ระบบจะใช้ local LLM/private mode เป็นทางหลัก เพื่อไม่ส่งข้อมูลดิบออกนอก server โดยค่าเริ่มต้น</p></div>
+      <div class="col-md-4"><strong>Cloud AI/API ต้อง opt-in</strong><p class="text-muted mb-0">ถ้าใช้ provider ภายนอก ให้ส่งเฉพาะ facts ที่จำเป็น ลดข้อมูลส่วนตัว และให้ผู้ใช้/ผู้ดูแลอนุมัติก่อน</p></div>
+      <div class="col-md-4"><strong>AI เป็น helper เท่านั้น</strong><p class="text-muted mb-0">AI ช่วยสรุป ticket แนะนำ category/priority และร่าง KB ได้ แต่การเปลี่ยนสถานะ มอบหมายงาน SLA หรือเผยแพร่ KB ต้องให้คนยืนยัน <a href="/vision" class="text-decoration-none">ดู Vision</a></p></div>
+    </div>
+  </div>
+</div>
+
+<!-- How To -->
+<h5 class="mb-3"><i class="bi bi-list-ol me-2"></i>How To Use</h5>
+<div class="accordion mb-4" id="howtoAccordion">
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ht-tickets"><i class="bi bi-ticket-perforated me-2 text-danger"></i>Tickets</button></h2>
+    <div id="ht-tickets" class="accordion-collapse collapse show" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — หน้า Tickets แสดงทั้งหมดในตาราง DataTables เลื่อนดูได้ คลิกแถวเพื่อดูรายละเอียด</li>
+          <li><strong>กรอง</strong> — ใช้ dropdown ด้านบนตาราง: สถานะ / ความสำคัญ / สาขา / จังหวัด / หมวด</li>
+          <li><strong>สาขา ↔ จังหวัด</strong> — เลือกสาขาแล้วจังหวัดเติมอัตโนมัติ หรือเลือกจังหวัดแล้วสาขาจะแสดงเฉพาะในจังหวัดนั้น</li>
+          <li><strong>ค้นหา</strong> — พิมพ์ในช่องค้นหา DataTables เพื่อหาจาก ticket code, หัวข้อ, สาขา, ผู้แจ้ง</li>
+          <li><strong>สร้าง</strong> — กดปุ่ม "สร้าง Ticket" เลือกหมวด ระบุรายละเอียด</li>
+          <li><strong>ดูรายละเอียด</strong> — คลิกแถว จะเห็น status, work notes, มอบหมาย, เชื่อม asset, แนบ KB</li>
+          <li><strong>มอบหมาย</strong> — เลือกจาก dropdown ที่แสดงเฉพาะทีม IT</li>
+          <li><strong>แนบ KB</strong> — ค้นหาบทความ KB จาก search box หรือสร้างใหม่ถ้าไม่พบ</li>
+          <li><strong>สถานะ</strong> — เปลี่ยนผ่าน dropdown หรือปุ่มลัด (กำลังแก้/เสร็จ/ปิด)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-assets"><i class="bi bi-box-seam me-2 text-success"></i>Assets</button></h2>
+    <div id="ht-assets" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — ตารางแสดง asset_tag (เช่น 1B-PC01), ชื่อ, serial, สถานะ</li>
+          <li><strong>Asset Tag</strong> — รูปแบบ: <code class="bg-light px-1 rounded">[จังหวัด][สาขา]-[ประเภท][ลำดับ]</code> เช่น <code class="bg-light px-1 rounded">1B-PC01</code> = ปัตตานี สาขาที่ 2 PC เครื่องที่ 1</li>
+          <li><strong>กรอง</strong> — สถานะ / ประเภท / สาขา / จังหวัด (เหมือน tickets)</li>
+          <li><strong>สร้าง</strong> — กด "เพิ่ม Asset" เลือกสาขา ประเภท กรอกรายละเอียด</li>
+          <li><strong>Retire Score</strong> — หน้า detail แสดงจำนวน ticket ที่เกี่ยวข้อง ≥5 = แนะนำเปลี่ยน</li>
+          <li><strong>เชื่อมกับ Ticket</strong> — ที่หน้า ticket detail เลือก asset เพื่อเชื่อมโยง</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-staff"><i class="bi bi-people me-2 text-info"></i>Staff</button></h2>
+    <div id="ht-staff" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — ตารางแสดงชื่อ ตำแหน่ง สาขา จังหวัด ไอคอน IT</li>
+          <li><strong>Province Cards</strong> — ด้านบนแสดงสรุปจำนวนพนักงานและทีม IT แต่ละจังหวัด</li>
+          <li><strong>กรอง</strong> — สาขา / จังหวัด / ตำแหน่ง / IT หรือไม่ IT</li>
+          <li><strong>สร้าง</strong> — กด "เพิ่มพนักงาน" เลือกสาขา ตำแหน่ง ระบุว่าเป็น IT หรือไม่</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-kb"><i class="bi bi-book me-2 text-secondary"></i>Knowledge Base</button></h2>
+    <div id="ht-kb" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>ดูรายการ</strong> — ตารางเรียงตามยอดเข้าชม แสดงหมวดหมู่</li>
+          <li><strong>ค้นหา</strong> — พิมพ์ช่องค้นหาหรือกรองตามหมวด</li>
+          <li><strong>สร้าง/แก้ไข</strong> — กดปุ่ม กรอกหัวข้อ หมวด เนื้อหา</li>
+          <li><strong>แนบกับ Ticket</strong> — ที่หน้า ticket detail ค้นหา KB แล้วแนบ หรือสร้างใหม่ถ้ายังไม่มี</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-route"><i class="bi bi-map me-2 text-warning"></i>Route Planner</button></h2>
+    <div id="ht-route" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>เปิดแผนที่</strong> — แสดง 3 จังหวัด 33 อำเภอ สีเข้ม = มีปัญหามาก</li>
+          <li><strong>เลือกมุมมอง</strong> — Toggle ระหว่าง: จำนวน Ticket / จำนวน Asset / รวม</li>
+          <li><strong>ดูรายละเอียด</strong> — Hover หรือคลิกอำเภอเพื่อดูชื่อและค่า</li>
+          <li><strong>ลำดับเยี่ยม</strong> — ด้านขวาแสดงรายการเรียงตามค่ามาก→น้อย (ไปอันดับแรกก่อน)</li>
+          <li><strong>เส้นทาง</strong> — แสดงเส้นเชื่อมตาม nearest-neighbor (ลดการวนกลับ)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-calendar"><i class="bi bi-calendar3 me-2 text-primary"></i>Leave Calendar</button></h2>
+    <div id="ht-calendar" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>เปิดปฏิทิน</strong> — ใช้เมนู Calendar เพื่อดูรายการลารายเดือน</li>
+          <li><strong>เปลี่ยนเดือน</strong> — กด ก่อนหน้า / เดือนนี้ / ถัดไป</li>
+          <li><strong>อ่านสถานะ</strong> — สี chip แยก pending, approved, rejected, cancelled</li>
+          <li><strong>จัดการคำขอ</strong> — กลับไปหน้า Leave เพื่อสร้างหรืออนุมัติรายการ</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-projects"><i class="bi bi-kanban me-2 text-dark"></i>Projects &amp; v2 Pages</button></h2>
+    <div id="ht-projects" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>Projects</strong> — Admin เปิด /projects เพื่อดู project cards, status, progress และรายละเอียดสำหรับเล่าใน interview</li>
+          <li><strong>v2 Tables</strong> — Tickets, Assets, Staff, Knowledge มีหน้า /v2 ที่ใช้ React + TanStack Table</li>
+          <li><strong>สลับเวอร์ชัน</strong> — ใช้ปุ่ม v1/v2 บนแต่ละ module; v1 DataTables ยังเป็น baseline</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <!-- Settings / User Management -->
+  <div class="accordion-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ht-settings"><i class="bi bi-gear me-2 text-primary"></i>Settings &amp; User Management</button></h2>
+    <div id="ht-settings" class="accordion-collapse collapse" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>เข้าสู่ระบบ</strong> — ใช้ username + password (ไม่ใช่แค่รหัสผ่านเดิม)</li>
+          <li><strong>บทบาท</strong> — Admin (เข้าถึงทั้งหมด), Manager (ดู/อนุมัติ), User (สร้าง/ดู ticket ของตัวเอง), HR (สำหรับ leave module ในอนาคต)</li>
+          <li><strong>ตั้งค่า</strong> — คลิก "ตั้งค่า" ใน sidebar: เปลี่ยนรหัสผ่าน, จัดการผู้ใช้ (admin), สลับธีม</li>
+          <li><strong>เพิ่มผู้ใช้</strong> — Admin กด "เพิ่มผู้ใช้" กรอก username/password เลือก role</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ITSM ROADMAP — Professional Blue Theme -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="roadmap-wrap">
+  <div class="roadmap-hero">
+    <h4><i class="bi bi-signpost-split me-2"></i>ITSM Roadmap — แผนการพัฒนาระบบ</h4>
+    <p>แผนการพัฒนาแบบเป็นขั้นตอน เริ่มจาก foundation → ITIL modules → advanced features → production readiness</p>
+    <div class="roadmap-stats">
+      <div class="roadmap-stat"><span class="num">2</span><span class="label">Phase เสร็จแล้ว</span></div>
+      <div class="roadmap-stat"><span class="num">5</span><span class="label">Phase วางแผน</span></div>
+      <div class="roadmap-stat"><span class="num">15</span><span class="label">Features ทั้งหมด</span></div>
+      <div class="roadmap-stat"><span class="num" id="devProgressPct">40%</span><span class="label">ความคืบหน้า</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- LIVE DEVELOPMENT PROGRESS — Real-time Log -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="phase-section" style="margin-bottom:24px">
+    <div class="phase-header">
+      <span class="phase-badge" style="background:linear-gradient(135deg,#e74c3c,#c0392b);animation:pulse 2s infinite">🔴 Live</span>
+      <div>
+        <p class="phase-title">📡 Development Log — สิ่งที่กำลังทำ / ทำเสร็จล่าสุด</p>
+        <p class="phase-sub">อัพเดตตามความเป็นจริง — ดูได้ว่าระบบกำลังถูกสร้างขึ้นมาทีละขั้นตอน</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🎨</div>
+        <h6>Custom Color Picker Theme</h6>
+        <p>เลือกสีพื้นหลังได้ไม่จำกัด — WCAG auto-inversion คำนวณ contrast ratio อัตโนมัติ ถ้าสีเข้ม → ตัวหนังสือสว่าง ถ้าสีอ่อน → ตัวหนังสือมืด รองรับ dark/light/custom 3 โหมด</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Theme</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">📌</div>
+        <h6>PIN Sidebar + Collapse</h6>
+        <p>Sidebar คงอยู่ตลอดเวลาบน desktop — กดปุ่ม chevron เพื่อยุบ/ขยาย บนมือถือเป็น hamburger menu + overlay</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Layout</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">📞</div>
+        <h6>Quick Dial IT Hotline 888</h6>
+        <p>ปุ่มโทรศัพท์ IT Hotline 888 — อยู่บน top bar (desktop) และ floating FAB (mobile) กดแล้วโทรออกทันที รวมถึง footer link</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Support</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🔧</div>
+        <h6>SQLite Fix for Fly.io</h6>
+        <p>แก้ ISE (Internal Server Error) บน Fly.io — เปลี่ยน get_db() เป็น Flask g object pattern ลบ manual c.close() ทั้งหมด 44 จุด</p>
+        <div class="feature-tags"><span class="tag security">Fix</span><span class="tag itil">Deploy</span></div>
+      </div>
+      <div class="feature-card" style="border-left:4px solid #e67e22">
+        <span class="status-badge" style="background:#fff3e0;color:#e67e22">In Progress</span>
+        <div class="feature-card-icon">📍</div>
+        <h6>Auto-Logout on Location Leave</h6>
+        <p>ออกนอกรัศมีสาขา = logout อัตโนมัติ — ใช้ Geolocation API ตรวจสอบตำแหน่งต่อเนื่อง ถ้าออกนอกรัศมีที่กำหนด → session timeout ทันที ป้องกันคนอื่นใช้เครื่องทิ้งไว้</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag future-tag">In Progress</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Next</span>
+        <div class="feature-card-icon">📋</div>
+        <h6>Change Management (ITIL)</h6>
+        <p>คำร้องเปลี่ยนแปลงระบบ — approval workflow, change log, rollback plan</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span><span class="tag future-tag">Phase 2</span></div>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div style="margin-top:16px">
+      <div class="d-flex justify-content-between small text-muted mb-1">
+        <span>ความคืบหน้าโดยรวม</span>
+        <span id="progressText">~40% เสร็จแล้ว</span>
+      </div>
+      <div style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden">
+        <div id="progressBar" style="height:100%;width:40%;background:linear-gradient(90deg,#27ae60,#2ecc71);border-radius:4px;transition:width .5s"></div>
+      </div>
+      <div class="d-flex justify-content-between mt-2 flex-wrap gap-2">
+        <span class="badge bg-success">✓ Phase 1 Done</span>
+        <span class="badge bg-success">✓ Theme System Done</span>
+        <span class="badge bg-warning text-dark">⏳ Geo-Auth In Progress</span>
+        <span class="badge bg-secondary">○ Phase 2-5 Planned</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 1 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge done">Phase 1 — Done</span>
+      <div>
+        <p class="phase-title">🔐 Foundation — Multi-User, Settings & UI</p>
+        <p class="phase-sub">Authentication, Authorization, User Management, Theme, Layout, Quick Dial</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🔐</div>
+        <h6>Multi-User Authentication</h6>
+        <p>users table, username+password login, role-based sessions — admin / manager / user / hr</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag itil">Foundation</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">⚙️</div>
+        <h6>Settings Page + User Management</h6>
+        <p>Admin: เพิ่ม/ลบผู้ใช้, เปลี่ยน role; ทุกคน: เปลี่ยนรหัสผ่าน, สลับธีม</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Foundation</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">🎨</div>
+        <h6>Custom Color Picker Theme</h6>
+        <p>3-mode (Light/Dark/Custom) — เลือกสีได้ไม่จำกัด WCAG auto-inversion contrast ratio อัตโนมัติ</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Theme</span></div>
+      </div>
+      <div class="feature-card done">
+        <span class="status-badge done">✓ Done</span>
+        <div class="feature-card-icon">📌</div>
+        <h6>PIN Sidebar + Quick Dial 888</h6>
+        <p>Sidebar คงอยู่ desktop ยุบ/ขยายได้ — Quick Dial IT Hotline บน top bar + mobile FAB + footer</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">Layout</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 2 — Planned</span>
+      <div>
+        <p class="phase-title">📋 ITIL Core — Change &amp; Problem Management</p>
+        <p class="phase-sub">ITIL aligned processes for tracking changes and root cause analysis</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📋</div>
+        <h6>Change Management</h6>
+        <p>คำร้องเปลี่ยนแปลงระบบ, approval workflow (request → review → approve → implement), change log</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">🔍</div>
+        <h6>Problem Management</h6>
+        <p>ตาม root cause, known error database, link multiple tickets → one problem, workaround tracking</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">🔄</div>
+        <h6>ITIL Ticket Cycle</h6>
+        <p>Open → In Progress → Pending (part/visit/customer) → Resolved → Closed. 5-day reopen window after resolve. Pending sub-types with reason tracking.</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span><span class="tag ux">Workflow</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 3 — Planned</span>
+      <div>
+        <p class="phase-title">⏱️ SLA &amp; Service Catalog</p>
+        <p class="phase-sub">Service level agreements and self-service request portal</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">⏱️</div>
+        <h6>SLA Tracking + Auto-Escalation</h6>
+        <p>ติดตามเวลาตอบสนอง/แก้ไข, แจ้งเตือนเมื่อเกิน SLA, auto-bump priority — Critical=1hr, High=4hr, Medium=8hr, Low=24hr</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span><span class="tag security">Alert</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📦</div>
+        <h6>Service Catalog</h6>
+        <p>บริการที่ขอได้, self-service request form — ผู้ใช้เลือกบริการแทนพิมพ์ free-text</p>
+        <div class="feature-tags"><span class="tag ux">UX</span><span class="tag itil">ITIL</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 4 — Planned</span>
+      <div>
+        <p class="phase-title">👥 HR &amp; CMDB Expansion</p>
+        <p class="phase-sub">Beyond ITSM — HR leave module and configuration management</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">👥</div>
+        <h6>HR Leave Module</h6>
+        <p>ลางาน, อนุมัติ/ปฏิเสธ, ปฏิทินวันลา, leave balance tracking — ขยาย scope จาก ITSM → HRM</p>
+        <div class="feature-tags"><span class="tag future-tag">Future</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">🗄️</div>
+        <h6>CMDB</h6>
+        <p>Configuration Management Database — asset relationship mapping, parent/child, service dependency</p>
+        <div class="feature-tags"><span class="tag itil">ITIL</span><span class="tag future-tag">Future</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 5 -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 5 — Research</span>
+      <div>
+        <p class="phase-title">📍 Geo-Auth &amp; Mobile Banking Unit</p>
+        <p class="phase-sub">Location-based authentication and mobile infrastructure support</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future">
+        <span class="status-badge future">Research</span>
+        <div class="feature-card-icon">📍</div>
+        <h6>Geo-Tagging Login</h6>
+        <p>ตำแหน่งโทรศัพท์ + SIM tower ภายในรัศมีสาขา = login อัตโนมัติ — ไม่ต้อง fingerprint, device GPS + schedule match</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag ux">UX</span><span class="tag future-tag">Research</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Research</span>
+        <div class="feature-card-icon">🔴</div>
+        <h6>Auto-Logout on Location Leave</h6>
+        <p>ออกนอกรัศมีสาขา = logout อัตโนมัติ — ความปลอดภัย ป้องกันคนอื่นใช้เครื่องทิ้งไว้ ใช้ Geolocation API ตรวจสอบตำแหน่งต่อเนื่อง ถ้าออกนอกรัศมีที่กำหนด (เช่น 500m จากสาขา) → session timeout ทันที คล้ายระบบ attendance geo-tag แต่เป็น security guard</p>
+        <div class="feature-tags"><span class="tag security">Security</span><span class="tag future-tag">Research</span></div>
+      </div>
+      <div class="feature-card future">
+        <span class="status-badge future">Research</span>
+        <div class="feature-card-icon">🚐</div>
+        <h6>Mobile Banking Unit (MBU)</h6>
+        <p>รถบริการเคลื่อนที่ — จัดการเป็น "node เคลื่อนที่" ไม่ใช่สาขา fixed: route/schedule, GPS tracking, MBU-tagged tickets, adjusted SLA</p>
+        <div class="feature-tags"><span class="tag future-tag">Research</span><span class="tag itil">Operations</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 0: Data Import / Paperless -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-badge" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">Phase 0 — Data Import</span>
+      <div>
+        <p class="phase-title">📄 Paperless &amp; Data Migration</p>
+        <p class="phase-sub">นำเข้าข้อมูลเดิมจาก Excel/CSV/เอกสารกระดาษ — ไม่ต้องพิมพ์ซ้ำ</p>
+      </div>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card future" style="border-left-color:#27ae60">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📊</div>
+        <h6>CSV/Excel Import</h6>
+        <p>ดาวน์โหลด template → กรอกข้อมูลใน Excel → อัพโหลด → ระบบ map คอลัมน์อัตโนมัติ ลดเวลากรอก 80%</p>
+        <div class="feature-tags"><span class="tag ux">UX</span></div>
+      </div>
+      <div class="feature-card future" style="border-left-color:#27ae60">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">📎</div>
+        <h6>Scan &amp; Archive</h6>
+        <p>สแกนเอกสารกระดาษ แนบกับ ticket/asset — เอกสารเก่ากลายเป็นดิจิทัล ค้นหาได้ ไม่หาย</p>
+        <div class="feature-tags"><span class="tag itil">Paperless</span></div>
+      </div>
+      <div class="feature-card future" style="border-left-color:#27ae60">
+        <span class="status-badge future">Planned</span>
+        <div class="feature-card-icon">🗄️</div>
+        <h6>DB Migration</h6>
+        <p>มีฐานข้อมูลเดิม (Access/SQLite)? — เขียน script ย้ายข้อมูลทั้งหมด รักษา history</p>
+        <div class="feature-tags"><span class="tag future-tag">Migration</span></div>
+      </div>
+    </div>
+    <div class="alert alert-success mt-3 mb-0 small"><strong>✅ ประโยชน์:</strong> ลดเวลากรอกข้อมูล 80% · เอกสารเก่าไม่สูญหาย · ค้นหาได้ทันที · สำรองข้อมูลบนคลาวด์</div>
+  </div>
+
+  <!-- Production Readiness -->
+  <div class="phase-section" style="margin-top:32px">
+    <div class="phase-header">
+      <span class="phase-badge future" style="background:linear-gradient(135deg,#2c3e50,#34495e)">Production Readiness</span>
+      <div>
+        <p class="phase-title">🏗️ สิ่งที่ควรทำเพิ่มสำหรับ Production System</p>
+        <p class="phase-sub">Infrastructure, Security, ITIL Full Process, UX/Mobile</p>
+      </div>
+    </div>
+    <div class="notes-grid">
+      <div class="note-card">
+        <strong>🏗️ Infrastructure</strong>
+        <ul>
+          <li>SQLite → PostgreSQL (concurrent writes, backup)</li>
+          <li>Dockerize + CI/CD pipeline</li>
+          <li>Redis cache — session + dashboard stats</li>
+          <li>S3/MinIO — file attachment storage</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <strong>🔐 Security</strong>
+        <ul>
+          <li>bcrypt/scrypt แทน SHA256</li>
+          <li>CSRF protection (Flask-WTF)</li>
+          <li>Rate limiting on login API</li>
+          <li>Audit log — บันทึกทุก action</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <strong>📊 ITIL Full Process</strong>
+        <ul>
+          <li>Incident → Problem → Change → Release pipeline</li>
+          <li>SLA per priority: Critical=1hr, High=4hr, Medium=8hr, Low=24hr</li>
+          <li>Auto-assign round-robin ในทีม IT</li>
+          <li>Email/SMS notification</li>
+        </ul>
+      </div>
+      <div class="note-card">
+        <strong>📱 UX / Mobile</strong>
+        <ul>
+          <li>PWA — install บนมือถือได้</li>
+          <li>Push notification — ticket ใหม่/assign/update</li>
+          <li>Offline mode — บันทึกได้แม้ไม่มีเน็ต</li>
+          <li>Barcode/QR scan สำหรับ asset tag</li>
+          <li>Geo-fencing login + auto-logout</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MBU Deep Dive -->
+  <div style="margin-top:20px">
+    <div class="note-card" style="border-left:4px solid #e67e22">
+      <strong>🚐 Mobile Banking Unit (MBU) — แนวคิดเชิงลึก</strong>
+      <p style="font-size:.72rem;color:#6c7a89;margin:6px 0;line-height:1.6">สหกรณ์มีรถบริการเคลื่อนที่ (เหมือน food truck) ออกต่างอำเภอให้บริการลูกค้า ไม่มีสาขาคงที่ → ต้องจัดการเป็น "node เคลื่อนที่" ในระบบ:</p>
+      <ul style="font-size:.72rem;color:#6c7a89">
+        <li><strong>Data model</strong>: mobile_units table + route_schedule — ไม่ใช่ fixed branch</li>
+        <li><strong>Auth</strong>: device GPS + MBU schedule match — ถ้า tablet อยู่ Yala แต่ MBU ต้องอยู่ Narathiwat → flag anomaly</li>
+        <li><strong>Ticket</strong>: location-tagged (GPS coords), adjusted SLA (รถเคลื่อนที่ ≠ สาขาปกติ), remote IT support</li>
+        <li><strong>Route planning</strong>: dynamic routing, service gap detection, overlap detection</li>
+        <li><strong>Win-win</strong>: สหกรณ์ลดต้นทุน (ไม่ต้องสร้างสาขา) + ลูกค้าเข้าถึงบริการ (ไม่ต้องเดินทาง)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Interview Talking Points -->
+  <div style="margin-top:16px;padding:16px;background:linear-gradient(135deg,#e8f4fd,#d4e6f1);border-radius:8px;border-left:4px solid #1a5276">
+    <strong style="font-size:.8rem;color:#1a5276">💡 Interview Talking Points</strong>
+    <p style="font-size:.72rem;color:#2c3e50;margin:6px 0 0;line-height:1.6">ระบบนี้แสดงให้เห็นว่าเข้าใจ ITIL framework, สามารถออกแบบระบบตั้งแต่ zero ได้, และมีแผนการพัฒนาที่ชัดเจน — ไม่ใช่แค่ทำ feature ที่ส่งมา แต่คิดถึง production readiness ด้วย รวมถึง edge cases เช่น mobile banking units, geo-auth สำหรับพื้นที่ห่างไกล</p>
+  </div>
+</div>
+
+<!-- Development Log -->
+<h5 class="mb-3" style="margin-top:32px"><i class="bi bi-clock-history me-2"></i>Development Log</h5>
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light"><tr><th>Version</th><th>Date</th><th>Feature</th><th>Notes</th></tr></thead>
+        <tbody class="small">
+          <tr class="table-primary"><td colspan="4"><b>v0.1 — Project Start</b></td></tr>
+          <tr><td></td><td>31 May</td><td>Flask + SQLite Setup</td><td>DB schema, seed data, 22 branches, 249 staff, 105 tickets</td></tr>
+          <tr><td></td><td>31 May</td><td>Ticket Module</td><td>CRUD, server-side filter, yearly code TK-YY-NNNN</td></tr>
+          <tr><td></td><td>31 May</td><td>Asset Module</td><td>Asset list, detail page, basic tag system</td></tr>
+          <tr><td></td><td>31 May</td><td>Staff + Dashboard</td><td>Staff list, province cards, IT filter</td></tr>
+          <tr><td></td><td>31 May</td><td>Knowledge Base</td><td>KB list, search, category filter</td></tr>
+          <tr><td></td><td>31 May</td><td>DataTables Filter Fix</td><td>Filter reads cell text → fixed with data-* attributes</td></tr>
+          <tr><td></td><td>31 May</td><td>Cascade Dropdowns</td><td>Branch↔Province bidirectional filtering</td></tr>
+          <tr><td></td><td>31 May</td><td>Asset Tag System</td><td>Smart tag 1B-PC001 format with province/branch/category codes</td></tr>
+          <tr><td></td><td>31 May</td><td>KB Attach on Ticket</td><td>Search/create/attach KB from ticket detail</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.2 — Core Features</b></td></tr>
+          <tr><td></td><td>1 Jun</td><td>Route Planner</td><td>Leaflet choropleth map, 33 districts, priority ranking</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Site Map + How To</td><td>System overview + user guide pages</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Multi-User Auth</td><td>Users table, role-based sessions (admin/manager/user/hr)</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Settings Page</td><td>User management, theme switcher, ITSM roadmap</td></tr>
+          <tr><td></td><td>1 Jun</td><td>UI/UX Polish</td><td>Fira Sans fonts, card hover effects, border-left accents</td></tr>
+          <tr><td></td><td>1 Jun</td><td>Dark Mode</td><td>CSS token system, 34 paired bg/text tokens, WCAG AA</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.3 — UI/UX + Deploy</b></td></tr>
+          <tr><td></td><td>2 Jun</td><td>Color Picker</td><td>Custom theme color on all pages</td></tr>
+          <tr><td></td><td>2 Jun</td><td>PIN Sidebar</td><td>Sidebar collapse/expand on desktop</td></tr>
+          <tr><td></td><td>2 Jun</td><td>Quick Dial 888</td><td>IT Hotline button, FAB, top bar</td></tr>
+          <tr><td></td><td>2 Jun</td><td>Centered Navbar</td><td>Sticky navbar, hamburger mobile menu</td></tr>
+          <tr><td></td><td>2 Jun</td><td>SQLite Fix</td><td>get_db() → Flask g object pattern, connection per request</td></tr>
+          <tr><td></td><td>2 Jun</td><td>Filter + Sort Fix</td><td>Staff/asset filter survives sorting (permanent data-* filter)</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.4 — Polish + Deploy</b></td></tr>
+          <tr><td></td><td>3 Jun</td><td>Asset Tag Update</td><td>1BPC01 format (no dash), type dropdown on create</td></tr>
+          <tr><td></td><td>3 Jun</td><td>Route Planner Fix</td><td>Fixed block name (scripts → extra_scripts)</td></tr>
+          <tr><td></td><td>3 Jun</td><td>Live Dev Log</td><td>Real-time progress section on How To page</td></tr>
+          <tr><td></td><td>3 Jun</td><td>Fly.io Deploy</td><td>Persistent volume, always-on, auto-deploy from GitHub</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.5 — Ticket Detail + Map</b></td></tr>
+          <tr><td></td><td>4 Jun</td><td>Ticket Detail Fix</td><td>Reassign function, work notes, status update</td></tr>
+          <tr><td></td><td>4 Jun</td><td>Auto-Log Timeline</td><td>Status/reassign/asset/KB changes auto-logged to timeline</td></tr>
+          <tr><td></td><td>4 Jun</td><td>Short Branch Names</td><td>สาขายะหา → 2ยะหา (province+district format)</td></tr>
+          <tr><td></td><td>4 Jun</td><td>Sidebar Hover Labels</td><td>CSS-only tooltip, zero layout shift</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.6 — Theme + Map Merge</b></td></tr>
+          <tr><td></td><td>5 Jun</td><td>Theme Single Source</td><td>Removed duplicate applyCustomColor() from settings.html</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Leaflet Map Merge</td><td>Route Planner now uses real GeoJSON + live ticket counts</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Realtime Refresh</td><td>Map polls /api/district-tickets every 30 seconds</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Version Log</td><td>Dev log grouped by version with real dates</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Leave Calendar</td><td>Monthly leave view with status chips and month navigation</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Projects Hub</td><td>Admin project cards and detail pages for interview walkthroughs</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Asset Detail</td><td>Asset detail page with logs, linked tickets, and staff asset counts</td></tr>
+          <tr><td></td><td>5 Jun</td><td>v2 Table Pages</td><td>React/TanStack Table versions for Tickets, Assets, Staff, and Knowledge with v1/v2 switches</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Route Priority Notes</td><td>Route Planner explains priority ranking, live counts, and nearest-neighbor visit order</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Site Map + How To Maintenance</td><td>Added daily-change reminder and current route coverage</td></tr>
+          <tr><td></td><td>5 Jun</td><td>Interview QR Landing</td><td>Added /interview public landing page with Thai/English/Pattani Malay switcher, Open Demo CTA, and future Geo BI ideas</td></tr>
+          <tr><td></td><td>6 Jun</td><td>Mobile Sidebar Preference</td><td>Settings page can choose auto-hide, pinned icon rail, or icon-only minimal mobile sidebar behavior</td></tr>
+          <tr><td></td><td>6 Jun</td><td>Footer + Language UI</td><td>Clean GitHub footer/tech-stack labels and add English/ไทย/นายูบ้านเรา language placeholder switcher</td></tr>
+          <tr><td></td><td>6 Jun</td><td>Login QR + Share Language</td><td>Added tablet-friendly login QR card and lightweight language switcher for login/public share pages</td></tr>
+          <tr><td></td><td>7 Jun</td><td>Leave Approvals and Calendar</td><td>Added branch manpower to leave approvals, made login case-insensitive, added manpower view to leave calendar, and improved leave approvals UI.</td></tr>
+          <tr><td></td><td>7 Jun</td><td>Route Planner and Language</td><td>Fixed route-planner template syntax error, added Pattani users seeding, enhanced route planner with category breakdown and prep notes in dispatch table, and added TH/EN language switcher to sitemap.</td></tr>
+          <tr><td></td><td>7 Jun</td><td>Tables, About Me, and RBAC</td><td>Fixed V1 table sorting and enabled KB row clicks, upgraded About Me page with full resume content and footer link, and made inject_rbac safe with try/except to prevent 500 errors on public pages.</td></tr>
+          <tr><td></td><td>7 Jun</td><td>UI, Docs, and Mobile</td><td>Added Claude UI slop audit rule, released current ITSM UI docs batch, fixed mobile sidebar and footer language UI, polished V2 table UI, and restored tech stack description and footer GitHub link.</td></tr>

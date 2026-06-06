@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Feedback — ITSM Demo{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>User Feedback</h4>
+  <span class="badge bg-primary">{{ feedbacks | length }} items</span>
+</div>
+
+{% if not feedbacks %}
+<div class="text-center text-muted py-5">
+  <i class="bi bi-inbox" style="font-size:3rem;opacity:.3"></i>
+  <p class="mt-2">ยังไม่มี feedback</p>
+</div>
+{% else %}
+<div class="table-responsive">
+  <table class="table table-hover table-sm mb-0">
+    <thead class="table-light">
+      <tr>
+        <th style="width:50px">#</th>
+        <th style="width:120px">เวลา</th>
+        <th style="width:100px">User</th>
+        <th style="width:80px">Role</th>
+        <th style="width:80px">สาขา</th>
+        <th style="width:100px">หมวด</th>
+        <th style="width:60px">Rating</th>
+        <th>ข้อความ</th>
+        <th style="width:80px">หน้า</th>
+        <th style="width:90px">สถานะ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in feedbacks %}
+      <tr class="{% if f.status == 'new' %}table-warning{% elif f.status == 'done' %}table-success{% endif %}">
+        <td class="text-muted">{{ f.id }}</td>
+        <td class="small text-muted">{{ f.created_at[:16] if f.created_at else '-' }}</td>
+        <td><b>{{ f.username or '-' }}</b></td>
+        <td><span class="badge bg-light text-dark" style="font-size:.7rem">{{ f.role or '-' }}</span></td>
+        <td><span class="small">{{ f.branch or '-' }}</span></td>
+        <td><span class="badge bg-info text-white" style="font-size:.7rem">{{ f.category or 'general' }}</span></td>
+        <td>
+          {% if f.rating %}
+            {% for i in range(f.rating) %}⭐{% endfor %}
+          {% else %}-{% endif %}
+        </td>
+        <td style="max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ f.message or '-' }}</td>
+        <td><span class="small text-muted">{{ f.page or '-' }}</span></td>
+        <td>
+          <select class="form-select form-select-sm" style="font-size:.7rem" onchange="updateStatus({{ f.id }}, this.value)">
+            <option value="new" {% if f.status=='new' %}selected{% endif %}>New</option>
+            <option value="reviewed" {% if f.status=='reviewed' %}selected{% endif %}>Reviewed</option>
+            <option value="done" {% if f.status=='done' %}selected{% endif %}>Done</option>
+            <option value="dismissed" {% if f.status=='dismissed' %}selected{% endif %}>Dismissed</option>
+          </select>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<script>
+function updateStatus(id, status) {
+  fetch('/api/feedback/' + id, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({status: status})
+  }).then(r => r.json()).then(d => {
+    if (d.ok) {
+      const row = document.querySelector(`select[onchange="updateStatus(${id}, this.value)"]`).closest('tr');
+      row.classList.remove('table-warning', 'table-success');
+      if (status === 'new') row.classList.add('table-warning');
+      if (status === 'done') row.classList.add('table-success');
+    }
+  });
+}
+</script>
+{% endblock %}
