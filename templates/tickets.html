@@ -278,12 +278,22 @@ function applyTicketFilters(){
   ticketsTable.draw();
 }
 function filterTicketPriority(p) {
+  // Set priority, clear status and other filters
   document.getElementById('tFilterPriority').value = p;
+  document.getElementById('tFilterStatus').value = '';
+  document.getElementById('tFilterBranch').value = '';
+  document.getElementById('tFilterCategory').value = '';
+  document.getElementById('tFilterProvince').value = '';
   applyTicketFilters();
   return false;
 }
 function filterTicketStatus(s) {
+  // Set status, clear priority and other filters
   document.getElementById('tFilterStatus').value = s;
+  document.getElementById('tFilterPriority').value = '';
+  document.getElementById('tFilterBranch').value = '';
+  document.getElementById('tFilterCategory').value = '';
+  document.getElementById('tFilterProvince').value = '';
   applyTicketFilters();
   return false;
 }

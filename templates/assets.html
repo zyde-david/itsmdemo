@@ -149,6 +149,11 @@ function toggleAssetFilter(){
 function filterAssetStatus(s){
   var el = document.getElementById('aFilterStatus');
   if(el) el.value = s || '';
+  // Always reset other filters when clicking a stat card
+  var p = document.getElementById('aFilterPriority'); if(p) p.value = '';
+  var b = document.getElementById('aFilterBranch'); if(b) b.value = '';
+  var c = document.getElementById('aFilterCategory'); if(c) c.value = '';
+  var pr = document.getElementById('aFilterProvince'); if(pr) pr.value = '';
   applyAssetFilters();
   return false;
 }

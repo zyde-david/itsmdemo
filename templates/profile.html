@@ -3,7 +3,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
  <h4 class="mb-0"><i class="bi bi-person-circle me-2"></i>โปรไฟล์ของฉัน</h4>
- <a class="btn btn-sm btn-outline-secondary" href="/staff"><i class="bi bi-people me-1"></i>ทีมงาน</a>
+ <a class="btn btn-sm btn-outline-secondary" href="/staff"><i class="bi bi-people me-1"></i>พนักงาน</a>
 </div>
 
 <div class="row g-3">
@@ -32,7 +32,7 @@
      <h6 class="mb-0"><i class="bi bi-box-seam me-1"></i>Asset ของฉัน / ประวัติการถือครอง</h6>
      {% if asset_payload %}<span class="badge bg-info text-dark">ตอนนี้ {{ asset_payload.current_count }} / เคยก่อน {{ asset_payload.previous_count }}</span>{% endif %}
     </div>
-    <p class="small text-muted mb-3">แสดงเฉพาะบัญชีตัวเอง ยกเว้น Admin / HR / Manager ที่มีสิทธิ์ดูจากหน้าทีมงาน</p>
+    <p class="small text-muted mb-3">แสดงเฉพาะบัญชีตัวเอง ยกเว้น Admin / HR / Manager ที่มีสิทธิ์ดูจากหน้าพนักงาน</p>
     {% if asset_payload %}
     <div class="mb-3">
      <div class="fw-semibold small mb-1">กำลังถืออยู่</div>
