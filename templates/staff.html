@@ -158,9 +158,11 @@ function toggleStaffFilter(){
 var branchToProvince = {{ branch_to_province|tojson }};
 var provinceToBranches = {{ province_to_branches_short|tojson }};
 
-// Staff filter — push new filter on each change (same pattern as tickets)
-function applyStaffFilters(){
-  if(!window.staffTable) return;
+// Staff filter — single named function, replaced on each change
+function _staffFilter(settings, data, dataIndex){
+  if(!settings || !settings.nTable || settings.nTable.id !== 'staffTable') return true;
+  var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+  if(!row) return true;
   var branchEl = document.getElementById('sFilterBranch');
   var provinceEl = document.getElementById('sFilterProvince');
   var roleEl = document.getElementById('sFilterRole');
@@ -174,21 +176,27 @@ function applyStaffFilters(){
     provinceEl.value = branchToProvince[branch];
     province = provinceEl.value;
   }
-  if(!$.fn.dataTable.ext.search) $.fn.dataTable.ext.search = [];
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(!settings || !settings.nTable || settings.nTable.id !== 'staffTable') return true;
-    var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
-    if(!row) return true;
-    if(branch && row.getAttribute('data-branch') !== branch) return false;
-    if(province && row.getAttribute('data-province') !== province) return false;
-    if(role && row.getAttribute('data-role') !== role) return false;
-    if(isIt){
-      var rowIsIt = row.getAttribute('data-is-it');
-      if(isIt === '1' && rowIsIt !== '1') return false;
-      if(isIt === '0' && rowIsIt === '1') return false;
-    }
-    return true;
-  });
+  if(branch && row.getAttribute('data-branch') !== branch) return false;
+  if(province && row.getAttribute('data-province') !== province) return false;
+  if(role && row.getAttribute('data-role') !== role) return false;
+  if(isIt){
+    var rowIsIt = row.getAttribute('data-is-it');
+    if(isIt === '1' && rowIsIt !== '1') return false;
+    if(isIt === '0' && rowIsIt === '1') return false;
+  }
+  return true;
+}
+
+function applyStaffFilters(){
+  if(!window.staffTable) return;
+  // Remove old staff filter(s) before pushing new one
+  if($.fn.dataTable.ext.search){
+    $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn){
+      return fn._staffFilter !== true;
+    });
+  }
+  _staffFilter._staffFilter = true;
+  $.fn.dataTable.ext.search.push(_staffFilter);
   window.staffTable.draw();
 }
 

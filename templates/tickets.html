@@ -249,32 +249,48 @@ function filterBranchByProvince(province){
   for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
 }
 
+// Ticket filter — single named function, replaced on each change
+function _ticketFilter(settings, data, dataIndex){
+  if(!settings || !settings.nTable || settings.nTable.id !== 'ticketsTable') return true;
+  var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+  if(!row) return true;
+  var $row = $(row);
+  var statusEl = document.getElementById('tFilterStatus');
+  var priorityEl = document.getElementById('tFilterPriority');
+  var branchEl = document.getElementById('tFilterBranch');
+  var categoryEl = document.getElementById('tFilterCategory');
+  var provinceEl = document.getElementById('tFilterProvince');
+  var status = statusEl ? statusEl.value : '';
+  var priority = priorityEl ? priorityEl.value : '';
+  var branch = branchEl ? branchEl.value : '';
+  var category = categoryEl ? categoryEl.value : '';
+  var province = provinceEl ? provinceEl.value : '';
+  if(status && $row.data('status') !== status) return false;
+  if(priority && $row.data('priority') !== priority) return false;
+  if(branch && $row.data('branch') !== branch) return false;
+  if(category && $row.data('category') !== category) return false;
+  if(province && $row.data('province') !== province) return false;
+  return true;
+}
+
 function applyTicketFilters(){
   if(!ticketsTable) return;
-  const status = document.getElementById('tFilterStatus').value;
-  const priority = document.getElementById('tFilterPriority').value;
-  const branch = document.getElementById('tFilterBranch').value;
-  const category = document.getElementById('tFilterCategory').value;
-  const province = document.getElementById('tFilterProvince').value;
   // Cascade: branch → province
-  if(branch && branchToProvince[branch] && !province){
-    document.getElementById('tFilterProvince').value = branchToProvince[branch];
+  var branchEl2 = document.getElementById('tFilterBranch');
+  var provinceEl2 = document.getElementById('tFilterProvince');
+  var branchVal = branchEl2 ? branchEl2.value : '';
+  var provinceVal = provinceEl2 ? provinceEl2.value : '';
+  if(branchVal && branchToProvince[branchVal] && !provinceVal && provinceEl2){
+    provinceEl2.value = branchToProvince[branchVal];
   }
-  // Do NOT clear ext.search — other pages may have registered filters
-  if(!$.fn.dataTable.ext.search) $.fn.dataTable.ext.search = [];
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(!settings || !settings.nTable || settings.nTable.id !== 'ticketsTable') return true;
-    const row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
-    if(!row) return true;
-    const $row = $(row);
-    // Use data-* attributes for reliable filtering
-    if(status && $row.data('status') !== status) return false;
-    if(priority && $row.data('priority') !== priority) return false;
-    if(branch && $row.data('branch') !== branch) return false;
-    if(category && $row.data('category') !== category) return false;
-    if(province && $row.data('province') !== province) return false;
-    return true;
-  });
+  // Remove old ticket filter(s) before pushing new one
+  if($.fn.dataTable.ext.search){
+    $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn){
+      return fn._ticketFilter !== true;
+    });
+  }
+  _ticketFilter._ticketFilter = true;
+  $.fn.dataTable.ext.search.push(_ticketFilter);
   ticketsTable.draw();
 }
 function filterTicketPriority(p) {

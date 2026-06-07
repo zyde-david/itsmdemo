@@ -181,8 +181,11 @@ function filterAssetBranchByProvince(province){
   for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
 }
 
-// Asset filter — push new filter on each change (same pattern as tickets)
-function applyAssetFilters(){
+// Asset filter — single named function, replaced on each change
+function _assetFilter(settings, data, dataIndex){
+  if(!settings || !settings.nTable || settings.nTable.id !== 'assetsTable') return true;
+  var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+  if(!row) return true;
   var statusEl = document.getElementById('aFilterStatus');
   var typeEl = document.getElementById('aFilterType');
   var branchEl = document.getElementById('aFilterBranch');
@@ -193,18 +196,23 @@ function applyAssetFilters(){
   var branch = branchEl ? branchEl.value : '';
   var province = provinceEl ? provinceEl.value : '';
   var search = searchEl ? searchEl.value.toLowerCase().trim() : '';
-  if(!$.fn.dataTable.ext.search) $.fn.dataTable.ext.search = [];
-  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-    if(!settings || !settings.nTable || settings.nTable.id !== 'assetsTable') return true;
-    var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
-    if(!row) return true;
-    if(status && row.getAttribute('data-status') !== status) return false;
-    if(type && row.getAttribute('data-type') !== type) return false;
-    if(branch && row.getAttribute('data-branch') !== branch) return false;
-    if(province && row.getAttribute('data-province') !== province) return false;
-    if(search && row.textContent.toLowerCase().indexOf(search) < 0) return false;
-    return true;
-  });
+  if(status && row.getAttribute('data-status') !== status) return false;
+  if(type && row.getAttribute('data-type') !== type) return false;
+  if(branch && row.getAttribute('data-branch') !== branch) return false;
+  if(province && row.getAttribute('data-province') !== province) return false;
+  if(search && row.textContent.toLowerCase().indexOf(search) < 0) return false;
+  return true;
+}
+
+function applyAssetFilters(){
+  // Remove old asset filter(s) before pushing new one
+  if($.fn.dataTable.ext.search){
+    $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn){
+      return fn._assetFilter !== true;
+    });
+  }
+  _assetFilter._assetFilter = true;
+  $.fn.dataTable.ext.search.push(_assetFilter);
   if(window.assetTable){
     window.assetTable.draw();
   } else if($.fn.dataTable && $.fn.dataTable.isDataTable('#assetsTable')){
