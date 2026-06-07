@@ -300,19 +300,14 @@
       var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, assets: 0};
       if (d.tickets <= 0 && d.assets <= 0) return;
       var centroid = L.geoJson(f).getBounds().getCenter();
-      var priority = d.critical > 0 ? 'critical' : (d.high > 0 ? 'high' : (d.medium > 0 ? 'medium' : 'low'));
-      var labelHtml = '';
-      if (d.tickets > 0) {
-        labelHtml += '<span style="color:#fff;font-weight:800;font-size:12px;-webkit-text-stroke:1.5px ' + (priority === 'critical' ? '#dc2626' : priority === 'high' ? '#f97316' : priority === 'medium' ? '#f59e0b' : '#16a34a') + ';paint-order:stroke fill;">' + d.tickets + '</span>';
-      }
-      if (viewMode !== 'tickets' && d.assets > 0) {
-        labelHtml += (labelHtml ? ' ' : '') + '<span style="color:#2563eb;font-weight:700;font-size:10px;">A' + d.assets + '</span>';
-      }
-      if (!labelHtml) return;
+      var numColor = d.critical > 0 ? '#dc2626' : (d.high > 0 ? '#f97316' : (d.medium > 0 ? '#facc15' : '#16a34a'));
+      var labelText = '';
+      if (d.tickets > 0) labelText += '<span style="color:' + numColor + ';font-weight:800;font-size:13px;">' + d.tickets + '</span>';
+      labelText += '<span style="color:#1e293b;font-weight:600;font-size:10px;"> ' + name + '</span>';
       var icon = L.divIcon({
         className: '',
-        html: '<div style="text-align:center;white-space:nowrap;text-shadow:0 0 4px rgba(0,0,0,0.7),0 0 8px rgba(0,0,0,0.5);">' + labelHtml + '</div>',
-        iconSize: [50, 24], iconAnchor: [25, 12]
+        html: '<div style="text-align:center;white-space:nowrap;line-height:1.4;">' + labelText + '</div>',
+        iconSize: [90, 28], iconAnchor: [45, 14]
       });
       L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
     });
