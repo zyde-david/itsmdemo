@@ -5,20 +5,19 @@
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
     <h4 class="mb-1"><i class="bi bi-calendar-check me-2"></i>Leave</h4>
-    <div class="text-muted small">ระบบลา — ขอลาและติดตามสถานะเบื้องต้น</div>
+    <div class="text-muted small">ระบบลา — คลิกวันในปฏิทินเพื่อขอลา หรือใช้ฟอร์มด้านล่าง</div>
   </div>
-  <a href="#leaveForm" class="btn btn-sm btn-primary">
-    <i class="bi bi-plus-lg me-1"></i>ขอลา
-  </a>
+  <a href="#leaveForm" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>ขอลา (ฟอร์ม)</a>
 </div>
 
 {% if message %}
-<div class="alert alert-success py-2 small"><i class="bi bi-check-circle me-1"></i>{{ message }}</div>
+<div class="alert alert-success py-2 small alert-dismissible fade show"><i class="bi bi-check-circle me-1"></i>{{ message }} <button class="btn-close" data-bs-dismiss="alert"></button></div>
 {% endif %}
 {% if error %}
-<div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }}</div>
+<div class="alert alert-danger py-2 small alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-1"></i>{{ error }} <button class="btn-close" data-bs-dismiss="alert"></button></div>
 {% endif %}
 
+<!-- Leave Balance Cards -->
 <div class="row g-3 mb-3">
   <div class="col-6 col-md-3">
     <div class="card shadow-sm text-center h-100">
@@ -54,112 +53,387 @@
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card shadow-sm mb-3" id="leaveForm">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-pencil-square me-2"></i>ขอลา</div>
-      <div class="card-body">
-        <form method="post" class="row g-2">
-          <div class="col-md-4">
-            <label class="form-label small text-muted">ประเภทการลา</label>
-            <select name="leave_type" class="form-select form-select-sm" required>
-              <option value="">-- เลือก --</option>
-              {% for leave_type in leave_types %}
-              <option value="{{ leave_type }}">{{ leave_type }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-6 col-md-4">
-            <label class="form-label small text-muted">วันที่เริ่ม</label>
-            <input type="date" name="start_date" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-6 col-md-4">
-            <label class="form-label small text-muted">วันที่สิ้นสุด</label>
-            <input type="date" name="end_date" class="form-control form-control-sm" required>
-          </div>
-          <div class="col-12">
-            <label class="form-label small text-muted">เหตุผล</label>
-            <textarea name="reason" class="form-control form-control-sm" rows="2" maxlength="300" placeholder="ระบุเหตุผลแบบสั้น ๆ" required></textarea>
-          </div>
-          <div class="col-12 d-flex justify-content-end">
-            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-send me-1"></i>ส่งคำขอ</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-list-check me-2"></i>รายการลาของฉัน</span>
-        <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ leave_requests|length }} รายการ</span>
-      </div>
-      <div class="card-body p-0">
-        {% if leave_requests %}
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light small">
-              <tr>
-                <th>ประเภท</th>
-                <th>วันที่</th>
-                <th class="text-center">วัน</th>
-                <th>สถานะ</th>
-                <th class="d-none d-md-table-cell">เหตุผล</th>
-              </tr>
-            </thead>
-            <tbody class="small">
-              {% for r in leave_requests %}
-              <tr>
-                <td class="fw-semibold">{{ r.leave_type }}</td>
-                <td>{{ r.start_date }} → {{ r.end_date }}</td>
-                <td class="text-center">{{ ('%.1f' % r.days).rstrip('0').rstrip('.') }}</td>
-                <td>
-                  {% set st = r.status %}
-                  <span class="badge {% if st == 'approved' %}bg-success{% elif st == 'rejected' %}bg-danger{% elif st == 'cancelled' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
-                    {{ status_labels.get(st, st) }}
-                  </span>
-                </td>
-                <td class="d-none d-md-table-cell text-muted">{{ r.reason }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="text-center text-muted py-5">
-          <i class="bi bi-calendar2-week" style="font-size:2.4rem"></i>
-          <div class="fw-bold mt-2">ยังไม่มีรายการลา</div>
-          <div class="small">ส่งคำขอแรกจากฟอร์มด้านบน สถานะเริ่มต้นคือ รออนุมัติ</div>
-        </div>
-        {% endif %}
-      </div>
+<!-- Leave Calendar -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="fw-bold"><i class="bi bi-calendar-month me-2"></i>ปฏิทินการลา — <span id="calMonthName">{{ cal_month_name }}</span></div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary" id="calPrev"><i class="bi bi-chevron-left"></i></button>
+      <button class="btn btn-sm btn-outline-primary" id="calToday">เดือนนี้</button>
+      <button class="btn btn-sm btn-outline-secondary" id="calNext"><i class="bi bi-chevron-right"></i></button>
     </div>
   </div>
-  <div class="col-lg-4">
-    <div class="card shadow-sm mb-3">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-people me-2"></i>Manpower</div>
-      <div class="card-body small">
-        <div class="d-flex justify-content-between mb-2"><span class="text-muted">พนักงาน Active</span><strong>{{ total_branch_staff }}</strong></div>
-        <div class="d-flex justify-content-between mb-2"><span class="text-muted">ลาอยู่</span><strong class="text-warning">{{ branch_on_leave }}</strong></div>
-        <div class="d-flex justify-content-between mb-2"><span class="text-muted">เหลือพร้อมทำงาน</span><strong class="{% if branch_pct < 50 %}text-danger{% elif branch_pct < 80 %}text-warning{% else %}text-success{% endif %}">{{ branch_remaining }}/{{ total_branch_staff }} ({{ branch_pct }}%)</strong></div>
-        <div class="text-muted" style="font-size:.7rem;margin-top:4px"><i class="bi bi-geo-alt me-1"></i>{{ user_branch or 'ทุกสาขา' }}</div>
-        {% if branch_pct < 50 %}
-        <div class="alert alert-danger py-1 px-2 mb-0 mt-2" style="font-size:.75rem"><i class="bi bi-exclamation-triangle me-1"></i>พนักงานเหลือน้อยกว่า 50% — ควรพิจารณาก่อนส่งคำขอเพิ่ม</div>
-        {% elif branch_pct < 80 %}
-        <div class="alert alert-warning py-1 px-2 mb-0 mt-2" style="font-size:.75rem"><i class="bi bi-info-circle me-1"></i>พนักงานเหลือต่ำกว่า 80% — ตรวจสอบก่อนอนุมัติ</div>
-        {% endif %}
-      </div>
+  <div class="card-body p-2 p-md-3">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm mb-0" style="min-width:700px">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center" style="width:40px">#</th>
+            {% for wd in ['จ','อ','พ','พฤ','ศ','ส','อา'] %}
+            <th class="text-center {% if wd in ['ส','อา'] %}table-danger{% endif %}" style="width:100px">{{ wd }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody id="calBody">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
     </div>
-    <div class="card shadow-sm">
-      <div class="card-header bg-white fw-bold"><i class="bi bi-signpost-split me-2"></i>ลำดับทำงาน</div>
-      <div class="card-body small">
-        <ol class="mb-0 ps-3">
-          <li class="mb-2"><strong>ตอนนี้:</strong> ฟอร์มขอลา + ตาราง <code>leave_requests</code></li>
-          <li class="mb-2">Manager/Admin อนุมัติหรือไม่อนุมัติ</li>
-          <li class="mb-2">เพิ่มโควต้า annual leave + carry-forward</li>
-          <li>เชื่อม Calendar ภายหลัง</li>
-        </ol>
+    <div class="d-flex gap-3 mt-2 small text-muted flex-wrap">
+      <span><span class="badge bg-success" style="font-size:.6rem">อนุมัติ</span></span>
+      <span><span class="badge bg-warning text-dark" style="font-size:.6rem">รออนุมัติ</span></span>
+      <span><span class="badge bg-danger" style="font-size:.6rem">ไม่อนุมัติ</span></span>
+      <span><span class="badge bg-info text-dark" style="font-size:.6rem">AM/PM = ครึ่งวัน</span></span>
+      <span class="ms-auto text-muted" id="calHint">คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่</span>
+    </div>
+  </div>
+</div>
+
+<!-- My Leave Requests -->
+<div class="card shadow-sm mb-3" id="leaveForm">
+  <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-list-check me-2"></i>รายการลาของฉัน</span>
+    <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ leave_requests|length }} รายการ</span>
+  </div>
+  <div class="card-body p-0">
+    {% if leave_requests %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small">
+          <tr>
+            <th>ประเภท</th>
+            <th>วันที่</th>
+            <th class="text-center">วัน</th>
+            <th>สถานะ</th>
+            <th class="d-none d-md-table-cell">เหตุผล</th>
+          </tr>
+        </thead>
+        <tbody class="small">
+          {% for r in leave_requests %}
+          <tr>
+            <td class="fw-semibold">{{ r.leave_type }}{% if r.half_day and r.half_day != 'full' %} <span class="badge bg-info text-dark" style="font-size:.6rem">{{ r.half_day|upper }}</span>{% endif %}</td>
+            <td>{{ r.start_date }} → {{ r.end_date }}</td>
+            <td class="text-center">{{ ('%.1f' % r.days)|replace('0.0','')|replace('.0','') }}</td>
+            <td>
+              {% set st = r.status %}
+              <span class="badge {% if st == 'approved' %}bg-success{% elif st == 'rejected' %}bg-danger{% elif st == 'cancelled' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                {{ status_labels.get(st, st) }}
+              </span>
+            </td>
+            <td class="d-none d-md-table-cell text-muted">{{ r.reason }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-calendar2-week" style="font-size:2.4rem"></i>
+      <div class="fw-bold mt-2">ยังไม่มีรายการลา</div>
+      <div class="small">คลิกวันในปฏิทินเพื่อขอลา หรือใช้ฟอร์มด้านล่าง</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Manual Form (alternative) -->
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-white fw-bold"><i class="bi bi-pencil-square me-2"></i>ขอลา (ฟอร์ม)</div>
+  <div class="card-body">
+    <form method="post" class="row g-2">
+      <div class="col-md-3">
+        <label class="form-label small text-muted">ประเภทการลา</label>
+        <select name="leave_type" class="form-select form-select-sm" required>
+          <option value="">-- เลือก --</option>
+          {% for lt in leave_types %}<option value="{{ lt }}">{{ lt }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted">วันที่เริ่ม</label>
+        <input type="date" name="start_date" class="form-control form-control-sm" required>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted">วันที่สิ้นสุด</label>
+        <input type="date" name="end_date" class="form-control form-control-sm" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small text-muted">ประเภทวัน</label>
+        <select name="half_day" class="form-select form-select-sm">
+          <option value="full">เต็มวัน</option>
+          <option value="am">ครึ่งวัน (เช้า)</option>
+          <option value="pm">ครึ่งวัน (บ่าย)</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label small text-muted">เหตุผล</label>
+        <textarea name="reason" class="form-control form-control-sm" rows="2" maxlength="300" placeholder="ระบุเหตุผลแบบสั้น ๆ" required></textarea>
+      </div>
+      <div class="col-12 d-flex justify-content-end">
+        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-send me-1"></i>ส่งคำขอ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Manpower -->
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold"><i class="bi bi-people me-2"></i>Manpower</div>
+  <div class="card-body small">
+    <div class="d-flex justify-content-between mb-2"><span class="text-muted">พนักงาน Active</span><strong>{{ total_branch_staff }}</strong></div>
+    <div class="d-flex justify-content-between mb-2"><span class="text-muted">ลาอยู่</span><strong class="text-warning">{{ branch_on_leave }}</strong></div>
+    <div class="d-flex justify-content-between mb-2"><span class="text-muted">เหลือพร้อมทำงาน</strong><strong class="{% if branch_pct < 50 %}text-danger{% elif branch_pct < 80 %}text-warning{% else %}text-success{% endif %}">{{ branch_remaining }}/{{ total_branch_staff }} ({{ branch_pct }}%)</strong></div>
+    <div class="text-muted" style="font-size:.7rem;margin-top:4px"><i class="bi bi-geo-alt me-1"></i>{{ user_branch or 'ทุกสาขา' }}</div>
+    {% if branch_pct < 50 %}
+    <div class="alert alert-danger py-1 px-2 mb-0 mt-2" style="font-size:.75rem"><i class="bi bi-exclamation-triangle me-1"></i>พนักงานเหลือน้อยกว่า 50% — ควรพิจารณาก่อนส่งคำขอเพิ่ม</div>
+    {% elif branch_pct < 80 %}
+    <div class="alert alert-warning py-1 px-2 mb-0 mt-2" style="font-size:.75rem"><i class="bi bi-info-circle me-1"></i>พนักงานเหลือต่ำกว่า 80% — ตรวจสอบก่อนอนุมัติ</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Apply Leave Modal -->
+<div class="modal fade" id="leaveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>ขอลา</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body py-3">
+        <div class="small text-muted mb-2" id="modalDateRange"></div>
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label small mb-1">ประเภทการลา</label>
+            <select class="form-select form-select-sm" id="mLeaveType" required>
+              <option value="">-- เลือก --</option>
+              {% for lt in leave_types %}<option value="{{ lt }}">{{ lt }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label small mb-1">ประเภทวัน</label>
+            <div class="d-flex gap-2">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="mHalfDay" id="mHalfFull" value="full" checked>
+                <label class="form-check-label small" for="mHalfFull">เต็มวัน</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="mHalfDay" id="mHalfAM" value="am">
+                <label class="form-check-label small" for="mHalfAM">ครึ่งวัน (เช้า)</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="mHalfDay" id="mHalfPM" value="pm">
+                <label class="form-check-label small" for="mHalfPM">ครึ่งวัน (บ่าย)</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label small mb-1">เหตุผล</label>
+            <textarea class="form-control form-control-sm" id="mReason" rows="2" maxlength="300" placeholder="ระบุเหตุผล" required></textarea>
+          </div>
+        </div>
+        <div id="modalError" class="alert alert-danger py-1 px-2 mt-2 mb-0 small" style="display:none"></div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-sm btn-primary" id="mSubmit"><i class="bi bi-send me-1"></i>ส่งคำขอ</button>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+.leave-cal-day { cursor: pointer; min-height: 55px; vertical-align: top; transition: background .15s; }
+.leave-cal-day:hover { background: #e8f4fd !important; }
+.leave-cal-day.is-selected { background: #cfe8fc !important; }
+.leave-cal-day.is-range { background: #e2f0fb !important; }
+.leave-cal-day.is-today { outline: 2px solid #0d6efd; outline-offset: -2px; }
+.leave-cal-day .day-num { font-weight: 700; font-size: .85rem; }
+.leave-cal-day .leave-badge { font-size: .55rem; margin-top: 2px; }
+.leave-cal-day.is-muted { opacity: .4; }
+.leave-cal-day.is-weekend { background: #fff8f8; }
+</style>
+
+<script>
+(function(){
+  // State
+  var calYear = {{ cal_year|default(2026) }};
+  var calMonth = {{ cal_month|default(6) }};
+  var leaves = [];
+  var selectStart = null;
+  var selectEnd = null;
+
+  var monthNames = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var statusColors = { approved: 'bg-success', pending: 'bg-warning text-dark', rejected: 'bg-danger', cancelled: 'bg-secondary' };
+  var statusLabels = { approved: 'อนุมัติ', pending: 'รออนุมัติ', rejected: 'ไม่อนุมัติ', cancelled: 'ยกเลิก' };
+
+  function pad(n){ return n<10?'0'+n:''+n; }
+  function iso(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+  function fetchLeaves(year, month){
+    fetch('/api/leave/calendar?year='+year+'&month='+month)
+      .then(r=>r.json())
+      .then(function(data){
+        leaves = data;
+        renderCal(year, month);
+      });
+  }
+
+  function renderCal(year, month){
+    var first = new Date(year, month-1, 1);
+    var last = new Date(year, month, 0);
+    var startDow = (first.getDay()+6)%7; // Mon=0
+    var totalDays = last.getDate();
+    var today = new Date(); today.setHours(0,0,0,0);
+
+    document.getElementById('calMonthName').textContent = monthNames[month-1]+' '+year;
+
+    // Build leave map: date iso -> array of leaves
+    var leaveMap = {};
+    leaves.forEach(function(l){
+      var d = new Date(l.start_date+'T00:00:00');
+      var end = new Date(l.end_date+'T00:00:00');
+      while(d<=end){
+        var k = iso(d);
+        if(!leaveMap[k]) leaveMap[k]=[];
+        leaveMap[k].push(l);
+        d.setDate(d.getDate()+1);
+      }
+    });
+
+    var html = '';
+    var day = 1 - startDow;
+    for(var w=0; w<6; w++){
+      if(day > totalDays) break;
+      html += '<tr><td class="text-center text-muted small">'+(w+1)+'</td>';
+      for(var dow=0; dow<7; dow++){
+        var cur = day;
+        if(cur < 1 || cur > totalDays){
+          html += '<td class="leave-cal-day is-muted"></td>';
+          day++;
+          continue;
+        }
+        var d = new Date(year, month-1, cur);
+        var dIso = iso(d);
+        var isToday = d.getTime()===today.getTime();
+        var isWeekend = dow>=5;
+        var dayLeaves = leaveMap[dIso]||[];
+        var isSelected = selectStart && selectEnd && dIso>=selectStart && dIso<=selectEnd;
+        var isStart = selectStart && dIso===selectStart;
+        var isEnd = selectEnd && dIso===selectEnd;
+
+        var cls = 'leave-cal-day';
+        if(isToday) cls+=' is-today';
+        if(isWeekend) cls+=' is-weekend';
+        if(isSelected) cls+=' is-selected';
+        if(isStart||isEnd) cls+=' is-selected';
+
+        html += '<td class="'+cls+'" data-date="'+dIso+'" onclick="window.leaveCal.pick(\''+dIso+'\')">';
+        html += '<div class="d-flex justify-content-between align-items-start"><span class="day-num">'+cur+'</span></div>';
+        if(dayLeaves.length){
+          html += '<div class="d-flex flex-wrap gap-1">';
+          dayLeaves.forEach(function(l){
+            var halfLabel = l.half_day && l.half_day!=='full' ? '<span class="badge bg-info text-dark" style="font-size:.5rem">'+l.half_day.toUpperCase()+'</span>' : '';
+            html += '<span class="badge '+statusColors[l.status]+' leave-badge" title="'+l.leave_type+' - '+statusLabels[l.status]+'">'+l.leave_type.substring(0,6)+'</span>'+halfLabel;
+          });
+          html += '</div>';
+        }
+        html += '</td>';
+        day++;
+      }
+      html += '</tr>';
+    }
+    document.getElementById('calBody').innerHTML = html;
+  }
+
+  // Date selection
+  window.leaveCal = {
+    pick: function(dIso){
+      if(!selectStart || (selectStart && selectEnd)){
+        // Start new selection
+        selectStart = dIso;
+        selectEnd = null;
+        document.getElementById('calHint').textContent = 'เลือกวันสิ้นสุด...';
+      } else if(!selectEnd){
+        // Set end
+        if(dIso < selectStart){
+          selectEnd = selectStart;
+          selectStart = dIso;
+        } else {
+          selectEnd = dIso;
+        }
+        document.getElementById('calHint').textContent = selectStart + ' → ' + selectEnd;
+        // Show modal
+        showModal();
+      }
+      renderCal(calYear, calMonth);
+    }
+  };
+
+  function showModal(){
+    document.getElementById('modalDateRange').textContent = selectStart + ' → ' + selectEnd;
+    document.getElementById('mLeaveType').value = '';
+    document.getElementById('mHalfFull').checked = true;
+    document.getElementById('mReason').value = '';
+    document.getElementById('modalError').style.display = 'none';
+    new bootstrap.Modal(document.getElementById('leaveModal')).show();
+  }
+
+  // Submit
+  document.getElementById('mSubmit').addEventListener('click', function(){
+    var lt = document.getElementById('mLeaveType').value;
+    var reason = document.getElementById('mReason').value.trim();
+    var hd = document.querySelector('input[name="mHalfDay"]:checked').value;
+    var err = document.getElementById('modalError');
+    if(!lt){ err.textContent='กรุณาเลือกประเภทการลา'; err.style.display='block'; return; }
+    if(!reason){ err.textContent='กรุณาระบุเหตุผล'; err.style.display='block'; return; }
+
+    fetch('/api/leave', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({leave_type:lt, start_date:selectStart, end_date:selectEnd, half_day:hd, reason:reason})
+    }).then(r=>r.json()).then(function(d){
+      if(d.success){
+        bootstrap.Modal.getInstance(document.getElementById('leaveModal')).hide();
+        selectStart = null;
+        selectEnd = null;
+        document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
+        fetchLeaves(calYear, calMonth);
+        // Reload page to show updated list
+        location.reload();
+      } else {
+        err.textContent = d.error || 'เกิดข้อผิดพลาด';
+        err.style.display = 'block';
+      }
+    }).catch(function(){
+      err.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+      err.style.display = 'block';
+    });
+  });
+
+  // Navigation
+  document.getElementById('calPrev').addEventListener('click', function(){
+    calMonth--; if(calMonth<1){ calMonth=12; calYear--; }
+    selectStart=null; selectEnd=null;
+    document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
+    fetchLeaves(calYear, calMonth);
+  });
+  document.getElementById('calNext').addEventListener('click', function(){
+    calMonth++; if(calMonth>12){ calMonth=1; calYear++; }
+    selectStart=null; selectEnd=null;
+    document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
+    fetchLeaves(calYear, calMonth);
+  });
+  document.getElementById('calToday').addEventListener('click', function(){
+    var t = new Date();
+    calYear = t.getFullYear();
+    calMonth = t.getMonth()+1;
+    selectStart=null; selectEnd=null;
+    document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
+    fetchLeaves(calYear, calMonth);
+  });
+
+  // Init
+  fetchLeaves(calYear, calMonth);
+})();
+</script>
 {% endblock %}

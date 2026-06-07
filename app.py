@@ -500,6 +500,8 @@ def init_db():
     }.items():
         ensure_column('users', column, definition)
 
+    ensure_column('leave_requests', 'half_day', "TEXT DEFAULT 'full'")
+
     # Feedback table
     c.execute('''CREATE TABLE IF NOT EXISTS feedback (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1552,11 +1554,18 @@ def leave_page():
     current_user = get_current_user()
     message = ''
     error = ''
+    from datetime import date as _date
+    today = _date.today()
+    cal_year = today.year
+    cal_month = today.month
     if request.method == 'POST':
         leave_type = request.form.get('leave_type','').strip()
         start_date = request.form.get('start_date','').strip()
         end_date = request.form.get('end_date','').strip()
         reason = request.form.get('reason','').strip()
+        half_day = request.form.get('half_day','full').strip()
+        if half_day not in ('full', 'am', 'pm'):
+            half_day = 'full'
         if leave_type not in LEAVE_TYPES:
             error = 'กรุณาเลือกประเภทการลา'
         elif not start_date or not end_date:
@@ -1567,12 +1576,16 @@ def leave_page():
             try:
                 start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
                 end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
-                days = (end_dt - start_dt).days + 1
-                if days <= 0:
+                total_days = (end_dt - start_dt).days + 1
+                if total_days <= 0:
                     error = 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม'
                 else:
-                    c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,reason,status) VALUES (?,?,?,?,?,?,?,?)',
-                              (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, reason, 'pending'))
+                    if half_day in ('am', 'pm'):
+                        days = 0.5 if total_days == 1 else total_days - 1 + 0.5
+                    else:
+                        days = float(total_days)
+                    c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,half_day,reason,status) VALUES (?,?,?,?,?,?,?,?,?)',
+                              (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, half_day, reason, 'pending'))
                     c.commit()
                     message = 'ส่งคำขอลาแล้ว — รอ Manager/Admin อนุมัติ'
             except ValueError:
@@ -1608,7 +1621,71 @@ def leave_page():
                            leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS, pending_count=pending_count,
                            approved_count=approved_count, rejected_count=rejected_count, message=message, error=error,
                            total_branch_staff=total_branch_staff, branch_on_leave=branch_on_leave,
-                           branch_remaining=branch_remaining, branch_pct=branch_pct, user_branch=user_branch)
+                           branch_remaining=branch_remaining, branch_pct=branch_pct, user_branch=user_branch,
+                           cal_year=cal_year, cal_month=cal_month)
+
+@app.route('/api/leave/calendar', methods=['GET'])
+@login_required
+def api_leave_calendar():
+    """Return user's leave requests for calendar rendering."""
+    c = get_db()
+    current_user = get_current_user()
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    if not year or not month:
+        from datetime import date
+        today = date.today()
+        year = today.year
+        month = today.month
+    rows = c.execute(
+        "SELECT id, leave_type, start_date, end_date, days, half_day, reason, status "
+        "FROM leave_requests WHERE user_id=? AND strftime('%Y', start_date)=? AND strftime('%m', start_date)=? "
+        "ORDER BY start_date",
+        (current_user['id'], f"{year:04d}", f"{month:02d}")
+    ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/leave', methods=['POST'])
+@login_required
+def api_leave_create():
+    """Create leave request from calendar click."""
+    c = get_db()
+    current_user = get_current_user()
+    d = request.json or {}
+    leave_type = d.get('leave_type', '').strip()
+    start_date = d.get('start_date', '').strip()
+    end_date = d.get('end_date', '').strip()
+    reason = d.get('reason', '').strip()
+    half_day = d.get('half_day', 'full').strip()
+    if half_day not in ('full', 'am', 'pm'):
+        half_day = 'full'
+    if leave_type not in LEAVE_TYPES:
+        return jsonify({'error': 'กรุณาเลือกประเภทการลา'}), 400
+    if not start_date or not end_date:
+        return jsonify({'error': 'กรุณาระบุวันที่'}), 400
+    if not reason:
+        return jsonify({'error': 'กรุณาระบุเหตุผล'}), 400
+    try:
+        from datetime import datetime as _dt, date as _date
+        start_dt = _dt.strptime(start_date, '%Y-%m-%d').date()
+        end_dt = _dt.strptime(end_date, '%Y-%m-%d').date()
+        if end_dt < start_dt:
+            return jsonify({'error': 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม'}), 400
+        total_days = (end_dt - start_dt).days + 1
+        if half_day in ('am', 'pm'):
+            if total_days > 1:
+                # First/last day half day = 0.5, middle days = 1.0
+                days = total_days - 1 + 0.5  # simplified: treat all as full minus 0.5
+            else:
+                days = 0.5
+        else:
+            days = float(total_days)
+        c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,half_day,reason,status) VALUES (?,?,?,?,?,?,?,?,?)',
+                  (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, half_day, reason, 'pending'))
+        c.commit()
+        return jsonify({'success': True, 'days': days})
+    except ValueError:
+        return jsonify({'error': 'รูปแบบวันที่ไม่ถูกต้อง'}), 400
 
 @app.route('/leave-approvals', methods=['GET','POST'])
 @login_required

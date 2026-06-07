@@ -69,7 +69,7 @@
               <div class="d-flex flex-wrap gap-1">
                 {% for leave in day.leaves[:3] %}
                 {% set st = leave.status|default('pending') %}
-                <span class="badge {% if st == 'approved' %}bg-success{% elif st == 'rejected' %}bg-danger{% elif st == 'cancelled' %}bg-secondary{% else %}bg-warning text-dark{% endif %}" style="font-size:.55rem" title="{{ leave.username }} — {{ leave.leave_type }} ({{ status_labels.get(st, st) }})">{{ leave.username[:6] }}</span>
+                                <span class="badge {% if st == 'approved' %}bg-success{% elif st == 'rejected' %}bg-danger{% elif st == 'cancelled' %}bg-secondary{% else %}bg-warning text-dark{% endif %}" style="font-size:.55rem" title="{{ leave.username }} — {{ leave.leave_type }} ({{ status_labels.get(st, st) }}){% if leave.half_day and leave.half_day != 'full' %} [{{ leave.half_day|upper }}]{% endif %}">{{ leave.username[:6] }}</span>{% if leave.half_day and leave.half_day != 'full' %} <span class="badge bg-info text-dark" style="font-size:.5rem">{{ leave.half_day|upper }}</span>{% endif %}
                 {% endfor %}
                 {% if day.leaves|length > 3 %}
                 <span class="badge bg-light text-dark" style="font-size:.55px">+{{ day.leaves|length - 3 }}</span>
@@ -114,7 +114,7 @@
           <tr>
             <td><b>{{ r.username }}</b></td>
             <td><span class="badge bg-light text-dark" style="font-size:.7rem">{{ r.user_role or '-' }}</span></td>
-            <td><span class="badge bg-info">{{ r.leave_type }}</span></td>
+            <td><span class="badge bg-info">{{ r.leave_type }}</span>{% if r.half_day and r.half_day != 'full' %} <span class="badge bg-info text-dark" style="font-size:.6rem">{{ r.half_day|upper }}</span>{% endif %}</td>
             <td><small>{{ r.start_date }} → {{ r.end_date }}</small></td>
             <td><span class="badge bg-secondary">{{ r.days }}d</span></td>
             <td><small class="text-muted">{{ r.reason[:80] }}{% if r.reason|length > 80 %}…{% endif %}</small></td>
