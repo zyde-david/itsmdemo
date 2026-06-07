@@ -6,227 +6,224 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 <style>
-:root{--primary:#1a5276;--accent:#27ae60}
-body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5;color:#2c3e50}
-.hero{background:linear-gradient(135deg,#0d2f4a,#1a5276,#2980b9);color:#fff;padding:48px 32px;text-align:center;position:relative;overflow:hidden}
+:root{--primary:#1a5276;--accent:#27ae60;--ink:#243447;--muted:#6c7a89}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI','Noto Sans Thai',sans-serif;background:#f0f2f5;color:var(--ink)}
+
+/* ── Nav dots (side) ── */
+.side-nav{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
+.side-dot{width:10px;height:10px;border-radius:50%;background:#ccc;text-decoration:none;transition:all .3s;font-size:0}
+.side-dot:hover,.side-dot.active{background:var(--primary);transform:scale(1.4)}
+
+/* ── Hero ── */
+.hero{background:linear-gradient(135deg,#0d2f4a,#1a5276,#2980b9);color:#fff;padding:40px 28px 32px;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:-40%;right:-15%;width:250px;height:250px;background:rgba(255,255,255,.04);border-radius:50%}
 .hero::after{content:'';position:absolute;bottom:-50%;left:-10%;width:200px;height:200px;background:rgba(255,255,255,.03);border-radius:50%}
-.hero h1{font-weight:700;font-size:1.6rem;margin-bottom:8px;position:relative;z-index:1}
-.hero p{color:rgba(255,255,255,.7);font-size:.9rem;max-width:600px;margin:0 auto;position:relative;z-index:1}
-.feature-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 12px}
-.feature-card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:24px 16px;text-align:center;transition:box-shadow .2s,transform .2s;height:100%}
-.feature-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px)}
-.feature-card h6{font-weight:600;font-size:.85rem;margin-bottom:6px}
-.feature-card p{font-size:.72rem;color:#6c7a89;line-height:1.5;margin:0}
-.section-title{font-weight:700;font-size:1.1rem;color:var(--primary);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.section-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--primary),transparent);border-radius:1px}
-.cta-box{background:linear-gradient(135deg,#e8f4fd,#d4e6f1);border-radius:12px;padding:24px;text-align:center;border-left:4px solid var(--primary)}
-.cta-box h5{font-weight:600;color:var(--primary);margin-bottom:8px}
-.cta-box p{font-size:.8rem;color:#2c3e50;margin-bottom:12px}
-.btn-demo{background:linear-gradient(135deg,var(--primary),#2980b9);color:#fff;border:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:.85rem;text-decoration:none;display:inline-block;transition:opacity .2s}
-.btn-demo:hover{opacity:.9;color:#fff}
-.btn-outline-demo{background:transparent;color:var(--primary);border:2px solid var(--primary);padding:8px 20px;border-radius:8px;font-weight:600;font-size:.8rem;text-decoration:none;display:inline-block;transition:background .2s}
-.btn-outline-demo:hover{background:var(--primary);color:#fff}
-.footer{text-align:center;padding:24px;color:#95a5a6;font-size:.7rem}
+.hero h1{font-weight:700;font-size:1.5rem;margin-bottom:8px;position:relative;z-index:1}
+.hero p{color:rgba(255,255,255,.7);font-size:.88rem;max-width:560px;margin:0 auto;position:relative;z-index:1}
+
+/* ── Lang ── */
 .lang-switch{position:relative;z-index:2;display:inline-flex;gap:4px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:4px;margin-bottom:14px}
-.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.8);font-size:.76rem;padding:6px 11px;font-weight:700}.lang-btn.active{background:#fff;color:var(--primary)}
-@media(max-width:575.98px){.hero{padding:34px 18px}.lang-btn{font-size:.72rem;padding:5px 8px}}
+.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.8);font-size:.74rem;padding:5px 10px;font-weight:700;cursor:pointer}
+.lang-btn.active{background:#fff;color:var(--primary)}
+
+/* ── Zigzag rows ── */
+.zig-section{padding:28px 16px}
+.zig-row{display:flex;align-items:center;gap:24px;margin-bottom:28px}
+.zig-row.reverse{flex-direction:row-reverse}
+.zig-icon{flex:0 0 80px;height:80px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff}
+.zig-body{flex:1}
+.zig-body h3{font-size:1.05rem;font-weight:700;color:var(--primary);margin-bottom:6px}
+.zig-body p{font-size:.82rem;color:var(--muted);line-height:1.6;margin:0}
+.zig-body .hook{font-size:.9rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+
+/* ── CTA ── */
+.cta-box{background:linear-gradient(135deg,#e8f4fd,#d4e6f1);border-radius:16px;padding:24px;text-align:center;border-left:4px solid var(--primary)}
+.cta-box h5{font-weight:600;color:var(--primary);margin-bottom:6px;font-size:1rem}
+.cta-box p{font-size:.82rem;color:#2c3e50;margin-bottom:14px}
+.btn-demo{background:linear-gradient(135deg,var(--primary),#2980b9);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin:4px}
+.btn-demo:hover{opacity:.9;color:#fff}
+.btn-outline-demo{background:transparent;color:var(--primary);border:2px solid var(--primary);padding:8px 18px;border-radius:10px;font-weight:600;font-size:.8rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin:4px}
+.btn-outline-demo:hover{background:var(--primary);color:#fff}
+
+/* ── Next link ── */
+.next-link{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e0e0e0;border-radius:14px;padding:16px 20px;text-decoration:none;color:var(--ink);transition:box-shadow .2s}
+.next-link:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.next-link .next-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.next-link .next-title{font-weight:700;color:var(--primary);font-size:.95rem}
+.next-link i{color:var(--primary);font-size:1.2rem}
+
+/* ── Section title ── */
+.sec-title{font-weight:700;font-size:1rem;color:var(--primary);margin:0 0 16px;padding-top:8px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--primary),transparent);border-radius:1px}
+
+/* ── Feature mini cards ── */
+.mini-card{background:#fff;border:1px solid #e8edf2;border-radius:12px;padding:16px;text-align:center;height:100%;transition:box-shadow .2s}
+.mini-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.07)}
+.mini-card .mc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto 8px;color:#fff}
+.mini-card h6{font-weight:600;font-size:.82rem;margin-bottom:4px}
+.mini-card p{font-size:.7rem;color:var(--muted);line-height:1.5;margin:0}
+
+.footer{text-align:center;padding:20px;color:#95a5a6;font-size:.7rem}
+
+.lang-panel{display:none}.lang-panel.active{display:block}
+
+@media(max-width:767.98px){
+  .side-nav{display:none}
+  .zig-row,.zig-row.reverse{flex-direction:column;text-align:center;gap:12px}
+  .zig-icon{flex:0 0 60px;width:60px;height:60px;font-size:1.5rem}
+  .hero{padding:30px 16px 24px}
+}
 </style>
 </head>
 <body>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="lang-switch" aria-label="Language switcher: English, Thai, Bahasa Melayu">
-    <button type="button" class="lang-btn" data-lang="en" title="English">EN</button>
-    <button type="button" class="lang-btn active" data-lang="th" title="ภาษาไทย">ไทย</button>
-    <button type="button" class="lang-btn" data-lang="ms" title="Bahasa Melayu">Malay</button>
+<!-- Side nav dots -->
+<nav class="side-nav">
+  <a class="side-dot active" href="#what" title="ระบบนี้คืออะไร"></a>
+  <a class="side-dot" href="#features" title="ฟีเจอร์"></a>
+  <a class="side-dot" href="#try" title="ลองใช้"></a>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<div class="hero" id="what">
+  <div class="lang-switch">
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn active" data-lang="th">ไทย</button>
+    <button class="lang-btn" data-lang="ms">Malay</button>
   </div>
   <h1><i class="bi bi-ticket-detailed me-2"></i><span data-i18n="heroTitle">ITSM Demo</span></h1>
-  <p data-i18n-html="heroText">ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์<br>ครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner</p>
+  <p data-i18n="heroText">ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์<br>ครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner</p>
 </div>
 
 <div class="container py-4">
 
-  <!-- What is this -->
-  <div class="cta-box mb-4">
+  <!-- ── What is this ── -->
+  <div class="cta-box mb-4" id="try">
     <h5><i class="bi bi-lightbulb me-2"></i><span data-i18n="whatTitle">ระบบนี้ทำอะไรได้?</span></h5>
-    <p class="mb-2" data-i18n="whatText">ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา</p>
-    <a href="/login" class="btn-demo me-2"><i class="bi bi-box-arrow-in-right me-1"></i><span data-i18n="loginCta">เข้าสู่ระบบ</span></a>
-    <a href="/vision" class="btn-outline-demo me-2"><i class="bi bi-stars me-1"></i>Next: Vision / แผนอนาคต</a>
-    <a href="https://github.com/zyde-david" target="_blank" class="btn-outline-demo"><i class="bi bi-github me-1"></i>GitHub</a>
+    <p class="mb-3" data-i18n="whatText">ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา</p>
+    <a href="/login" class="btn-demo"><i class="bi bi-box-arrow-in-right me-1"></i><span data-i18n="loginCta">เข้าสู่ระบบ</span></a>
+    <a href="/vision" class="btn-outline-demo"><i class="bi bi-stars me-1"></i><span data-i18n="nextVision">ดูแผนอนาคต →</span></a>
   </div>
 
-  <!-- Features Grid -->
-  <div class="section-title"><i class="bi bi-grid-3x3-gap"></i><span data-i18n="featuresTitle">ฟีเจอร์หลัก</span></div>
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#fdecea;color:#c0392b"><i class="bi bi-ticket-perforated"></i></div>
-        <h6>Tickets</h6>
-        <p>รับแจ้งปัญหา IT กรองตามสถานะ/สาขา/จังหวัด มอบหมายทีม IT ติดตามสถานะแบบ real-time</p>
-      </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#e8f8f0;color:#27ae60"><i class="bi bi-box-seam"></i></div>
-        <h6>Assets</h6>
-        <p>ติดตามอุปกรณ์ IT ทุกสาขา รหัสอ่านง่าย (1B-PC001) เชื่อมโยงกับ ticket ประเมินว่าควรเปลี่ยนหรือยัง</p>
-      </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#e8f4fd;color:#1a5276"><i class="bi bi-people"></i></div>
-        <h6>Staff</h6>
-        <p>จัดการพนักงาน แยกทีม IT สรุปจำนวนพนักงานแต่ละจังหวัด กรองตามตำแหน่ง/สาขา</p>
-      </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#fff3e0;color:#e67e22"><i class="bi bi-book"></i></div>
-        <h6>Knowledge Base</h6>
-        <p>เก็บวิธีแก้ปัญหาที่เจอซ้ำ ค้นหาจาก ticket detail แนบ KB กับ ticket ได้</p>
-      </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#fdecea;color:#e74c3c"><i class="bi bi-speedometer2"></i></div>
-        <h6>Dashboard</h6>
-        <p>สรุปภาพรวม: จำนวน ticket แต่ละสถานะ แยกตามจังหวัด หมวดปัญหา ทีม IT อุปกรณ์ ความรู้</p>
-      </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#e8f8f0;color:#27ae60"><i class="bi bi-map"></i></div>
-        <h6>Route Planner</h6>
-        <p>แผนที่ 3 จังหวัด 33 อำเภอ สีเข้ม = ปัญหามาก เรียงลำดับเส้นทางเยี่ยมอัตโนมัติ</p>
-      </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#e8f4fd;color:#2980b9"><i class="bi bi-shield-check"></i></div>
-        <h6>Multi-User & Roles</h6>
-        <p>Admin / Manager / User / HR — แต่ละคนเห็นข้อมูลตามบทบาท จัดการผู้ใช้ได้</p>
-      </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-3">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:#f3e5f5;color:#8e44ad"><i class="bi bi-palette"></i></div>
-        <h6>Dark Mode</h6>
-        <p>สลับธีมสว่าง/มืด เหมาะกับการใช้งานทั้งกลางวันและกลางคืน</p>
-      </div>
-    </div>
-  </div>
+  <!-- ── Features zigzag ── -->
+  <div class="sec-title" id="features"><i class="bi bi-grid-3x3-gap"></i><span data-i18n="featuresTitle">ฟีเจอร์หลัก</span></div>
 
-  <!-- Paperless Section -->
-  <div class="section-title"><i class="bi bi-file-earmark-arrow-up"></i><span data-i18n="paperlessTitle">นำเข้าข้อมูลเดิม — ระบบรองรับ Paperless</span></div>
-  <div class="card mb-4">
-    <div class="card-body">
-      <p class="small text-muted mb-3">ไม่ต้องพิมพ์ข้อมูลเดิมซ้ำทั้งหมด ระบบรองรับการนำเข้าข้อมูลจาก Excel/CSV ได้:</p>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="p-3 border rounded bg-light text-center">
-            <i class="bi bi-filetype-csv fs-3 d-block mb-2 text-success"></i>
-            <strong class="d-block small mb-1">CSV Import</strong>
-            <p class="small text-muted mb-0">ดาวน์โหลด template กรอกข้อมูลใน Excel แล้วอัพโหลด — ระบบ map คอลัมน์ให้อัตโนมัติ</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded bg-light text-center">
-            <i class="bi bi-file-earmark-scan fs-3 d-block mb-2 text-primary"></i>
-            <strong class="d-block small mb-1">Scan & Archive</strong>
-            <p class="small text-muted mb-0">สแกนเอกสารกระดาษ แนบกับ ticket/asset — เอกสารเก่ากลายเป็นดิจิทัล ค้นหาได้</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded bg-light text-center">
-            <i class="bi bi-database-fill-up fs-3 d-block mb-2 text-warning"></i>
-            <strong class="d-block small mb-1">DB Migration</strong>
-            <p class="small text-muted mb-0">มีฐานข้อมูลเดิม (Access/SQLite)? — เขียน migration script ย้ายข้อมูลทั้งหมด</p>
-          </div>
-        </div>
-      </div>
-      <div class="alert alert-success mt-3 mb-0 small">
-        <strong>✅ ประโยชน์:</strong> ลดเวลากรอกข้อมูล 80% · เอกสารเก่าไม่หาย · ค้นหาได้ทันที · สำรองข้อมูลบนคลาวด์
+  <div class="zig-section">
+
+    <!-- Row 1: icon left, text right -->
+    <div class="zig-row">
+      <div class="zig-icon" style="background:linear-gradient(135deg,#c0392b,#e74c3c)"><i class="bi bi-ticket-perforated"></i></div>
+      <div class="zig-body">
+        <div class="hook" data-i18n="fTicketHook">รับแจ้งปัญหา ติดตามสถานะ จบในที่เดียว</div>
+        <p data-i18n="fTicketText">กรองตามสถานะ/สาขา/จังหวัด มอบหมายทีม IT ดูได้ real-time ไม่ต้องถามว่า "งานไหนเสร็จแล้ว?"</p>
       </div>
     </div>
-  </div>
 
-  <!-- AI Privacy Explanation -->
-  <div class="section-title"><i class="bi bi-shield-lock"></i><span data-i18n="aiPrivacyTitle">AI ช่วยงานแบบระวังข้อมูลส่วนตัว</span></div>
-  <div class="card mb-4">
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="p-3 border rounded h-100 bg-light">
-            <strong class="d-block small mb-1"><i class="bi bi-hdd-network me-1 text-success"></i><span data-i18n="aiPrivateModeTitle">Local LLM / private mode</span></strong>
-            <p class="small text-muted mb-0" data-i18n="aiPrivateModeText">ข้อมูล private เช่น ticket, asset, staff และสาขา จะใช้ local LLM/private mode เป็นทางหลัก เพื่อไม่ส่งข้อมูลดิบออกนอก server โดยค่าเริ่มต้น</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded h-100 bg-light">
-            <strong class="d-block small mb-1"><i class="bi bi-cloud-check me-1 text-primary"></i><span data-i18n="aiCloudTitle">Cloud AI ต้องเลือกเปิดเอง</span></strong>
-            <p class="small text-muted mb-0" data-i18n="aiCloudText">ถ้าใช้ Cloud AI/API ให้เป็น opt-in ส่งเฉพาะข้อมูลจำเป็น ลดรายละเอียดส่วนตัว และให้คนอนุมัติก่อนเสมอ</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-3 border rounded h-100 bg-light">
-            <strong class="d-block small mb-1"><i class="bi bi-person-check me-1 text-warning"></i><span data-i18n="aiHumanTitle">AI เป็นผู้ช่วยเท่านั้น</span></strong>
-            <p class="small text-muted mb-0" data-i18n="aiHumanText">AI ช่วยสรุปงาน แนะนำหมวด/ความสำคัญ หรือร่าง KB ได้ แต่การเปลี่ยนสถานะ มอบหมายงาน หรือเผยแพร่เนื้อหา ต้องให้คนยืนยันก่อน</p>
-          </div>
-        </div>
+    <!-- Row 2: text left, icon right -->
+    <div class="zig-row reverse">
+      <div class="zig-icon" style="background:linear-gradient(135deg,#27ae60,#2ecc71)"><i class="bi bi-box-seam"></i></div>
+      <div class="zig-body">
+        <div class="hook" data-i18n="fAssetHook">รู้ว่าเครื่องไหนอยู่ที่ไหน เคยซ่อมอะไรมาบ้าง</div>
+        <p data-i18n="fAssetText">รหัสอ่านง่าย (1B-PC001) เชื่อมโยงกับ ticket ประเมินว่าควรเปลี่ยนหรือยัง — ไม่ต้องเดา</p>
       </div>
     </div>
-  </div>
 
-  <!-- Roadmap Preview -->
-  <div class="section-title"><i class="bi bi-signpost-split"></i><span data-i18n="roadmapTitle">แผนการพัฒนา</span></div>
-  <div class="card mb-4">
-    <div class="card-body">
-      <div class="row g-2 text-center small">
-        <div class="col"><div class="p-2 rounded" style="background:#e8f8f0"><strong class="d-block text-success">Phase 1 ✓</strong><span class="text-muted">Auth + Settings</span></div></div>
-        <div class="col"><i class="bi bi-arrow-right text-muted align-self-center"></i></div>
-        <div class="col"><div class="p-2 rounded" style="background:#fff3e0"><strong class="d-block text-warning">Phase 2</strong><span class="text-muted">Change + Problem</span></div></div>
-        <div class="col"><i class="bi bi-arrow-right text-muted align-self-center"></i></div>
-        <div class="col"><div class="p-2 rounded" style="background:#fff3e0"><strong class="d-block text-warning">Phase 3</strong><span class="text-muted">SLA + Catalog</span></div></div>
-        <div class="col"><i class="bi bi-arrow-right text-muted align-self-center"></i></div>
-        <div class="col"><div class="p-2 rounded" style="background:#f0f0f0"><strong class="d-block text-muted">Phase 4-5</strong><span class="text-muted">HR + Geo + MBU</span></div></div>
+    <!-- Row 3 -->
+    <div class="zig-row">
+      <div class="zig-icon" style="background:linear-gradient(135deg,#1a5276,#2980b9)"><i class="bi bi-people"></i></div>
+      <div class="zig-body">
+        <div class="hook" data-i18n="fStaffHook">รู้ว่าใครอยู่สาขาไหน รับผิดชอบงานอะไร</div>
+        <p data-i18n="fStaffText">แสดงพนักงานแยกตามสาขาและจังหวัด เชื่อมกับ asset ที่รับผิดชอบ ดูภาพรวมทีมได้ในหน้าเดียว</p>
       </div>
-      <p class="small text-muted mt-2 mb-0 text-center">ดูรายละเอียดแผนการพัฒนาแบบเต็มหลังเข้าสู่ระบบ</p>
     </div>
-  </div>
 
-  <!-- Contact / CTA -->
-  <div class="cta-box mb-4">
-    <h5><i class="bi bi-chat-dots me-2"></i><span data-i18n="contactTitle">สนใจทดลองใช้งาน?</span></h5>
-    <p class="mb-3" data-i18n="contactText">ระบบนี้เป็น demo สำหรับการสัมภาษณ์งาน — สามารถติดต่อผู้พัฒนาเพื่อขอทดลองใช้งานเพิ่มเติมได้ทาง GitHub</p>
-    <a href="https://github.com/zyde-david" target="_blank" class="btn-demo me-2"><i class="bi bi-github me-1"></i>GitHub: zyde-david</a>
-    <a href="/login" class="btn-outline-demo"><i class="bi bi-box-arrow-in-right me-1"></i><span data-i18n="loginCta">เข้าสู่ระบบ</span></a>
-  </div>
+    <!-- Row 4 -->
+    <div class="zig-row reverse">
+      <div class="zig-icon" style="background:linear-gradient(135deg,#8e44ad,#9b59b6)"><i class="bi bi-book"></i></div>
+      <div class="zig-body">
+        <div class="hook" data-i18n="fKbHook">ปัญหาเดิมไม่ต้องแก้ใหม่ซ้ำ ๆ</div>
+        <p data-i18n="fKbText">ค้นหาบทความความรู้ แนบกับ ticket ได้ทันที สร้าง KB ใหม่จาก ticket ที่แก้ได้แล้ว — ความรู้อยู่ในระบบ ไม่อยู่ในหัวคน</p>
+      </div>
+    </div>
+
+    <!-- Row 5 -->
+    <div class="zig-row">
+      <div class="zig-icon" style="background:linear-gradient(135deg,#e67e22,#f39c12)"><i class="bi bi-map"></i></div>
+      <div class="zig-body">
+        <div class="hook" data-i18n="fMapHook">วางแผนเยี่ยมสาขาได้อย่างมีประสิทธิภาพ</div>
+        <p data-i18n="fMapText">แผนที่แสดงตำแหน่งสาขา + จุดที่มี ticket หนาแน่น วาง route ช่างภาคสนาม ลดเวลาเดินทาง ครบทุกจุด</p>
+      </div>
+    </div>
+
+  </div><!-- /zig-section -->
+
+  <!-- ── Next: Vision ── -->
+  <a href="/vision" class="next-link mt-2 mb-4">
+    <div>
+      <div class="next-label" data-i18n="nextLabel">ต่อไป</div>
+      <div class="next-title" data-i18n="nextVisionTitle">Vision & แผนอนาคต — ทิศทางของระบบ</div>
+    </div>
+    <i class="bi bi-arrow-right-circle-fill"></i>
+  </a>
 
 </div>
 
-<div class="footer">
-  ITSM Demo v0.24 — สร้างโดย Zyde สำหรับการสัมภาษณ์งาน | ข้อมูลเป็นข้อมูลจำลอง<br>
-  <a href="/vision" class="text-decoration-none">Vision / AI privacy roadmap</a> · Flask + SQLite + Bootstrap 5 + DataTables + Leaflet
-</div>
+<div class="footer">ITSM Demo · Public page · Demo data only · <a href="/login" class="text-decoration-none">Login</a></div>
 
 <script>
-const pageCopy={
-  th:{heroTitle:'ITSM Demo',heroText:'ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์<br>ครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner',whatTitle:'ระบบนี้ทำอะไรได้?',whatText:'ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา',loginCta:'เข้าสู่ระบบ',featuresTitle:'ฟีเจอร์หลัก',paperlessTitle:'นำเข้าข้อมูลเดิม — ระบบรองรับ Paperless',aiPrivacyTitle:'AI ช่วยงานแบบระวังข้อมูลส่วนตัว',aiPrivateModeTitle:'Local LLM / private mode',aiPrivateModeText:'ข้อมูล private เช่น ticket, asset, staff และสาขา จะใช้ local LLM/private mode เป็นทางหลัก เพื่อไม่ส่งข้อมูลดิบออกนอก server โดยค่าเริ่มต้น',aiCloudTitle:'Cloud AI ต้องเลือกเปิดเอง',aiCloudText:'ถ้าใช้ Cloud AI/API ให้เป็น opt-in ส่งเฉพาะข้อมูลจำเป็น ลดรายละเอียดส่วนตัว และให้คนอนุมัติก่อนเสมอ',aiHumanTitle:'AI เป็นผู้ช่วยเท่านั้น',aiHumanText:'AI ช่วยสรุปงาน แนะนำหมวด/ความสำคัญ หรือร่าง KB ได้ แต่การเปลี่ยนสถานะ มอบหมายงาน หรือเผยแพร่เนื้อหา ต้องให้คนยืนยันก่อน',roadmapTitle:'แผนการพัฒนา',contactTitle:'สนใจทดลองใช้งาน?',contactText:'ระบบนี้เป็น demo สำหรับการสัมภาษณ์งาน — สามารถติดต่อผู้พัฒนาเพื่อขอทดลองใช้งานเพิ่มเติมได้ทาง GitHub'},
-  en:{heroTitle:'ITSM Demo',heroText:'IT Service Management demo for a branch-based cooperative<br>Ticket · Asset · Staff · Knowledge Base · Route Planner',whatTitle:'What can this system do?',whatText:'Designed for IT work across many cooperative branches and provinces — from issue intake and tracking to asset control and branch visit planning.',loginCta:'Sign in',featuresTitle:'Main features',paperlessTitle:'Bring old data in — paperless-ready',aiPrivacyTitle:'AI helps without exposing private data',aiPrivateModeTitle:'Local LLM / private mode',aiPrivateModeText:'Private ITSM data such as tickets, assets, staff, and branch details will use a local model/private mode first, so raw private data does not leave the server by default.',aiCloudTitle:'Cloud AI is opt-in',aiCloudText:'If cloud AI/API is used, send only the minimum facts, reduce personal details, and require human approval.',aiHumanTitle:'AI is only a helper',aiHumanText:'AI can suggest summaries, category, priority, or KB drafts. A person confirms before status, assignment, SLA, or published knowledge changes.',roadmapTitle:'Development roadmap',contactTitle:'Interested in trying it?',contactText:'This is an interview demo. Contact the developer on GitHub if you want a deeper walkthrough.'},
-  pm:{heroTitle:'ITSM Demo',heroText:'Sistem urus kerja IT untuk koperasi banyak cawangan<br>Ticket · Barang IT · Staff · Knowledge · Route Planner',whatTitle:'Sistem ni buat apa?',whatText:'Demo ni bantu urus kerja IT กีตอ: terima masalah, tengok status, jaga barang IT, dan plan jalan pi cawangan.',loginCta:'Masuk sistem',featuresTitle:'Fungsi utama',paperlessTitle:'Data lama pun masuk boleh — kurang kertas',aiPrivacyTitle:'AI bantu kerja, data private jaga elok',aiPrivateModeTitle:'Local LLM / private mode',aiPrivateModeText:'Ticket, barang IT, staff, dan data cawangan yang private boleh proses dalam server/private mode. Default tak hantar raw data keluar.',aiCloudTitle:'Cloud AI pilih buka sendiri',aiCloudText:'Kalau guna Cloud AI/API, hantar sikit yang perlu saja, kurangkan detail orang, dan bagi manusia approve dulu.',aiHumanTitle:'AI cuma pembantu',aiHumanText:'AI boleh cadang summary, kategori, priority, atau draft KB. Tapi tukar status, assign kerja, SLA, atau publish knowledge mesti manusia confirm.',roadmapTitle:'Plan tambah feature',contactTitle:'Nak cuba demo?',contactText:'Demo ni buat untuk interview. Kalau nak tengok lebih, hubungi developer dekat GitHub.'}
+const copy={
+  th:{
+    heroTitle:'ITSM Demo',heroText:'ระบบจัดการ IT Service Management สำหรับสหกรณ์ออมทรัพย์\nครบวงจร: Ticket · Asset · Staff · Knowledge Base · Route Planner',
+    whatTitle:'ระบบนี้ทำอะไรได้?',whatText:'ออกแบบมาเพื่อจัดการงาน IT ของสหกรณ์ที่มีสาขาหลายสาขาในหลายจังหวัด — ตั้งแต่รับแจ้งปัญหา ติดตามงาน จัดการอุปกรณ์ ไปจนถึงวางแผนเส้นทางเยี่ยมสาขา',
+    loginCta:'เข้าสู่ระบบ',nextVision:'ดูแผนอนาคต →',featuresTitle:'ฟีเจอร์หลัก',
+    fTicketHook:'รับแจ้งปัญหา ติดตามสถานะ จบในที่เดียว',fTicketText:'กรองตามสถานะ/สาขา/จังหวัด มอบหมายทีม IT ดูได้ real-time ไม่ต้องถามว่า "งานไหนเสร็จแล้ว?"',
+    fAssetHook:'รู้ว่าเครื่องไหนอยู่ที่ไหน เคยซ่อมอะไรมาบ้าง',fAssetText:'รหัสอ่านง่าย (1B-PC001) เชื่อมโยงกับ ticket ประเมินว่าควรเปลี่ยนหรือยัง — ไม่ต้องเดา',
+    fStaffHook:'รู้ว่าใครอยู่สาขาไหน รับผิดชอบงานอะไร',fStaffText:'แสดงพนักงานแยกตามสาขาและจังหวัด เชื่อมกับ asset ที่รับผิดชอบ ดูภาพรวมทีมได้ในหน้าเดียว',
+    fKbHook:'ปัญหาเดิมไม่ต้องแก้ใหม่ซ้ำ ๆ',fKbText:'ค้นหาบทความความรู้ แนบกับ ticket ได้ทันที สร้าง KB ใหม่จาก ticket ที่แก้ได้แล้ว — ความรู้อยู่ในระบบ ไม่อยู่ในหัวคน',
+    fMapHook:'วางแผนเยี่ยมสาขาได้อย่างมีประสิทธิภาพ',fMapText:'แผนที่แสดงตำแหน่งสาขา + จุดที่มี ticket หนาแน่น วาง route ช่างภาคสนาม ลดเวลาเดินทาง ครบทุกจุด',
+    nextLabel:'ต่อไป',nextVisionTitle:'Vision & แผนอนาคต — ทิศทางของระบบ'
+  },
+  en:{
+    heroTitle:'ITSM Demo',heroText:'IT Service Management for savings cooperatives\nFull cycle: Ticket · Asset · Staff · Knowledge Base · Route Planner',
+    whatTitle:'What does this do?',whatText:'Designed to manage IT work for cooperatives with multi-branch, multi-province operations — from issue reporting to asset tracking to branch visit planning.',
+    loginCta:'Log in',nextVision:'See future plan →',featuresTitle:'Key Features',
+    fTicketHook:'Report, track, resolve — all in one place',fTicketText:'Filter by status/branch/province. Assign IT team. Real-time status. No more "which job is done?"',
+    fAssetHook:'Know where each device is and its repair history',fAssetText:'Easy-read codes (1B-PC001) linked to tickets. Decide repair vs replace — no guessing.',
+    fStaffHook:'Know who is at which branch and what they handle',fStaffText:'Staff by branch and province, linked to responsible assets. Full team overview in one view.',
+    fKbHook:'Same problem? Don\'t solve it from scratch again',fKbText:'Search knowledge articles, attach to tickets instantly. Create new KB from resolved tickets — knowledge stays in the system.',
+    fMapHook:'Plan branch visits efficiently',fMapText:'Map showing branch locations + ticket hotspots. Route field techs. Less travel, all stops covered.',
+    nextLabel:'Next',nextVisionTitle:'Vision & Future Plan — where the system is heading'
+  },
+  ms:{
+    heroTitle:'ITSM Demo',heroText:'IT Service Management untuk koperasi simpan pinjam\nLengkap: Ticket · Asset · Staff · Knowledge Base · Route Planner',
+    whatTitle:'Sistem ni buat apa?',whatText:'Direka untuk urus kerja IT koperasi yang ada banyak cawangan di banyak daerah — dari lapor masalah ke alat jejak hingga rancang lawatan cawangan.',
+    loginCta:'Log masuk',nextVision:'Tengok plan masa hadapan →',featuresTitle:'Feature Utama',
+    fTicketHook:'Lapor, jejak, selesai — semua dalam satu tempat',fTicketText:'Tapis ikut status/cawangan/daerah. Assign pasukan IT. Status real-time. Tak perlu tanya "kerja mana dah siap?"',
+    fAssetHook:'Tahu mana alat di mana, pernah repair apa',fAssetText:'Kod mudah baca (1B-PC001) sambung dengan ticket. Decide repair atau ganti — tak perlueka.',
+    fStaffHook:'Tahu siapa di cawangan mana, tanggung kerja apa',fStaffText:'Kakitangan ikut cawangan dan daerah, sambung dengan asset yang ditanggung. Gambaran pasukan lengkap dalam satu paparan.',
+    fKbHook:'Masalah sama? Jangan selesai dari awal lagi',fKBText:'Cari artikel ilmu, attach ke ticket terus. Buat KB baru dari ticket yang dah selesai — ilmu dalam sistem, bukan dalam kepala orang.',
+    fMapHook:'Rancang lawatan cawangan dengan cekap',fMapText:'Peta tunjuk lokasi cawangan + hotspot ticket. Laluan teknisi jalanan. Kurang perjalanan, semua berhenti dilawati.',
+    nextLabel:'Seterusnya',nextVisionTitle:'Vision & Plan Masa Hadapan — hala tuju sistem'
+  }
 };
-function setPublicLang(lang){
-  const dict=pageCopy[lang]||pageCopy.th;
-  localStorage.setItem('uiLanguage',lang);
-  document.documentElement.lang=lang==='en'?'en':(lang==='pm'?'ms':'th');
-  document.querySelectorAll('.lang-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.lang===lang));
-  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(dict[key]) el.textContent=dict[key];});
-  document.querySelectorAll('[data-i18n-html]').forEach(el=>{const key=el.dataset.i18nHtml;if(dict[key]) el.innerHTML=dict[key];});
+function setLang(lang){
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+  document.querySelectorAll('.lang-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===lang));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(copy[lang][k])el.textContent=copy[lang][k];});
+  document.documentElement.lang=lang==='en'?'en':(lang==='ms'?'ms':'th');
 }
-document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>setPublicLang(btn.dataset.lang)));
-setPublicLang(localStorage.getItem('uiLanguage')||'th');
+document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+setLang(localStorage.getItem('uiLanguage')||'th');
+
+// Side nav active on scroll
+const sections = document.querySelectorAll('[id]');
+const dots = document.querySelectorAll('.side-dot');
+window.addEventListener('scroll',()=>{
+  let cur = '';
+  sections.forEach(s=>{if(window.scrollY >= s.offsetTop-120) cur = s.id;});
+  dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+cur));
+});
 </script>
 </body>
 </html>

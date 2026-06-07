@@ -1,419 +1,364 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Vision — ITSM Demo</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 <style>
-:root{
-  --navy:#0f2f4a;
-  --blue:#1a5276;
-  --green:#27ae60;
-  --soft:#f3f8fc;
-  --ink:#243447;
-  --muted:#64748b;
-}
+:root{--navy:#0f2f4a;--blue:#1a5276;--green:#27ae60;--soft:#f3f8fc;--ink:#243447;--muted:#536675}
 *{box-sizing:border-box}
-body{
-  font-family:'Segoe UI','Noto Sans Thai',Arial,sans-serif;
-  background:linear-gradient(180deg,#eef6fb 0%,#fff 46%,#f7fafc 100%);
-  color:var(--ink);
-}
-.page-shell{max-width:1120px;margin:0 auto;padding:18px 14px 30px}
-.hero{
-  background:radial-gradient(circle at 18% 18%,rgba(39,174,96,.25),transparent 24%),linear-gradient(135deg,var(--navy),var(--blue) 72%,#2980b9);
-  color:#fff;
-  border-radius:26px;
-  padding:30px 22px;
-  box-shadow:0 16px 42px rgba(15,47,74,.22);
-  position:relative;
-  overflow:hidden;
-}
+body{font-family:'Segoe UI','Noto Sans Thai',Arial,sans-serif;background:linear-gradient(180deg,#eef6fb 0%,#fff 46%,#f7fafc 100%);color:var(--ink)}
+
+/* ── Side nav ── */
+.side-nav{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
+.side-dot{width:10px;height:10px;border-radius:50%;background:#ccc;text-decoration:none;transition:all .3s}
+.side-dot:hover,.side-dot.active{background:var(--blue);transform:scale(1.4)}
+
+/* ── Hero ── */
+.hero{background:radial-gradient(circle at 18% 18%,rgba(39,174,96,.25),transparent 24%),linear-gradient(135deg,var(--navy),var(--blue) 72%,#2980b9);color:#fff;border-radius:26px;padding:28px 20px;box-shadow:0 16px 42px rgba(15,47,74,.22);position:relative;overflow:hidden}
 .hero::after{content:'';position:absolute;right:-80px;bottom:-90px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.08)}
 .hero-content{position:relative;z-index:1}
-.top-links a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:7px 12px;font-size:.78rem;font-weight:700}
+.top-links a{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:6px 11px;font-size:.74rem;font-weight:700}
 .top-links a:hover{background:rgba(255,255,255,.12)}
-.lang-switch{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px;display:inline-flex;gap:4px;flex-wrap:wrap}
-.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.78);font-size:.78rem;padding:6px 11px;font-weight:800}
+.lang-switch{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px;display:inline-flex;gap:4px}
+.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.78);font-size:.74rem;padding:5px 10px;font-weight:700;cursor:pointer}
 .lang-btn.active{background:#fff;color:var(--blue)}
-.hero h1{font-size:clamp(1.8rem,5vw,3.35rem);line-height:1.06;font-weight:850;letter-spacing:-.04em;margin:18px 0 12px}
-.hero p{max-width:790px;color:rgba(255,255,255,.84);font-size:1rem;line-height:1.7}
-.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-.pill-row span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px;font-size:.78rem}
-.vision-card{background:#fff;border:1px solid #e7edf3;border-radius:22px;padding:22px;box-shadow:0 8px 28px rgba(21,54,82,.08);height:100%}
-.card-icon{width:48px;height:48px;border-radius:16px;background:#eaf5ff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.45rem;margin-bottom:12px}
-.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#5d7890;font-weight:850;margin-bottom:8px}
-.vision-card h2,.vision-card h3{font-size:1.15rem;font-weight:850;color:var(--blue);margin-bottom:10px}
-.vision-card p,.vision-card li{font-size:.9rem;line-height:1.62;color:#536675}
-.step-list{display:grid;gap:10px}
-.step-item{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid #dcebf6;border-radius:16px;padding:12px}
-.step-num{min-width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:850}
-.roadmap-pill{display:inline-flex;align-items:center;gap:6px;background:#f6faf7;border:1px solid #dbeee2;border-radius:999px;padding:8px 11px;margin:4px;font-size:.82rem;color:#315b42}
-.future-card{background:#f8fbfd;border:1px solid #e2edf5;border-radius:16px;padding:14px;height:100%}
-.future-card strong{display:block;color:var(--blue);font-size:.9rem;margin-bottom:5px}
-.future-card p{font-size:.82rem;line-height:1.55;margin:0;color:#5d6f7d}
-.trust-box{background:linear-gradient(135deg,#fff,#f2f9f5);border-left:5px solid var(--green)}
-.footer-note{text-align:center;color:#7b8b99;font-size:.78rem;margin-top:24px}
+.hero h1{font-size:clamp(1.6rem,4vw,2.8rem);line-height:1.08;font-weight:850;letter-spacing:-.04em;margin:16px 0 10px}
+.hero p{max-width:720px;color:rgba(255,255,255,.84);font-size:.92rem;line-height:1.7}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pill-row span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 10px;font-size:.74rem}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn-open{background:#fff;color:var(--blue);border:0;border-radius:14px;padding:10px 16px;font-weight:850;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-ghost{color:#fff;border:1px solid rgba(255,255,255,.34);border-radius:14px;padding:9px 14px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+
+/* ── Section ── */
+.section{padding:28px 0 8px}
+.sec-label{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:#5d7890;font-weight:850;margin-bottom:6px}
+.sec-title{font-size:1.1rem;font-weight:850;color:var(--blue);margin-bottom:10px}
+.sec-intro{font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:18px}
+
+/* ── Zigzag rows ── */
+.zig-row{display:flex;align-items:flex-start;gap:20px;margin-bottom:20px}
+.zig-row.reverse{flex-direction:row-reverse}
+.zig-icon{flex:0 0 56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;margin-top:4px}
+.zig-body{flex:1}
+.zig-body .hook{font-size:.92rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.zig-body p{font-size:.8rem;color:var(--muted);line-height:1.55;margin:0}
+.zig-body .sub{font-size:.74rem;color:#8899aa;margin-top:4px;line-height:1.5}
+
+/* ── Mini cards grid ── */
+.mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.mini-card{background:#f8fbfd;border:1px solid #e2edf5;border-radius:12px;padding:12px;height:100%}
+.mini-card .mc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;margin-bottom:8px}
+.mini-card h6{font-weight:700;color:var(--blue);font-size:.82rem;margin-bottom:4px}
+.mini-card p{font-size:.74rem;color:var(--muted);line-height:1.5;margin:0}
+
+/* ── Next link ── */
+.next-link{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e7edf3;border-radius:14px;padding:14px 18px;text-decoration:none;color:var(--ink);transition:box-shadow .2s}
+.next-link:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.next-link .nl{font-size:.65rem;color:#8899aa;text-transform:uppercase;letter-spacing:.5px}
+.next-link .nt{font-weight:700;color:var(--blue);font-size:.88rem}
+.next-link i{color:var(--blue);font-size:1.1rem}
+
+.footer-note{text-align:center;color:#7b8b99;font-size:.74rem;margin-top:24px}
 .lang-panel{display:none}.lang-panel.active{display:block}
-.cta{display:flex;gap:10px;flex-wrap:wrap}
-.btn-open{background:#fff;color:var(--blue);border:0;border-radius:14px;padding:11px 18px;font-weight:850;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-.btn-ghost{color:#fff;border:1px solid rgba(255,255,255,.34);border-radius:14px;padding:10px 16px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-.section-title{font-weight:850;color:var(--blue);font-size:1.05rem;margin:4px 0 10px}
+
 @media(max-width:767.98px){
-  .page-shell{padding:10px 10px 24px}
+  .side-nav{display:none}
+  .zig-row,.zig-row.reverse{flex-direction:column;gap:10px}
   .hero{border-radius:20px;padding:22px 16px}
-  .vision-card{padding:18px}
-  .top-links{width:100%;margin-top:8px}
-  .top-links a{font-size:.72rem;padding:6px 9px}
-  .lang-btn{font-size:.72rem;padding:6px 9px}
-  .btn-open,.btn-ghost{width:100%;justify-content:center}
-  .step-item{padding:10px}
+  .mini-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
 <body>
-<div class="page-shell">
-  <section class="hero mb-3 mb-md-4">
-    <div class="hero-content">
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-        <div class="small fw-bold opacity-75"><i class="bi bi-stars me-1"></i>Vision · Working strategy · Privacy-first AI</div>
-        <div class="top-links d-flex gap-2 flex-wrap">
-          <a href="/interview"><i class="bi bi-qr-code me-1"></i>Interview</a>
-          <a href="/howto-public"><i class="bi bi-info-circle me-1"></i>Overview</a>
-          <a href="/login"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a>
-        </div>
-        <div class="lang-switch" aria-label="Language switcher: English, Thai, Bahasa Melayu">
-          <button class="lang-btn active" data-lang="th">ไทย</button>
-          <button class="lang-btn" data-lang="en">English</button>
-          <button class="lang-btn" data-lang="ms" title="Bahasa Melayu">Malay</button>
-        </div>
-      </div>
 
-      <div class="lang-panel active" data-panel="th">
-        <h1>Vision: ระบบ ITSM ที่ทำเป็นขั้นตอนและไว้ใจได้</h1>
-        <p>เดโมนี้ไม่ได้โชว์แค่หน้า Ticket หรือ AI แต่โชว์วิธีทำงานด้วย: คิดก่อนทำ เก็บงานเป็น Kanban ทำทีละ batch เล็ก ทดสอบก่อน deploy และออกแบบให้คนสาขาใช้บนมือถือ/แท็บเล็ตได้ง่าย</p>
-      </div>
-      <div class="lang-panel" data-panel="en">
-        <h1>Vision: practical ITSM, built step by step</h1>
-        <p>This demo shows more than features — it shows how we work: plan first, track work in Kanban, ship in small approved batches, test before deploy, and keep the interface simple for branch teams on mobile or tablet.</p>
-      </div>
-      <div class="lang-panel" data-panel="ms">
-        <h1>Vision: ITSM demo yang buat kerja elok-elok</h1>
-        <p>Demo ni bukan tunjuk feature saja. Cara kerja pun penting: fikir dulu, simpan kerja dalam Kanban, buat sikit-sikit lepas approve/GG, test dulu sebelum deploy, dan UI mudah untuk orang cawangan guna atas phone atau tablet.</p>
-      </div>
+<!-- Side nav -->
+<nav class="side-nav">
+  <a class="side-dot active" href="#hero" title="Vision"></a>
+  <a class="side-dot" href="#product" title="Product direction"></a>
+  <a class="side-dot" href="#geobi" title="Geo BI"></a>
+  <a class="side-dot" href="#future" title="Future principles"></a>
+  <a class="side-dot" href="#trust" title="Trust"></a>
+</nav>
 
-      <div class="pill-row">
-        <span><i class="bi bi-kanban me-1"></i>Kanban-first</span>
-        <span><i class="bi bi-check2-circle me-1"></i>QA before deploy</span>
-        <span><i class="bi bi-phone me-1"></i>Mobile/tablet friendly</span>
-        <span><i class="bi bi-shield-lock me-1"></i>Local/private AI path</span>
+<div class="container" style="max-width:960px;padding:18px 14px 30px">
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero mb-3" id="hero">
+  <div class="hero-content">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div class="small fw-bold opacity-75"><i class="bi bi-stars me-1"></i>Vision · Working strategy · Privacy-first AI</div>
+      <div class="top-links d-flex gap-2 flex-wrap">
+        <a href="/interview"><i class="bi bi-qr-code me-1"></i>Interview</a>
+        <a href="/howto-public"><i class="bi bi-info-circle me-1"></i>Overview</a>
+        <a href="/login"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a>
       </div>
-      <div class="cta mt-4">
-        <a class="btn-open" href="/login"><i class="bi bi-box-arrow-in-right"></i><span data-i18n="openDemo">Open demo</span></a>
-        <a class="btn-ghost" href="/howto-public"><i class="bi bi-grid"></i><span data-i18n="seeOverview">ดูระบบโดยรวม</span></a>
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="th">ไทย</button>
+        <button class="lang-btn" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="ms">Malay</button>
       </div>
     </div>
-  </section>
+    <div class="lang-panel active" data-panel="th">
+      <h1>Vision: ระบบ ITSM ที่ทำเป็นขั้นตอนและไว้ใจได้</h1>
+      <p>เดโมนี้ไม่ได้โชว์แค่หน้า Ticket หรือ AI — แต่โชว์วิธีทำงานด้วย: คิดก่อนทำ เก็บงานเป็น Kanban ทำทีละ batch เล็ก ทดสอบก่อน deploy และออกแบบให้คนสาขาใช้บนมือถือ/แท็บเล็ตได้ง่าย</p>
+    </div>
+    <div class="lang-panel" data-panel="en">
+      <h1>Vision: practical ITSM, built step by step</h1>
+      <p>This demo shows more than features — it shows how we work: plan first, track work in Kanban, ship in small approved batches, test before deploy, and keep the interface simple for branch teams on mobile or tablet.</p>
+    </div>
+    <div class="lang-panel" data-panel="ms">
+      <h1>Vision: ITSM demo yang buat kerja elok-elok</h1>
+      <p>Demo ni bukan tunjuk feature saja. Cara kerja pun penting: fikir dulu, simpan kerja dalam Kanban, buat sikit-sikit lepas approve/GG, test dulu sebelum deploy, dan UI mudah untuk orang cawangan guna atas phone atau tablet.</p>
+    </div>
+    <div class="pill-row">
+      <span><i class="bi bi-kanban me-1"></i>Kanban-first</span>
+      <span><i class="bi bi-check2-circle me-1"></i>QA before deploy</span>
+      <span><i class="bi bi-phone me-1"></i>Mobile/tablet friendly</span>
+      <span><i class="bi bi-shield-lock me-1"></i>Local/private AI path</span>
+    </div>
+    <div class="cta">
+      <a class="btn-open" href="/login"><i class="bi bi-box-arrow-in-right"></i><span data-i18n="openDemo">Open demo</span></a>
+      <a class="btn-ghost" href="/howto-public"><i class="bi bi-grid"></i><span data-i18n="seeOverview">ดูระบบโดยรวม</span></a>
+    </div>
+  </div>
+</section>
 
-  <div class="row g-3 mb-3">
-    <div class="col-md-4">
-      <div class="vision-card">
-        <div class="card-icon"><i class="bi bi-pencil-square"></i></div>
-        <div class="eyebrow">Plan first</div>
-        <h2 data-i18n="planTitle">ไม่ใช้เครื่องมือแบบสุ่ม</h2>
-        <p data-i18n="planText">เริ่มจากเข้าใจปัญหา เลือกทางที่เสี่ยงน้อย แล้วค่อยลงมือ เพื่อให้เดโมดูเป็นระบบและอธิบายกับผู้สัมภาษณ์ได้ง่าย</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="vision-card">
-        <div class="card-icon"><i class="bi bi-kanban"></i></div>
-        <div class="eyebrow">Kanban + gates</div>
-        <h2 data-i18n="kanbanTitle">เก็บงานเป็นการ์ด รออนุมัติ/GG</h2>
-        <p data-i18n="kanbanText">ไอเดียและบั๊กถูกแยกเป็น card ชัดเจน ทำเป็น batch เล็ก ๆ ก่อนงาน build/fix/deploy สำคัญจะมี approval gate ลดงานหลุดและลดความเสี่ยง</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="vision-card">
-        <div class="card-icon"><i class="bi bi-ui-checks-grid"></i></div>
-        <div class="eyebrow">UX matters</div>
-        <h2 data-i18n="uxTitle">รายละเอียดเล็ก ๆ ทำให้คนใช้สบายขึ้น</h2>
-        <p data-i18n="uxText">เน้น card/step layout, ข้อความไม่รก, ปุ่มกดง่าย, คำอธิบายภาษาคนทำงาน และ local wording อย่าง นายูบ้านเรา เมื่อช่วยให้ demo เข้าถึงง่ายขึ้น</p>
-      </div>
+<!-- ═══════════════ PRODUCT DIRECTION ═══════════════ -->
+<div class="section" id="product">
+  <div class="sec-label">Product direction</div>
+  <div class="sec-title" data-i18n="productTitle">ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง</div>
+  <p class="sec-intro" data-i18n="productText">How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก</p>
+
+  <div class="zig-row">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#27ae60,#2ecc71)"><i class="bi bi-tags"></i></div>
+    <div class="zig-body">
+      <div class="hook">Asset-tag tickets <span class="badge bg-success" style="font-size:.6rem">Core</span></div>
+      <p data-i18n="pdAsset1">เชื่อมโยงข้อมูลทรัพย์สิน (Asset) เข้ากับ Ticket ทุกใบ เพื่อเห็นประวัติการซ่อม อายุการใช้งาน และสถานะปัจจุบันของอุปกรณ์ได้ทันที</p>
+      <div class="sub" data-i18n="pdAsset2">ค้นหา/กรอง ticket จาก asset tag, ดูว่าเครื่องเคยมีปัญหาเดิมซ้ำหรือไม่, ช่วยตัดสินใจว่าซ่อมหรือเปลี่ยน</div>
     </div>
   </div>
 
-  <div class="row g-3 mb-3">
-    <div class="col-lg-6">
-      <div class="vision-card">
-        <div class="eyebrow">How we ship</div>
-        <h3 data-i18n="processTitle">กระบวนการทำงานที่ใช้จริง</h3>
-        <div class="step-list">
-          <div class="step-item"><div class="step-num">1</div><div data-i18n="processOne">วางแผนและเขียน scope ให้ชัด: ทำเฉพาะสิ่งที่เกี่ยวกับเป้าหมาย ไม่ปนงานอื่น</div></div>
-          <div class="step-item"><div class="step-num">2</div><div data-i18n="processTwo">ทำทีละส่วนเล็ก ๆ ผ่าน Kanban เพื่อให้ตรวจง่ายและย้อนกลับง่าย</div></div>
-          <div class="step-item"><div class="step-num">3</div><div data-i18n="processThree">QA, audit, smoke test หน้าเว็บที่เกี่ยวข้อง ก่อนเสนอ deploy หรือปล่อยจริง</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="vision-card">
-        <div class="eyebrow">Privacy-first AI</div>
-        <h3 data-i18n="aiTitle">AI เป็นผู้ช่วย ไม่ใช่คนตัดสินใจแทน</h3>
-        <div class="step-list">
-          <div class="step-item"><div class="step-num">1</div><div data-i18n="aiOne">ข้อมูลอ่อนไหวควรใช้ local LLM / private mode เป็นทางหลักเมื่อเป็นงานจริง</div></div>
-          <div class="step-item"><div class="step-num">2</div><div data-i18n="aiTwo">Cloud AI หรือ API ต้อง opt-in ส่งเฉพาะข้อมูลจำเป็น และให้คนอนุมัติก่อนเปลี่ยนสถานะงาน</div></div>
-          <div class="step-item"><div class="step-num">3</div><div data-i18n="aiThree">AI เหมาะกับสรุป ticket, แนะนำ category/priority, หา similar ticket, draft KB และช่วยดู insight</div></div>
-        </div>
-      </div>
+  <div class="zig-row reverse">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#2980b9,#3498db)"><i class="bi bi-graph-up"></i></div>
+    <div class="zig-body">
+      <div class="hook">Branch dashboard <span class="badge bg-primary" style="font-size:.6rem">Planned</span></div>
+      <p data-i18n="pdBranch1">แดชบอร์ดแยกตามสาขา: ดูจำนวน ticket ค้าง อายุงานที่รอ สถานะ SLA และเทรนด์รายสัปดาห์ได้ในหน้าเดียว</p>
+      <div class="sub" data-i18n="pdBranch2">เจ้าหน้าที่บริหารสาขาสามารถเห็นภาพรวมโดยไม่ต้องเปิดทีละ ticket — เน้นตัวเลขสำคัญและสีสถานะให้อ่านง่าย</div>
     </div>
   </div>
 
-  <div class="vision-card mb-3">
-    <div class="eyebrow">Product direction</div>
-    <h3 data-i18n="productTitle">ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง</h3>
-    <p class="mb-3" data-i18n="productText">How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก</p>
-    <div class="row g-3">
-      <div class="col-md-6">
-        <div class="future-card" style="border-left:4px solid #27ae60">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-tags" style="color:#27ae60;font-size:1.2rem"></i>
-            <strong style="color:#1a5276;font-size:.92rem">Asset-tag tickets</strong>
-            <span class="badge bg-success" style="font-size:.65rem">Core</span>
-          </div>
-          <p data-i18n="pdAsset1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">เชื่อมโยงข้อมูลทรัพย์สน (Asset) เข้ากับ Ticket ทุกใบ เพื่อเห็นประวัติการซ่อม อายุการใช้งาน และสถานะปัจจุบันของอุปกรณ์ได้ทันที</p>
-          <p data-i18n="pdAsset2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">ค้นหา/กรอง ticket จาก asset tag, ดูว่าเครื่องเคยมีปัญหาเดิมซ้ำหรือไม่, ช่วยตัดสินใจว่าซ่อมหรือเปลี่ยน</p>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="future-card" style="border-left:4px solid #2980b9">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-graph-up" style="color:#2980b9;font-size:1.2rem"></i>
-            <strong style="color:#1a5276;font-size:.92rem">Branch dashboard</strong>
-            <span class="badge bg-primary" style="font-size:.65rem">Planned</span>
-          </div>
-          <p data-i18n="pdBranch1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">แดชบอร์ดแยกตามสาขา: ดูจำนวน ticket ค้าง อายุงานที่รอ สถานะ SLA และเทรนด์รายสัปดาห์ได้ในหน้าเดียว</p>
-          <p data-i18n="pdBranch2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">เจ้าหน้าที่บริหารสาขาสามารถเห็นภาพรวมโดยไม่ต้องเปิดทีละ ticket — เน้นตัวเลขสำคัญและสีสถานะให้อ่านง่าย</p>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="future-card" style="border-left:4px solid #e67e22">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-map" style="color:#e67e22;font-size:1.2rem"></i>
-            <strong style="color:#1a5276;font-size:.92rem">BI maps &amp; routes</strong>
-            <span class="badge" style="font-size:.65rem;background:#e67e22;color:#fff">Phase 2</span>
-          </div>
-          <p data-i18n="pdMap1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">แผนที่แสดงตำแหน่งสาขาและจุดที่มี ticket หนาแน่น พร้อม route แนะนำช่างภาคสนามให้เดินทางครบหลายจุดอย่างมีประสิทธิภาพ</p>
-          <p data-i18n="pdMap2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">ใช้ Leaflet + ข้อมูลถนนจริง: วิเคราะห์ hotspot ปัญหาซ้ำ, วางแผน preventive maintenance ตามพื้นที่</p>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="future-card" style="border-left:4px solid #8e44ad">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-robot" style="color:#8e44ad;font-size:1.2rem"></i>
-            <strong style="color:#1a5276;font-size:.92rem">Human-approved AI helper</strong>
-            <span class="badge" style="font-size:.65rem;background:#8e44ad;color:#fff">Phase 2</span>
-          </div>
-          <p data-i18n="pdAi1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">AI ช่วยแนะนำหมวดหมู่, priority, และ similar ticket ที่เคยแก้ไขแล้ว — แต่ทุกการเปลี่ยนสถานะต้องมีคนกดยืนยันก่อน</p>
-          <p data-i18n="pdAi2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">เสนอคำตอบ draft KB, สรุม ticket ยาวให้สั้น แจ้งเตือนเมื่อ SLA ใกล้หมด — AI ช่วยคิด คนตัดสินใจ</p>
-        </div>
-      </div>
+  <div class="zig-row">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#e67e22,#f39c12)"><i class="bi bi-map"></i></div>
+    <div class="zig-body">
+      <div class="hook">BI maps &amp; routes <span class="badge" style="font-size:.6rem;background:#e67e22;color:#fff">Phase 2</span></div>
+      <p data-i18n="pdMap1">แผนที่แสดงตำแหน่งสาขาและจุดที่มี ticket หนาแน่น พร้อม route แนะนำช่างภาคสนามให้เดินทางครบหลายจุดอย่างมีประสิทธิภาพ</p>
+      <div class="sub" data-i18n="pdMap2">ใช้ Leaflet + ข้อมูลถนนจริง: วิเคราะห์ hotspot ปัญหาซ้ำ, วางแผน preventive maintenance ตามพื้นที่</div>
     </div>
   </div>
 
-  <div class="vision-card mb-3">
-    <div class="eyebrow">Geo BI / Map — Ideas Only</div>
-    <h3 data-i18n="geoBiTitle">แนวทางขยายไปสู่ Business Intelligence บนแผนที่</h3>
-    <p class="mb-3" data-i18n="geoBiText" style="font-size:.85rem;color:#536675;line-height:1.6">ไอเดียต่อยอดในอนาคต — ยังไม่ใช่ feature ตอนนี้ เน้นแสดงว่าคิดลึกถึงข้อมูลจริงที่องค์กรต้องการ</p>
-    <div class="row g-2">
-      <div class="col-md-6 col-lg-4">
-        <div class="future-card" style="border-left:4px solid #2980b9">
-          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-people me-1"></i>Member density</strong>
-          <p data-i18n="geoBiMember" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดงจำนวนสมาชิกต่อเขต — heatmap ความหนาแน่น เทียบกับศักยภาพตลาด (population/household) เห็นเขตที่มีสมาชิกเยอะแต่ใช้บริการน้อย</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="future-card" style="border-left:4px solid #27ae60">
-          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-cash-stack me-1"></i>Loans</strong>
-          <p data-i18n="geoBiLoans" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดงยอดสินเชื่อรวม (outstanding) — เทียบ loan-to-member ratio ระหว่างเขต เห็นเขตที่มีสมาชิกเยอะแต่ยอดสินเชื่อต่ำ → โอกาสเติมเต็ม</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="future-card" style="border-left:4px solid #f39c12">
-          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-piggy-bank me-1"></i>Savings</strong>
-          <p data-i18n="geoBiSavings" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดงยอดเงินฝากรวม (deposit) — เทียบ savings-to-loan ratio ระบุเขตที่มีสภาพคล่องสูง/ต่ำ</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="future-card" style="border-left:4px solid #e74c3c">
-          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-graph-down-arrow me-1"></i>NPL</strong>
-          <p data-i18n="geoBiNpl" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดง % NPL และยอด NPL รวม — เทียบระหว่างเขต ระบุเขตเสี่ยง เชื่อมกับ debt route planning</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="future-card" style="border-left:4px solid #8e44ad">
-          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-signpost-split me-1"></i>Debt route planning</strong>
-          <p data-i18n="geoBiDebt" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">จัดเส้นทางเก็บหนี้ตำแหน่งจริง (GPS) — จัดลำดับตามยอดหนี้/ค้าง/ระยะทาง ติดตามผลเก็บหนี้จริง</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="future-card" style="border-left:4px solid #16a085">
-          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-funnel me-1"></i>Paid-status filtering</strong>
-          <p data-i18n="geoBiFilter" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">กรองสมาชิกตามสถานะ: ปกติ / ค้าง / ปิดบัญชี — เทียบ portfolio quality ระหว่างเขต</p>
-        </div>
-      </div>
+  <div class="zig-row reverse">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#8e44ad,#9b59b6)"><i class="bi bi-robot"></i></div>
+    <div class="zig-body">
+      <div class="hook">Human-approved AI helper <span class="badge" style="font-size:.6rem;background:#8e44ad;color:#fff">Phase 2</span></div>
+      <p data-i18n="pdAi1">AI ช่วยแนะนำหมวดหมู่, priority, และ similar ticket ที่เคยแก้ไขแล้ว — แต่ทุกการเปลี่ยนสถานะต้องมีคนกดยืนยันก่อน</p>
+      <div class="sub" data-i18n="pdAi2">เสนอคำตอบ draft KB, สรุป ticket ยาวให้สั้น แจ้งเตือนเมื่อ SLA ใกล้หมด — AI ช่วยคิด คนตัดสินใจ</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ GEO BI ═══════════════ -->
+<div class="section" id="geobi">
+  <div class="sec-label">Geo BI / Map — Ideas Only</div>
+  <div class="sec-title" data-i18n="geoBiTitle">แนวทางขยายไปสู่ Business Intelligence บนแผนที่</div>
+  <p class="sec-intro" data-i18n="geoBiText">ไอเดียต่อยอดในอนาคต — ยังไม่ใช่ feature ตอนนี้ เน้นแสดงว่าคิดลึกถึงข้อมูลจริงที่องค์กรต้องการ</p>
+
+  <div class="mini-grid">
+    <div class="mini-card">
+      <div class="mc-icon" style="background:linear-gradient(135deg,#2980b9,#3498db)"><i class="bi bi-people"></i></div>
+      <h6>Member density</h6>
+      <p data-i18n="geoBiMember">แสดงจำนวนสมาชิกต่อเขต — heatmap ความหนาแน่น เทียบกับศักยภาพตลาด เห็นเขตที่มีสมาชิกเยอะแต่ใช้บริการน้อย</p>
+    </div>
+    <div class="mini-card">
+      <div class="mc-icon" style="background:linear-gradient(135deg,#27ae60,#2ecc71)"><i class="bi bi-cash-stack"></i></div>
+      <h6>Loans</h6>
+      <p data-i18n="geoBiLoans">แสดงยอดสินเชื่อรวม (outstanding) — เทียบ loan-to-member ratio เห็นเขตที่มีสมาชิกเยอะแต่ยอดสินเชื่อต่ำ → โอกาสเติมเต็ม</p>
+    </div>
+    <div class="mini-card">
+      <div class="mc-icon" style="background:linear-gradient(135deg,#f39c12,#f1c40f)"><i class="bi bi-piggy-bank"></i></div>
+      <h6>Savings</h6>
+      <p data-i18n="geoBiSavings">แสดงยอดเงินฝากรวม (deposit) — เทียบ savings-to-loan ratio ระบุเขตที่มีสภาพคล่องสูง/ต่ำ</p>
+    </div>
+    <div class="mini-card">
+      <div class="mc-icon" style="background:linear-gradient(135deg,#e74c3c,#c0392b)"><i class="bi bi-graph-down-arrow"></i></div>
+      <h6>NPL</h6>
+      <p data-i18n="geoBiNpl">แสดง % NPL และยอด NPL รวม — เทียบระหว่างเขต ระบุเขตเสี่ยง เชื่อมกับ debt route planning</p>
+    </div>
+    <div class="mini-card">
+      <div class="mc-icon" style="background:linear-gradient(135deg,#8e44ad,#9b59b6)"><i class="bi bi-signpost-split"></i></div>
+      <h6>Debt route planning</h6>
+      <p data-i18n="geoBiDebt">จัดเส้นทางเก็บหนี้ตำแหน่งจริง (GPS) — จัดลำดับตามยอดหนี้/ค้าง/ระยะทาง ติดตามผลเก็บหนี้จริง</p>
+    </div>
+    <div class="mini-card">
+      <div class="mc-icon" style="background:linear-gradient(135deg,#16a085,#1abc9c)"><i class="bi bi-funnel"></i></div>
+      <h6>Paid-status filtering</h6>
+      <p data-i18n="geoBiFilter">กรองสมาชิกตามสถานะ: ปกติ / ค้าง / ปิดบัญชี — เทียบ portfolio quality ระหว่างเขต</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FUTURE PRINCIPLES ═══════════════ -->
+<div class="section" id="future">
+  <div class="sec-label">Future principles</div>
+  <div class="sec-title" data-i18n="futureTitle">หลักคิดระยะยาว: ใช้เครื่องมือให้ถูกที่ ปลอดภัย และคุ้มค่า</div>
+  <p class="sec-intro" data-i18n="futureIntro">ในอนาคต ระบบจะค่อย ๆ เปลี่ยนไปใช้โซลูชัน open-source ที่ต้นทุนต่ำแต่เชื่อถือได้ แทนการพึ่งพาเครื่องมือที่มีค่าใช้จ่ายสูง โดยยังคงความปลอดภัยและความเสถียรเป็นอันดับแรก — นี่คือทิศทาง ไม่ใช่สิ่งที่ทำอยู่ตอนนี้</p>
+
+  <div class="zig-row">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#1a5276,#2980b9)"><i class="bi bi-hdd-stack"></i></div>
+    <div class="zig-body">
+      <div class="hook" data-i18n="futureLocalTitle">Local-first AI เมื่อข้อมูลอ่อนไหว</div>
+      <p data-i18n="futureLocalText">งานจริงควรเก็บข้อมูลสำคัญไว้ใน local database หรือ server ภายใน และใช้ local LLM หรือ private mode เป็นทางเลือกหลัก ก่อนที่จะส่ง raw data ไปยังระบบภายนอก</p>
     </div>
   </div>
 
-  <div class="vision-card mb-3">
-    <div class="eyebrow">Mobile demo</div>
-    <h3 data-i18n="mobileTitle">ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย</h3>
-    <p data-i18n="mobileText">หน้า public ใช้ข้อความสั้น การ์ดอ่านง่าย และ link ชัดเจน เพื่อให้คนที่ไม่ใช่ IT เปิดจาก QR, tablet หรือมือถือแล้วเข้าใจทันทีว่าระบบช่วยงานอะไร ต่อไป How To จะเป็นคู่มือใช้งานสั้น ๆ และ Vision จะเก็บแผนอนาคตที่ลึกกว่า</p>
-  </div>
-
-
-  <div class="vision-card mb-3">
-    <div class="eyebrow">Future principles</div>
-    <h3 data-i18n="futureTitle">หลักคิดระยะยาว: ใช้เครื่องมือให้ถูกที่ ปลอดภัย และคุ้มค่า</h3>
-    <p class="mb-3" data-i18n="futureIntro" style="font-size:.88rem;color:#536675;line-height:1.6">ในอนาคต ระบบจะค่อย ๆ เปลี่ยนไปใช้โซลูชัน open-source ที่ต้นทุนต่ำแต่เชื่่อถือได้ แทนการพึ่งพาเครื่องมือที่มีค่าใช้จ่ายสูง โดยยังคงความปลอดภัยและความเสถียรเป็นอันดับแรก — นี่คือทิศทาง ไม่ใช่สิ่งที่ทำอยู่ตอนนี้</p>
-    <div class="row g-3">
-      <div class="col-md-6 col-lg-3">
-        <div class="future-card" style="border-left:4px solid #1a5276">
-          <strong><i class="bi bi-hdd-stack me-1"></i><span data-i18n="futureLocalTitle">Local-first AI เมื่อข้อมูลอ่อนไหว</span></strong>
-          <p data-i18n="futureLocalText">งานจริงควรเก็บข้อมูลสำคัญไว้ใน local database หรือ server ภายใน และใช้ local LLM หรือ private mode เป็นทางเลือกหลัก ก่อนที่จะส่ง raw data ไปยังระบบภายนอก</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="future-card" style="border-left:4px solid #27ae60">
-          <strong><i class="bi bi-database-gear me-1"></i><span data-i18n="futureEngineTitle">เลือกเครื่องมือให้เหมาะกับงาน</span></strong>
-          <p data-i18n="futureEngineText">เมื่อ Excel หรือ Sheets เริ่มช้า ให้ย้ายงานหนักไปยัง database, Power Query หรือ local processing แต่ยังคงให้หน้าจอใช้งานง่ายเหมือนเดิม</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="future-card" style="border-left:4px solid #e67e22">
-          <strong><i class="bi bi-pc-display me-1"></i><span data-i18n="futureReuseTitle">Reuse เครื่องเก่าแบบมืออาชีพ</span></strong>
-          <p data-i18n="futureReuseText">คอมพิวเตอร์เก่าสามารถลง Linux Mint เป็นทางเลือกที่ low-bloat, cost-aware และ private ได้ หากจัดการ patch, backup และ security policy อย่างเหมาะสม</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="future-card" style="border-left:4px solid #c0392b">
-          <strong><i class="bi bi-shield-check me-1"></i><span data-i18n="futureSecTitle">Security ที่สำคัญจริง ๆ</span></strong>
-          <p data-i18n="futureSecText">ให้ความสำคัญกับ data leak prevention, encryption, recovery, audit และ central management อย่าง LAPS เพื่อให้ผู้ใช้เข้าใจว่าระบบป้องกันอะไรบ้าง</p>
-        </div>
-      </div>
+  <div class="zig-row reverse">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#27ae60,#2ecc71)"><i class="bi bi-database-gear"></i></div>
+    <div class="zig-body">
+      <div class="hook" data-i18n="futureEngineTitle">เลือกเครื่องมือให้เหมาะกับงาน</div>
+      <p data-i18n="futureEngineText">เมื่อ Excel หรือ Sheets เริ่มช้า ให้ย้ายงานหนักไปยัง database, Power Query หรือ local processing แต่ยังคงให้หน้าจอใช้งานง่ายเหมือนเดิม</p>
     </div>
   </div>
 
-  <div class="vision-card trust-box">
-    <div class="row g-3 align-items-center">
-      <div class="col-md-8">
-        <div class="eyebrow">Trust & safety</div>
-        <h3 data-i18n="trustTitle">ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย</h3>
-        <p class="mb-0" data-i18n="trustText">แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ</p>
-      </div>
-      <div class="col-md-4 text-md-end">
-        <a href="/howto-public" class="btn btn-outline-success rounded-pill fw-bold" data-i18n="learnMore">ดูภาพรวมระบบ</a>
-      </div>
+  <div class="zig-row">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#e67e22,#f39c12)"><i class="bi bi-pc-display"></i></div>
+    <div class="zig-body">
+      <div class="hook" data-i18n="futureReuseTitle">Reuse เครื่องเก่าแบบมืออาชีพ</div>
+      <p data-i18n="futureReuseText">คอมพิวเตอร์เก่าสามารถลง Linux Mint เป็นทางเลือกที่ low-bloat, cost-aware และ private ได้ หากจัดการ patch, backup และ security policy อย่างเหมาะสม</p>
     </div>
   </div>
 
-  <div class="footer-note">ITSM Demo Vision · Public page · Demo data only · <a href="/login" class="text-decoration-none">Login</a></div>
+  <div class="zig-row reverse">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#c0392b,#e74c3c)"><i class="bi bi-shield-check"></i></div>
+    <div class="zig-body">
+      <div class="hook" data-i18n="futureSecTitle">Security ที่สำคัญจริง ๆ</div>
+      <p data-i18n="futureSecText">ให้ความสำคัญกับ data leak prevention, encryption, recovery, audit และ central management อย่าง LAPS เพื่อให้ผู้ใช้เข้าใจว่าระบบป้องกันอะไรบ้าง</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TRUST ═══════════════ -->
+<div class="section" id="trust">
+  <div class="bg-white rounded-4 p-3" style="border-left:5px solid var(--green);box-shadow:0 4px 16px rgba(0,0,0,.06)">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div class="flex-grow-1">
+        <div class="sec-label">Trust & safety</div>
+        <div class="sec-title" data-i18n="trustTitle">ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย</div>
+        <p class="mb-0" data-i18n="trustText" style="font-size:.8rem;color:var(--muted);line-height:1.6">แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ</p>
+      </div>
+      <a href="/howto-public" class="btn-outline-demo" style="white-space:nowrap"><i class="bi bi-grid me-1"></i><span data-i18n="learnMore">ดูภาพรวมระบบ</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Next: back to Interview ── -->
+<a href="/interview" class="next-link mt-3">
+  <div>
+    <div class="nl" data-i18n="backLabel">ย้อนกลับ</div>
+    <div class="nt" data-i18n="backTitle">Interview QR Landing — เริ่มจากตรงนี้</div>
+  </div>
+  <i class="bi bi-arrow-left-circle-fill"></i>
+</a>
+
+<div class="footer-note">ITSM Demo Vision · Public page · Demo data only · <a href="/login" class="text-decoration-none">Login</a></div>
 </div>
 
 <script>
 const copy={
   th:{
     openDemo:'Open demo',seeOverview:'ดูระบบโดยรวม',
-    planTitle:'ไม่ใช้เครื่องมือแบบสุ่ม',planText:'เริ่มจากเข้าใจปัญหา เลือกทางที่เสี่ยงน้อย แล้วค่อยลงมือ เพื่อให้เดโมดูเป็นระบบและอธิบายกับผู้สัมภาษณ์ได้ง่าย',
-    kanbanTitle:'เก็บงานเป็นการ์ด รออนุมัติ/GG',kanbanText:'ไอเดียและบั๊กถูกแยกเป็น card ชัดเจน ทำเป็น batch เล็ก ๆ ก่อนงาน build/fix/deploy สำคัญจะมี approval gate ลดงานหลุดและลดความเสี่ยง',
-    uxTitle:'รายละเอียดเล็ก ๆ ทำให้คนใช้สบายขึ้น',uxText:'เน้น card/step layout, ข้อความไม่รก, ปุ่มกดง่าย, คำอธิบายภาษาคนทำงาน และ local wording อย่าง Bahasa Melayu เมื่อช่วยให้ demo เข้าถึงง่ายขึ้น',
-    processTitle:'กระบวนการทำงานที่ใช้จริง',processOne:'วางแผนและเขียน scope ให้ชัด: ทำเฉพาะสิ่งที่เกี่ยวกับเป้าหมาย ไม่ปนงานอื่น',processTwo:'ทำทีละส่วนเล็ก ๆ ผ่าน Kanban เพื่อให้ตรวจง่ายและย้อนกลับง่าย',processThree:'QA, audit, smoke test หน้าเว็บที่เกี่ยวข้อง ก่อนเสนอ deploy หรือปล่อยจริง',
-    aiTitle:'AI เป็นผู้ช่วย ไม่ใช่คนตัดสินใจแทน',aiOne:'ข้อมูลอ่อนไหวควรใช้ local LLM / private mode เป็นทางหลักเมื่อเป็นงานจริง',aiTwo:'Cloud AI หรือ API ต้อง opt-in ส่งเฉพาะข้อมูลจำเป็น และให้คนอนุมัติก่อนเปลี่ยนสถานะงาน',aiThree:'AI เหมาะกับสรุป ticket, แนะนำ category/priority, หา similar ticket, draft KB และช่วยดู insight',
     productTitle:'ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง',productText:'How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก',
-    mobileTitle:'ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย',mobileText:'หน้า public ใช้ข้อความสั้น การ์ดอ่านง่าย และ link ชัดเจน เพื่อให้คนที่ไม่ใช่ IT เปิดจาก QR, tablet หรือมือถือแล้วเข้าใจทันทีว่าระบบช่วยงานอะไร ต่อไป How To จะเป็นคู่มือใช้งานสั้น ๆ และ Vision จะเก็บแผนอนาคตที่ลึกกว่า',
-    pdAsset1:'เชื่อมโยงข้อมูลทรัพย์สน (Asset) เข้ากับ Ticket ทุกใบ เพื่อเห็นประวัติการซ่อม อายุการใช้งาน และสถานะปัจจุบันของอุปกรณ์ได้ทันที',pdAsset2:'ค้นหา/กรอง ticket จาก asset tag, ดูว่าเครื่องเคยมีปัญหาเดิมซ้ำหรือไม่, ช่วยตัดสินใจว่าซ่อมหรือเปลี่ยน',
+    pdAsset1:'เชื่อมโยงข้อมูลทรัพย์สิน (Asset) เข้ากับ Ticket ทุกใบ เพื่อเห็นประวัติการซ่อม อายุการใช้งาน และสถานะปัจจุบันของอุปกรณ์ได้ทันที',pdAsset2:'ค้นหา/กรอง ticket จาก asset tag, ดูว่าเครื่องเคยมีปัญหาเดิมซ้ำหรือไม่, ช่วยตัดสินใจว่าซ่อมหรือเปลี่ยน',
     pdBranch1:'แดชบอร์ดแยกตามสาขา: ดูจำนวน ticket ค้าง อายุงานที่รอ สถานะ SLA และเทรนด์รายสัปดาห์ได้ในหน้าเดียว',pdBranch2:'เจ้าหน้าที่บริหารสาขาสามารถเห็นภาพรวมโดยไม่ต้องเปิดทีละ ticket — เน้นตัวเลขสำคัญและสีสถานะให้อ่านง่าย',
     pdMap1:'แผนที่แสดงตำแหน่งสาขาและจุดที่มี ticket หนาแน่น พร้อม route แนะนำช่างภาคสนามให้เดินทางครบหลายจุดอย่างมีประสิทธิภาพ',pdMap2:'ใช้ Leaflet + ข้อมูลถนนจริง: วิเคราะห์ hotspot ปัญหาซ้ำ, วางแผน preventive maintenance ตามพื้นที่',
-    pdAi1:'AI ช่วยแนะนำหมวดหมู่, priority, และ similar ticket ที่เคยแก้ไขแล้ว — แต่ทุกการเปลี่ยนสถานะต้องมีคนกดยืนยันก่อน',pdAi2:'เสนอคำตอบ draft KB, สรุม ticket ยาวให้สั้น แจ้งเตือนเมื่อ SLA ใกล้หมด — AI ช่วยคิด คนตัดสินใจ',
-    futureIntro:'ในอนาคต ระบบจะค่อย ๆ เปลี่ยนไปใช้โซลูชัน open-source ที่ต้นทุนต่ำแต่เชื่อถือได้ แทนการพึ่งพาเครื่องมือที่มีค่าใช้จ่ายสูง โดยยังคงความปลอดภัยและความเสถียรเป็นอันดับแรก — นี่คือทิศทาง ไม่ใช่สิ่งที่ทำอยู่ตอนนี้',
-    futureLocalTitle:'Local-first AI เมื่อข้อมูลอ่อนไหว',futureLocalText:'งานจริงควรเก็บข้อมูลสำคัญไว้ใน local database หรือ server ภายใน และใช้ local LLM หรือ private mode เป็นทางเลือกหลัก ก่อนที่จะส่ง raw data ไปยังระบบภายนอก',
-    futureEngineTitle:'เลือกเครื่องมือให้เหมาะกับงาน',futureEngineText:'เมื่อ Excel หรือ Sheets เริ่มช้า ให้ย้ายงานหนักไปยัง database, Power Query หรือ local processing แต่ยังคงให้หน้าจอใช้งานง่ายเหมือนเดิม',
-    futureReuseText:'คอมพิวเตอร์เก่าสามารถลง Linux Mint เป็นทางเลือกที่ low-bloat, cost-aware และ private ได้ หากจัดการ patch, backup และ security policy อย่างเหมาะสม',
-    futureSecTitle:'Security ที่สำคัญจริง ๆ',futureSecText:'ให้ความสำคัญกับ data leak prevention, encryption, recovery, audit และ central management อย่าง LAPS เพื่อให้ผู้ใช้เข้าใจว่าระบบป้องกันอะไรบ้าง',
+    pdAi1:'AI ช่วยแนะนำหมวดหมู่, priority, และ similar ticket ที่เคยแก้ไขแล้ว — แต่ทุกการเปลี่ยนสถานะต้องมีคนกดยืนยันก่อน',pdAi2:'เสนอคำตอบ draft KB, สรุป ticket ยาวให้สั้น แจ้งเตือนเมื่อ SLA ใกล้หมด — AI ช่วยคิด คนตัดสินใจ',
     geoBiTitle:'แนวทางขยายไปสู่ Business Intelligence บนแผนที่',geoBiText:'ไอเดียต่อยอดในอนาคต — ยังไม่ใช่ feature ตอนนี้ เน้นแสดงว่าคิดลึกถึงข้อมูลจริงที่องค์กรต้องการ',
-    geoBiMember:'แสดงจำนวนสมาชิกต่อเขต — heatmap ความหนาแน่น เทียบกับศักยภาพตลาด (population/household) เห็นเขตที่มีสมาชิกเยอะแต่ใช้บริการน้อย',
-    geoBiLoans:'แสดงยอดสินเชื่อรวม (outstanding) — เทียบ loan-to-member ratio ระหว่างเขต เห็นเขตที่มีสมาชิกเยอะแต่ยอดสินเชื่อต่ำ → โอกาสเติมเต็ม',
+    geoBiMember:'แสดงจำนวนสมาชิกต่อเขต — heatmap ความหนาแน่น เทียบกับศักยภาพตลาด เห็นเขตที่มีสมาชิกเยอะแต่ใช้บริการน้อย',
+    geoBiLoans:'แสดงยอดสินเชื่อรวม (outstanding) — เทียบ loan-to-member ratio เห็นเขตที่มีสมาชิกเยอะแต่ยอดสินเชื่อต่ำ → โอกาสเติมเต็ม',
     geoBiSavings:'แสดงยอดเงินฝากรวม (deposit) — เทียบ savings-to-loan ratio ระบุเขตที่มีสภาพคล่องสูง/ต่ำ',
     geoBiNpl:'แสดง % NPL และยอด NPL รวม — เทียบระหว่างเขต ระบุเขตเสี่ยง เชื่อมกับ debt route planning',
     geoBiDebt:'จัดเส้นทางเก็บหนี้ตำแหน่งจริง (GPS) — จัดลำดับตามยอดหนี้/ค้าง/ระยะทาง ติดตามผลเก็บหนี้จริง',
     geoBiFilter:'กรองสมาชิกตามสถานะ: ปกติ / ค้าง / ปิดบัญชี — เทียบ portfolio quality ระหว่างเขต',
-    trustTitle:'ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย',trustText:'แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ',learnMore:'ดูภาพรวมระบบ'
+    futureTitle:'หลักคิดระยะยาว: ใช้เครื่องมือให้ถูกที่ ปลอดภัย และคุ้มค่า',futureIntro:'ในอนาคต ระบบจะค่อย ๆ เปลี่ยนไปใช้โซลูชัน open-source ที่ต้นทุนต่ำแต่เชื่อถือได้ แทนการพึ่งพาเครื่องมือที่มีค่าใช้จ่ายสูง โดยยังคงความปลอดภัยและความเสถียรเป็นอันดับแรก — นี่คือทิศทาง ไม่ใช่สิ่งที่ทำอยู่ตอนนี้',
+    futureLocalTitle:'Local-first AI เมื่อข้อมูลอ่อนไหว',futureLocalText:'งานจริงควรเก็บข้อมูลสำคัญไว้ใน local database หรือ server ภายใน และใช้ local LLM หรือ private mode เป็นทางเลือกหลัก ก่อนที่จะส่ง raw data ไปยังระบบภายนอก',
+    futureEngineTitle:'เลือกเครื่องมือให้เหมาะกับงาน',futureEngineText:'เมื่อ Excel หรือ Sheets เริ่มช้า ให้ย้ายงานหนักไปยัง database, Power Query หรือ local processing แต่ยังคงให้หน้าจอใช้งานง่ายเหมือนเดิม',
+    futureReuseTitle:'Reuse เครื่องเก่าแบบมืออาชีพ',futureReuseText:'คอมพิวเตอร์เก่าสามารถลง Linux Mint เป็นทางเลือกที่ low-bloat, cost-aware และ private ได้ หากจัดการ patch, backup และ security policy อย่างเหมาะสม',
+    futureSecTitle:'Security ที่สำคัญจริง ๆ',futureSecText:'ให้ความสำคัญกับ data leak prevention, encryption, recovery, audit และ central management อย่าง LAPS เพื่อให้ผู้ใช้เข้าใจว่าระบบป้องกันอะไรบ้าง',
+    trustTitle:'ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย',trustText:'แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ',
+    learnMore:'ดูภาพรวมระบบ',backLabel:'ย้อนกลับ',backTitle:'Interview QR Landing — เริ่มจากตรงนี้'
   },
   en:{
     openDemo:'Open demo',seeOverview:'System overview',
-    planTitle:'No blind tool use',planText:'We start by understanding the problem, choosing the lower-risk path, and then acting so the demo is explainable and trustworthy.',
-    kanbanTitle:'Work captured as cards with approval/GG gates',kanbanText:'Ideas and bugs become clear cards. Important build, fix, and deploy work is handled in small batches with approval gates to reduce surprises.',
-    uxTitle:'Small UX details matter',uxText:'The UI favors cards, steps, short copy, easy taps, plain wording, and local flavor when it helps non-IT users understand the demo.',
-    processTitle:'The working process behind the demo',processOne:'Plan the scope clearly and avoid mixing unrelated changes.',processTwo:'Ship small Kanban batches so review and rollback stay easy.',processThree:'Run QA, audit, and smoke checks on affected pages before deploy.',
-    aiTitle:'AI helps; people decide',aiOne:'For sensitive real data, the preferred path is local LLM / private mode.',aiTwo:'Cloud AI or APIs should be opt-in, minimal, and require human approval before state changes.',aiThree:'Good AI uses include ticket summaries, category/priority suggestions, similar-ticket hints, KB drafts, and dashboard insight.',
     productTitle:'From ITSM workflow to practical insight',productText:'How To stays practical for today; Vision holds the longer-term direction: from Tickets + Assets + Staff + Knowledge toward dashboards, maps/routes, AI helpers, and decision workflows without clutter.',
-    mobileTitle:'Designed for showing and sharing',mobileText:'Public pages use short copy, readable cards, and clear links so non-IT viewers can scan a QR or open a tablet and understand the system quickly. How To stays a short guide; Vision carries the deeper future plan.',
     pdAsset1:'Link Asset data to every ticket so technicians see repair history, device age, and current status at a glance.',pdAsset2:'Search/filter tickets by asset tag, check if the same device had recurring issues, and decide whether to repair or replace.',
     pdBranch1:'Per-branch dashboard: see open tickets, ageing work, SLA status, and weekly trends in one view.',pdBranch2:'Branch managers get a full picture without opening individual tickets — key numbers and color-coded statuses at a glance.',
     pdMap1:'Map showing branch locations and ticket hotspots, with suggested routes for field techs to cover multiple sites efficiently.',pdMap2:'Built on Leaflet + real road data: analyze recurring problem hotspots and plan preventive maintenance by area.',
     pdAi1:'AI suggests category, priority, and previously resolved similar tickets — but every status change requires human confirmation.',pdAi2:'Draft KB answers, summarize long tickets, alert before SLA expiry — AI thinks, people decide.',
-    futureIntro:'In the future, the system will gradually transition to open-source, low-cost but reliable solutions instead of depending on expensive tools — while keeping security and stability as top priorities. This is the direction, not what is being done right now.',
-    futureLocalTitle:'Local-first AI for sensitive data',futureLocalText:'Real workloads should keep critical data in a local database or internal server, and use local LLM or private mode as the primary path before sending raw data to external systems.',
-    futureEngineTitle:'Choose the right tool for the job',futureEngineText:'When Excel or Sheets starts to slow down, move heavy work to a database, Power Query, or local processing — while keeping the interface just as easy to use.',
-    futureReuseText:'Old computers can run Linux Mint as a low-bloat, cost-aware, and private option — if patch management, backup, and security policy are handled properly.',
-    futureSecTitle:'Security that truly matters',futureSecText:'Prioritize data leak prevention, encryption, recovery, audit, and central management such as LAPS — so users understand what the system protects against.',
     geoBiTitle:'Extending toward map-based Business Intelligence',geoBiText:'Future ideas only — not current features. Shows deep thinking about real organizational data needs.',
-    geoBiMember:'Show members per district — heatmap density vs market potential (population/household). Spot areas with many members but low service usage.',
-    geoBiLoans:'Show total loan outstanding — compare loan-to-member ratio across districts. Find areas with many members but low loans → growth opportunity.',
+    geoBiMember:'Show members per district — heatmap density vs market potential. Spot areas with many members but low service usage.',
+    geoBiLoans:'Show total loan outstanding — compare loan-to-member ratio. Find areas with many members but low loans → growth opportunity.',
     geoBiSavings:'Show total deposits — compare savings-to-loan ratio. Identify districts with high/low liquidity.',
     geoBiNpl:'Show % NPL and total NPL — compare across districts, flag risk areas. Link to debt route planning.',
     geoBiDebt:'Plan real GPS debt collection routes — prioritize by amount/due/distance. Track actual collector performance.',
     geoBiFilter:'Filter members by status: normal / overdue / closed — compare portfolio quality across districts.',
-    trustTitle:'Trust comes from roles, review, and QA',trustText:'The direction is role-based access, audit trails, demo data separated from real data, review/QA before deploy, encryption/recovery for real use, and no silent AI/automation changes to important work.',learnMore:'See system overview'
+    futureTitle:'Long-term principles: right tool, safe, and cost-effective',futureIntro:'In the future, the system will gradually transition to open-source, low-cost but reliable solutions instead of depending on expensive tools — while keeping security and stability as top priorities. This is the direction, not what is being done right now.',
+    futureLocalTitle:'Local-first AI for sensitive data',futureLocalText:'Real workloads should keep critical data in a local database or internal server, and use local LLM or private mode as the primary path before sending raw data to external systems.',
+    futureEngineTitle:'Choose the right tool for the job',futureEngineText:'When Excel or Sheets starts to slow down, move heavy work to a database, Power Query, or local processing — while keeping the interface just as easy to use.',
+    futureReuseTitle:'Reuse old hardware professionally',futureReuseText:'Old computers can run Linux Mint as a low-bloat, cost-aware, and private option — if patch management, backup, and security policy are handled properly.',
+    futureSecTitle:'Security that truly matters',futureSecText:'Prioritize data leak prevention, encryption, recovery, audit, and central management such as LAPS — so users understand what the system protects against.',
+    trustTitle:'Trust comes from roles, review, and QA',trustText:'The direction is role-based access, audit trails, demo data separated from real data, review/QA before deploy, encryption/recovery for real use, and no silent AI/automation changes to important work.',
+    learnMore:'See system overview',backLabel:'Back',backTitle:'Interview QR Landing — start here'
   },
   ms:{
     openDemo:'Open demo',seeOverview:'Tengok overview',
-    planTitle:'Bukan guna tool ikut rasa saja',planText:'Mula dengan faham masalah dulu, pilih jalan yang kurang risiko, baru buat. Senang cerita masa interview dan demo pun nampak kemas.',
-    kanbanTitle:'Kerja simpan jadi card, tunggu approve/GG',kanbanText:'Idea dan bug masuk Kanban card. Kerja build/fix/deploy buat batch kecil dengan gate approve supaya tak terlepas benda penting.',
-    uxTitle:'Benda kecil dalam UI pun penting',uxText:'Guna card, step pendek, button senang tekan, ayat orang kerja faham, dan rasa lokal macam Bahasa Melayu bila sesuai.',
-    processTitle:'Cara kerja belakang demo ni',processOne:'Plan scope jelas: buat yang kena dengan tujuan saja, jangan campur kerja lain.',processTwo:'Buat sikit-sikit dalam Kanban supaya senang review dan undur kalau perlu.',processThree:'QA, audit, smoke test page berkaitan dulu sebelum deploy.',
-    aiTitle:'AI tolong, manusia tetap decide',aiOne:'Data sensitif elok guna local LLM / private mode bila masuk kerja sebenar.',aiTwo:'Cloud AI/API kena opt-in, hantar data perlu saja, dan manusia approve dulu sebelum tukar status kerja.',aiThree:'AI sesuai untuk ringkas ticket, cadang category/priority, cari ticket hampir sama, draft KB, dan bantu baca insight.',
     productTitle:'Dari ITSM ke insight yang pakai betul',productText:'How To untuk cara guna hari ni; Vision simpan hala tuju panjang: dari Ticket + Asset + Staff + Knowledge pergi dashboard, map/route, AI helper, dan workflow bantu decide tanpa serabutkan skrin.',
-    mobileTitle:'Senang buka tunjuk dan kongsi',mobileText:'Page public guna ayat pendek, card mudah baca, link jelas. Orang bukan IT scan QR atau buka tablet pun faham sistem ni bantu apa. How To jadi guide pendek; Vision simpan plan masa depan yang lebih dalam.',
     pdAsset1:'Sambung data Asset ke setiap ticket supaya technician boleh lihat sejarah repair, umur peranti, dan status terkini terus.',pdAsset2:'Cari/tapis ticket ikut asset tag, semak kalau peranti sama ada masalah berulang, dan decide nak repair atau ganti.',
     pdBranch1:'Dashboard ikut cawangan: lihat ticket terbuka, kerja menunggu, status SLA, dan trend mingguan dalam satu paparan.',pdBranch2:'Pengurus cawangan dapat gambaran penuh tanpa buka ticket satu-satu — nombor penting dan warna status senang baca.',
     pdMap1:'Peta tunjuk lokasi cawangan dan hotspot ticket, dengan cadangan laluan untuk teknisi jalanan cover beberapa lokasi dengan cekap.',pdMap2:'Guna Leaflet + data jalan sebenar: analisis hotspot masalah berulang, dan plan preventive maintenance ikut kawasan.',
     pdAi1:'AI cadang category, priority, dan ticket serupa yang pernah diselesaikan — tapi setiap perubahan status kena ada manusia confirm dulu.',pdAi2:'Draft jawapan KB, ringkas ticket panjang, alert sebelum SLA hampir habis — AI fikir, manusia decide.',
-    futureIntro:'Di masa hadapan, sistem akan beransur-ansur beralih kepada penyelesaian open-source yang kos rendah tetapi dipercayai, bergantung kepada alat yang mahal — sambil mengekalkan keselamatan dan kestabilan sebagai keutamaan utama. Ini adalah arah tuju, bukan perkara yang sedang dilakukan sekarang.',
-    futureLocalTitle:'Local-first AI untuk data sensitif',futureLocalText:'Kerja sebenar sepatutnya simpan data penting dalam database atau server dalaman, dan guna local LLM atau private mode sebagai laluan utama sebelum hantar data mentah ke sistem luar.',
-    futureEngineTitle:'Pilih alat yang sesuai untuk kerja itu',futureEngineText:'Bila Excel atau Sheets mula lambat, pindah kerja berat ke database, Power Query, atau local processing — tapi kekalkan antara muka yang senang digunakan.',
-    futureReuseText:'Komputer lama boleh jalankan Linux Mint sebagai pilihan low-bloat, cost-aware, dan private — jika patch management, backup, dan security policy diuruskan dengan baik.',
-    futureSecTitle:'Security yang penting betul-betul',futureSecText:'Utamakan data leak prevention, encryption, recovery, audit, dan central management macam LAPS — supaya pengguna faham sistem ni melindungi apa.',
     geoBiTitle:'Melanjutkan ke Business Intelligence berasaskan peta',geoBiText:'Idea masa hadapan sahaja — bukan feature sekarang. Tunjuk pemikiran mendalam tentang data sebenar yang organisasi perlukan.',
-    geoBiMember:'Tunjuk ahli per daerah — heatmap ketumpatan vs potensi pasaran (population/household). Nampak kawasan ramai ahli tapi guna servis sedikit.',
-    geoBiLoans:'Tunjuk jumlah pinjaman (outstanding) — banding loan-to-member ratio antara daerah. Cari kawasan ramai ahli tapi pinjangan rendah → peluang tumbuh.',
+    geoBiMember:'Tunjuk ahli per daerah — heatmap ketumpatan vs potensi pasaran. Nampak kawasan ramai ahli tapi guna servis sedikit.',
+    geoBiLoans:'Tunjuk jumlah pinjaman (outstanding) — banding loan-to-member ratio. Cari kawasan ramai ahli tapi pinjangan rendah → peluang tumbuh.',
     geoBiSavings:'Tunjuk jumlah deposit — banding savings-to-loan ratio. Kenal pasti daerah dengan kecairan tinggi/rendah.',
     geoBiNpl:'Tunjuk % NPL dan jumlah NPL — banding antara daerah, tanda daerah risiko. Sambung ke debt route planning.',
     geoBiDebt:'Rancang laluan kutipan hutang GPS sebenar — susun ikut jumlah/baki/jarak. Jejak prestasi kutipan sebenar.',
     geoBiFilter:'Tapis ahli ikut status: normal / tertunggak / tutup — banding portfolio quality antara daerah.',
-    trustTitle:'Percaya sebab ada role, review, dan QA',trustText:'Arah sistem ialah role-based access, audit trail, demo data asing dari data sebenar, review/QA sebelum deploy, encryption/recovery untuk kerja sebenar, dan AI/automation tak tukar kerja penting senyap-senyap.',learnMore:'Tengok overview'
+    futureTitle:'Prinsip jangka panjang: alat yang betul, selamat, dan jimat',futureIntro:'Di masa hadapan, sistem akan beransur-ansur beralih kepada penyelesaian open-source yang kos rendah tetapi dipercayai — sambil mengekalkan keselamatan dan kestabilan sebagai keutamaan utama. Ini adalah arah tuju, bukan perkara yang sedang dilakukan sekarang.',
+    futureLocalTitle:'Local-first AI untuk data sensitif',futureLocalText:'Kerja sebenar sepatutnya simpan data penting dalam database atau server dalaman, dan guna local LLM atau private mode sebagai laluan utama sebelum hantar data mentah ke sistem luar.',
+    futureEngineTitle:'Pilih alat yang sesuai untuk kerja itu',futureEngineText:'Bila Excel atau Sheets mula lambat, pindah kerja berat ke database, Power Query, atau local processing — tapi kekalkan antara muka yang senang digunakan.',
+    futureReuseTitle:'Guna komputer lama secara profesional',futureReuseText:'Komputer lama boleh jalankan Linux Mint sebagai pilihan low-bloat, cost-aware, dan private — jika patch management, backup, dan security policy diuruskan dengan baik.',
+    futureSecTitle:'Security yang penting betul-betul',futureSecText:'Utamakan data leak prevention, encryption, recovery, audit, dan central management macam LAPS — supaya pengguna faham sistem ni melindungi apa.',
+    trustTitle:'Percaya sebab ada role, review, dan QA',trustText:'Arah sistem ialah role-based access, audit trail, demo data asing dari data sebenar, review/QA sebelum deploy, encryption/recovery untuk kerja sebenar, dan AI/automation tak tukar kerja penting senyap-senyap.',
+    learnMore:'Tengok overview',backLabel:'Kembali',backTitle:'Interview QR Landing — mula di sini'
   }
 };
 function setLang(lang){
-  const dict=copy[lang]||copy.th;
-  localStorage.setItem('uiLanguage',lang);
-  document.documentElement.lang=lang==='en'?'en':(lang==='ms'?'ms':'th');
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
   document.querySelectorAll('.lang-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===lang));
-  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(dict[key]) el.textContent=dict[key];});
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(copy[lang][k])el.textContent=copy[lang][k];});
+  document.documentElement.lang=lang==='en'?'en':(lang==='ms'?'ms':'th');
 }
 document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
 setLang(localStorage.getItem('uiLanguage')||'th');
+
+const sections = document.querySelectorAll('[id]');
+const dots = document.querySelectorAll('.side-dot');
+window.addEventListener('scroll',()=>{
+  let cur = '';
+  sections.forEach(s=>{if(window.scrollY >= s.offsetTop-120) cur = s.id;});
+  dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+cur));
+});
 </script>
 </body>
 </html>

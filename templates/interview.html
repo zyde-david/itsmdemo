@@ -6,131 +6,206 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 <style>
-:root{--navy:#0f2f4a;--blue:#1a5276;--green:#27ae60;--soft:#f3f8fc;--ink:#243447}
+:root{--navy:#0f2f4a;--blue:#1a5276;--green:#27ae60;--soft:#f3f8fc;--ink:#243447;--muted:#536675}
 *{box-sizing:border-box}
 body{font-family:'Segoe UI','Noto Sans Thai',Arial,sans-serif;background:linear-gradient(180deg,#eef6fb 0%,#fff 48%,#f7fafc 100%);color:var(--ink)}
-.page-shell{max-width:1120px;margin:0 auto;padding:18px 14px 28px}
+
+/* ── Nav dots ── */
+.side-nav{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
+.side-dot{width:10px;height:10px;border-radius:50%;background:#ccc;text-decoration:none;transition:all .3s}
+.side-dot:hover,.side-dot.active{background:var(--blue);transform:scale(1.4)}
+
+/* ── Hero ── */
 .hero{background:radial-gradient(circle at 15% 20%,rgba(39,174,96,.28),transparent 24%),linear-gradient(135deg,var(--navy),var(--blue) 70%,#2980b9);color:#fff;border-radius:26px;padding:28px 20px;box-shadow:0 16px 42px rgba(15,47,74,.22);overflow:hidden;position:relative}
 .hero::after{content:'';position:absolute;right:-80px;bottom:-80px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
 .hero-content{position:relative;z-index:1}
-.lang-switch{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px;display:inline-flex;gap:4px;flex-wrap:wrap}
-.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.78);font-size:.78rem;padding:6px 11px;font-weight:700}
+.lang-switch{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:4px;display:inline-flex;gap:4px}
+.lang-btn{border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.78);font-size:.74rem;padding:5px 10px;font-weight:700;cursor:pointer}
 .lang-btn.active{background:#fff;color:var(--blue)}
-.hero h1{font-size:clamp(1.8rem,5vw,3.5rem);line-height:1.05;font-weight:800;letter-spacing:-.04em;margin:18px 0 12px}
-.hero p{max-width:760px;color:rgba(255,255,255,.82);font-size:1rem;line-height:1.65}
-.badge-line{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 22px}.badge-line span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px;font-size:.78rem}
-.btn-open{background:#fff;color:var(--blue);border:0;border-radius:14px;padding:12px 20px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;box-shadow:0 10px 22px rgba(0,0,0,.16)}
+.hero h1{font-size:clamp(1.6rem,4vw,2.8rem);line-height:1.08;font-weight:800;letter-spacing:-.03em;margin:16px 0 10px}
+.hero p{max-width:700px;color:rgba(255,255,255,.82);font-size:.92rem;line-height:1.65}
+.badge-line{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+.badge-line span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 10px;font-size:.74rem}
+.btn-open{background:#fff;color:var(--blue);border:0;border-radius:14px;padding:11px 18px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;box-shadow:0 10px 22px rgba(0,0,0,.16)}
 .btn-open:hover{color:var(--blue);transform:translateY(-1px)}
-.btn-secondary-link{color:#fff;border:1px solid rgba(255,255,255,.42);border-radius:14px;padding:11px 18px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px}.btn-secondary-link:hover{background:rgba(255,255,255,.1);color:#fff}
-.slide-card{background:#fff;border:1px solid #e7edf3;border-radius:22px;padding:22px;box-shadow:0 8px 28px rgba(21,54,82,.08);height:100%}
-.slide-label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#5d7890;font-weight:800;margin-bottom:8px}.slide-title{font-weight:800;color:var(--blue);font-size:1.15rem;margin-bottom:10px}.slide-card p,.slide-card li{font-size:.9rem;line-height:1.6;color:#536675}.icon-bubble{width:48px;height:48px;border-radius:16px;background:#eaf5ff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.45rem;margin-bottom:12px}
-.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.flow-step{background:var(--soft);border:1px solid #dcebf6;border-radius:16px;padding:12px 8px;text-align:center;font-size:.78rem;font-weight:700;color:var(--blue)}.flow-step i{display:block;font-size:1.25rem;margin-bottom:5px;color:var(--green)}
-.footer-note{text-align:center;color:#7b8b99;font-size:.78rem;margin-top:24px}.lang-panel{display:none}.lang-panel.active{display:block}
-@media(max-width:767.98px){.hero{border-radius:20px;padding:22px 16px}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.slide-card{padding:18px}.lang-switch{border-radius:16px}.lang-btn{font-size:.72rem;padding:6px 9px}.badge-line span{font-size:.72rem}.btn-open,.btn-secondary-link{width:100%;justify-content:center;margin-bottom:8px}}
+.btn-ghost{color:#fff;border:1px solid rgba(255,255,255,.42);border-radius:14px;padding:10px 16px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn-ghost:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* ── Zigzag rows ── */
+.zig-section{padding:20px 0}
+.zig-row{display:flex;align-items:center;gap:20px;margin-bottom:24px}
+.zig-row.reverse{flex-direction:row-reverse}
+.zig-icon{flex:0 0 70px;height:70px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff}
+.zig-body{flex:1}
+.zig-body .hook{font-size:.95rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.zig-body p{font-size:.82rem;color:var(--muted);line-height:1.6;margin:0}
+
+/* ── Flow ── */
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}
+.flow-step{background:var(--soft);border:1px solid #dcebf6;border-radius:14px;padding:10px 6px;text-align:center;font-size:.74rem;font-weight:700;color:var(--blue)}
+.flow-step i{display:block;font-size:1.2rem;margin-bottom:4px;color:var(--green)}
+
+/* ── Next link ── */
+.next-link{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e7edf3;border-radius:14px;padding:16px 20px;text-decoration:none;color:var(--ink);transition:box-shadow .2s}
+.next-link:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.next-link .nl{font-size:.68rem;color:#8899aa;text-transform:uppercase;letter-spacing:.5px}
+.next-link .nt{font-weight:700;color:var(--blue);font-size:.92rem}
+.next-link i{color:var(--blue);font-size:1.2rem}
+
+.footer-note{text-align:center;color:#7b8b99;font-size:.74rem;margin-top:20px}
+.lang-panel{display:none}.lang-panel.active{display:block}
+
+@media(max-width:767.98px){
+  .side-nav{display:none}
+  .zig-row,.zig-row.reverse{flex-direction:column;text-align:center;gap:10px}
+  .zig-icon{flex:0 0 56px;width:56px;height:56px;font-size:1.4rem}
+  .flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero{border-radius:20px;padding:22px 16px}
+}
 </style>
 </head>
 <body>
-<div class="page-shell">
-  <section class="hero mb-3 mb-md-4">
-    <div class="hero-content">
-      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-        <div class="small fw-bold opacity-75"><i class="bi bi-qr-code me-1"></i>QR Interview Landing · ITSM Demo</div>
-        <div class="lang-switch" aria-label="Language switcher: English, Thai, Bahasa Melayu">
-          <button class="lang-btn active" data-lang="th">ไทย</button>
-          <button class="lang-btn" data-lang="en">English</button>
-          <button class="lang-btn" data-lang="ms" title="Bahasa Melayu">Malay</button>
-        </div>
-      </div>
 
-      <div class="lang-panel active" data-panel="th">
-        <h1>ระบบ ITSM สำหรับสหกรณ์หลายสาขา</h1>
-        <p>เดโมนี้เล่าแนวคิดการจัดการงาน IT แบบเป็นระบบ: รับแจ้งปัญหา ดูทรัพย์สิน ติดตามพนักงาน เก็บความรู้ และใช้แผนที่ช่วยวางแผนดูแลสาขา/หน่วยบริการเคลื่อนที่</p>
-      </div>
-      <div class="lang-panel" data-panel="en">
-        <h1>ITSM for multi-branch cooperatives</h1>
-        <p>This demo shows a practical IT support workflow: log tickets, track assets, manage staff, build a knowledge base, and plan branch visits on a map — all in one system.</p>
-      </div>
-      <div class="lang-panel" data-panel="ms">
-        <h1>Sistem IT untuk koperasi banyak cawangan</h1>
-        <p>Demo ni tunjuk cara kerja IT yang praktikal: buat tiket, jejak aset, urus kakitangan, simpan ilmu, dan rancang lawatan cawangan pakai peta — semua dalam satu sistem.</p>
-      </div>
+<!-- Side nav -->
+<nav class="side-nav">
+  <a class="side-dot active" href="#hero" title="หน้าแรก"></a>
+  <a class="side-dot" href="#pain" title="ปัญหา"></a>
+  <a class="side-dot" href="#flow" title="ขั้นตอน"></a>
+  <a class="side-dot" href="#future" title="อนาคต"></a>
+</nav>
 
-      <div class="badge-line">
-        <span><i class="bi bi-building me-1"></i>Multi-branch</span>
-        <span><i class="bi bi-phone me-1"></i>Mobile service</span>
-        <span><i class="bi bi-map me-1"></i>Map workflow</span>
-        <span><i class="bi bi-translate me-1"></i>TH / EN / Malay</span>
-      </div>
-      <div class="d-flex gap-2 flex-wrap">
-        <a href="/login" class="btn-open"><i class="bi bi-box-arrow-in-right"></i><span data-i18n="openDemo">Open Demo</span></a>
-        <a href="/howto-public" class="btn-secondary-link"><i class="bi bi-info-circle"></i><span data-i18n="overview">System overview</span></a>
-        <a href="/vision" class="btn-secondary-link"><i class="bi bi-stars"></i><span data-i18n="vision">Vision & AI privacy</span></a>
+<div class="container py-3" style="max-width:960px">
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero mb-3" id="hero">
+  <div class="hero-content">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div class="small fw-bold opacity-75"><i class="bi bi-qr-code me-1"></i>QR Interview Landing</div>
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="th">ไทย</button>
+        <button class="lang-btn" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="ms">Malay</button>
       </div>
     </div>
-  </section>
+    <div class="lang-panel active" data-panel="th">
+      <h1>ระบบ ITSM สำหรับสหกรณ์หลายสาขา</h1>
+      <p>เดโมนี้เล่าแนวคิดการจัดการงาน IT แบบเป็นระบบ: รับแจ้งปัญหา ดูทรัพย์สิน ติดตามพนักงาน เก็บความรู้ และใช้แผนที่ช่วยวางแผนดูแลสาขา</p>
+    </div>
+    <div class="lang-panel" data-panel="en">
+      <h1>ITSM for multi-branch cooperatives</h1>
+      <p>This demo shows a practical IT support workflow: log tickets, track assets, manage staff, build a knowledge base, and plan branch visits on a map.</p>
+    </div>
+    <div class="lang-panel" data-panel="ms">
+      <h1>Sistem IT untuk koperasi banyak cawangan</h1>
+      <p>Demo ni tunjuk cara kerja IT yang praktikal: buat tiket, jejak aset, urus kakitangan, simpan ilmu, dan rancang lawatan cawangan pakai peta.</p>
+    </div>
+    <div class="badge-line">
+      <span><i class="bi bi-building me-1"></i>Multi-branch</span>
+      <span><i class="bi bi-phone me-1"></i>Mobile</span>
+      <span><i class="bi bi-map me-1"></i>Map</span>
+      <span><i class="bi bi-translate me-1"></i>TH / EN / Malay</span>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="/login" class="btn-open"><i class="bi bi-box-arrow-in-right"></i><span data-i18n="openDemo">Open Demo</span></a>
+      <a href="/howto-public" class="btn-ghost"><i class="bi bi-info-circle"></i><span data-i18n="overview">Overview</span></a>
+      <a href="/vision" class="btn-ghost"><i class="bi bi-stars"></i><span data-i18n="vision">Vision</span></a>
+    </div>
+  </div>
+</section>
 
-  <div class="row g-3 mb-3">
-    <div class="col-md-4">
-      <div class="slide-card">
-        <div class="icon-bubble"><i class="bi bi-exclamation-triangle"></i></div>
-        <div class="slide-label">Pain Point</div>
-        <div class="slide-title" data-i18n="painTitle">IT support gets scattered</div>
-        <p data-i18n="painText">Branches report printer, network, VPN, core banking, and field-service issues through many channels. Without one workflow, status, ownership, and recurring fixes are hard to see.</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="slide-card">
-        <div class="icon-bubble"><i class="bi bi-diagram-3"></i></div>
-        <div class="slide-label">Workflow</div>
-        <div class="slide-title" data-i18n="workflowTitle">One clear service flow</div>
-        <p data-i18n="workflowText">Tickets connect to assets, staff responsibility, knowledge articles, and branch location so the team can prioritize work and learn from repeat incidents.</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="slide-card">
-        <div class="icon-bubble"><i class="bi bi-boxes"></i></div>
-        <div class="slide-label">Direction</div>
-        <div class="slide-title" data-i18n="directionTitle">Modular product path</div>
-        <p data-i18n="directionText">Start with ITSM core, then add modules gradually: HR leave, project tracker, route planning, document support, and BI maps as the organization is ready.</p>
-      </div>
+<!-- ═══════════════ ZIGZAG: Pain → Workflow → Direction ═══════════════ -->
+<div class="zig-section" id="pain">
+
+  <div class="zig-row">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#c0392b,#e74c3c)"><i class="bi bi-exclamation-triangle"></i></div>
+    <div class="zig-body">
+      <div class="hook" data-i18n="painHook">งาน IT กระจายหลายทาง — สถานะไม่ชัด</div>
+      <p data-i18n="painText">สาขาแจ้งปัญหา printer, network, VPN, core banking หลายช่องทาง ถ้าไม่มี workflow เดียว จะเห็นสถานะ ผู้รับผิดชอบ และปัญหาซ้ำได้ยาก</p>
     </div>
   </div>
 
-  <div class="slide-card mb-3">
-    <div class="slide-label">Demo flow</div>
-    <div class="slide-title" data-i18n="flowTitle">Tickets → Assets → Staff → Knowledge → Map</div>
-    <div class="flow mt-3">
-      <div class="flow-step"><i class="bi bi-ticket-perforated"></i>Tickets</div>
-      <div class="flow-step"><i class="bi bi-box-seam"></i>Assets</div>
-      <div class="flow-step"><i class="bi bi-people"></i>Staff</div>
-      <div class="flow-step"><i class="bi bi-book"></i>Knowledge</div>
-      <div class="flow-step"><i class="bi bi-map"></i>Map</div>
+  <div class="zig-row reverse">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#1a5276,#2980b9)"><i class="bi bi-diagram-3"></i></div>
+    <div class="zig-body">
+      <div class="hook" data-i18n="workflowHook">Service flow เดียวที่ชัดเจน</div>
+      <p data-i18n="workflowText">Ticket เชื่อมกับ asset, ผู้รับผิดชอบ, knowledge และตำแหน่งสาขา เพื่อช่วยจัดลำดับงานและเรียนรู้จากปัญหาที่เจอซ้ำ</p>
     </div>
   </div>
 
-  <div class="slide-card">
-    <div class="slide-label">Future direction</div>
-    <div class="slide-title" data-i18n="futureDirectionTitle">แผนต่อยอดในอนาคต — ดูรายละเอียดเพิ่มเติม</div>
-    <p data-i18n="futureDirectionText">ไอเดียต่อยอด เช่น Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — อยู่ในหน้า Vision & Future Plan</p>
-    <a href="/vision" class="btn-secondary-link mt-2"><i class="bi bi-stars me-1"></i><span data-i18n="viewVision">ดู Vision & Future Plan</span></a>
+  <div class="zig-row">
+    <div class="zig-icon" style="background:linear-gradient(135deg,#27ae60,#2ecc71)"><i class="bi bi-boxes"></i></div>
+    <div class="zig-body">
+      <div class="hook" data-i18n="directionHook">ต่อยอดเป็น product แบบ modular</div>
+      <p data-i18n="directionText">เริ่มจาก ITSM core แล้วเพิ่ม module ทีละส่วน: HR leave, project tracker, route planning, document support และ BI maps ตามความพร้อมขององค์กร</p>
+    </div>
   </div>
 
-  <div class="footer-note">Built by Zyde · QR target: /interview · Demo data only</div>
 </div>
+
+<!-- ═══════════════ FLOW ═══════════════ -->
+<div class="bg-white rounded-4 p-3 mb-3" id="flow" style="border:1px solid #e7edf3;box-shadow:0 4px 16px rgba(0,0,0,.05)">
+  <div class="small fw-bold text-uppercase text-muted mb-2" style="font-size:.68rem;letter-spacing:.06em" data-i18n="flowTitle">ขั้นตอนเดโม</div>
+  <div class="flow">
+    <div class="flow-step"><i class="bi bi-ticket-perforated"></i>Tickets</div>
+    <div class="flow-step"><i class="bi bi-box-seam"></i>Assets</div>
+    <div class="flow-step"><i class="bi bi-people"></i>Staff</div>
+    <div class="flow-step"><i class="bi bi-book"></i>Knowledge</div>
+    <div class="flow-step"><i class="bi bi-map"></i>Map</div>
+  </div>
+</div>
+
+<!-- ═══════════════ FUTURE → links to Vision ═══════════════ -->
+<a href="/vision" class="next-link mb-3" id="future">
+  <div>
+    <div class="nl" data-i18n="nextLabel">แผนอนาคต</div>
+    <div class="nt" data-i18n="nextTitle">Geo BI / Asset-tag / AI helper / Open-source →</div>
+  </div>
+  <i class="bi bi-arrow-right-circle-fill"></i>
+</a>
+
+<div class="footer-note">Built by Zyde · QR → /interview · Demo data only</div>
+</div>
+
 <script>
 const copy={
-  th:{openDemo:'Open Demo',overview:'System overview',vision:'Vision & AI privacy',painTitle:'งาน IT กระจายหลายทาง',painText:'สาขาแจ้งปัญหา printer, network, VPN, core banking และหน่วยบริการเคลื่อนที่หลายช่องทาง ถ้าไม่มี workflow เดียว จะเห็นสถานะ ผู้รับผิดชอบ และปัญหาซ้ำได้ยาก',workflowTitle:'Service flow เดียวที่ชัดเจน',workflowText:'Ticket เชื่อมกับ asset, ผู้รับผิดชอบ, knowledge และตำแหน่งสาขา เพื่อช่วยจัดลำดับงานและเรียนรู้จากปัญหาที่เจอซ้ำ',directionTitle:'ต่อยอดเป็น product แบบ modular',directionText:'เริ่มจาก ITSM core แล้วเพิ่ม module ทีละส่วน: HR leave, project tracker, route planning, document support และ BI maps ตามความพร้อมขององค์กร',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureDirectionTitle:'แผนต่อยอดในอนาคต — ดูรายละเอียดเพิ่มเติม',futureDirectionText:'ไอเดียต่อยอด เช่น Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — อยู่ในหน้า Vision & Future Plan',viewVision:'ดู Vision & Future Plan'},
-  en:{openDemo:'Open Demo',overview:'System overview',vision:'Vision & AI privacy',painTitle:'IT support gets scattered',painText:'Branches report printer, network, VPN, core banking, and mobile service issues through many channels. Without one workflow, status, ownership, and recurring fixes are hard to see.',workflowTitle:'One clear service flow',workflowText:'Tickets connect to assets, staff responsibility, knowledge articles, and branch location so the team can prioritize work and learn from repeat incidents.',directionTitle:'Modular product path',directionText:'Start with ITSM core, then add modules gradually: HR leave, project tracker, route planning, document support, and BI maps as the organization is ready.',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureDirectionTitle:'Future plans — see full details',futureDirectionText:'Extended ideas like Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — all on the Vision & Future Plan page',viewVision:'View Vision & Future Plan'},
-  pm:{openDemo:'Buka Demo',overview:'Lihat ringkas sistem',vision:'Vision & AI privacy',painTitle:'Kerja IT pecah banyak tempat',painText:'Cawangan lapor masalah printer, network, VPN, core banking dan servis bergerak dari banyak cara. Kalau tiada satu aliran kerja, susah nak nampak status, siapa pegang kerja, dan masalah yang selalu ulang.',workflowTitle:'Satu jalan kerja yang jelas',workflowText:'Ticket sambung dengan barang IT, orang yang bertanggungjawab, artikel ilmu, dan lokasi cawangan supaya pasukan boleh susun kerja dan belajar dari masalah berulang.',directionTitle:'Product modular',directionText:'Mula dengan ITSM core, tambah module beransur-ansur: HR leave, project tracker, route planning, document support, dan BI maps ikut kesediaan organisasi.',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureDirectionTitle:'Plan masa hadapan — lihat lebih lanjut',futureDirectionText:'Idea lanjutan macam Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — semua dalam page Vision & Future Plan',viewVision:'Lihat Vision & Future Plan'}
+  th:{
+    openDemo:'Open Demo',overview:'Overview',vision:'Vision',
+    painHook:'งาน IT กระจายหลายทาง — สถานะไม่ชัด',painText:'สาขาแจ้งปัญหา printer, network, VPN, core banking หลายช่องทาง ถ้าไม่มี workflow เดียว จะเห็นสถานะ ผู้รับผิดชอบ และปัญหาซ้ำได้ยาก',
+    workflowHook:'Service flow เดียวที่ชัดเจน',workflowText:'Ticket เชื่อมกับ asset, ผู้รับผิดชอบ, knowledge และตำแหน่งสาขา เพื่อช่วยจัดลำดับงานและเรียนรู้จากปัญหาที่เจอซ้ำ',
+    directionHook:'ต่อยอดเป็น product แบบ modular',directionText:'เริ่มจาก ITSM core แล้วเพิ่ม module ทีละส่วน: HR leave, project tracker, route planning, document support และ BI maps ตามความพร้อมขององค์กร',
+    flowTitle:'ขั้นตอนเดโม',nextLabel:'แผนอนาคต',nextTitle:'Geo BI / Asset-tag / AI helper / Open-source →'
+  },
+  en:{
+    openDemo:'Open Demo',overview:'Overview',vision:'Vision',
+    painHook:'IT support scattered across channels — no clear status',painText:'Branches report printer, network, VPN, core banking issues through many channels. Without one workflow, status, ownership, and recurring fixes are hard to see.',
+    workflowHook:'One clear service flow',workflowText:'Tickets connect to assets, staff responsibility, knowledge articles, and branch location so the team can prioritize work and learn from repeat incidents.',
+    directionHook:'Modular product path',directionText:'Start with ITSM core, then add modules gradually: HR leave, project tracker, route planning, document support, and BI maps as the organization is ready.',
+    flowTitle:'Demo flow',nextLabel:'Future plan',nextTitle:'Geo BI / Asset-tag / AI helper / Open-source →'
+  },
+  ms:{
+    openDemo:'Buka Demo',overview:'Overview',vision:'Vision',
+    painHook:'Kerja IT pecah banyak tempat — status tak jelas',painText:'Cawangan lapor masalah printer, network, VPN, core banking dari banyak cara. Kalau tiada satu aliran kerja, susah nak nampak status, siapa pegang kerja, dan masalah yang selalu ulang.',
+    workflowHook:'Satu jalan kerja yang jelas',workflowText:'Ticket sambung dengan barang IT, orang yang bertanggungjawab, artikel ilmu, dan lokasi cawangan supaya pasukan boleh susun kerja dan belajar dari masalah berulang.',
+    directionHook:'Produk boleh tambah ikut modul',directionText:'Mula dengan ITSM core, tambah module beransur-ansur: HR leave, project tracker, route planning, dokumen, dan peta BI bila organisasi sudah sedia.',
+    flowTitle:'Aliran demo',nextLabel:'Plan masa hadapan',nextTitle:'Geo BI / Asset-tag / AI helper / Open-source →'
+  }
 };
 function setLang(lang){
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
   document.querySelectorAll('.lang-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===lang));
-  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(copy[lang][key]) el.textContent=copy[lang][key];});
-  document.documentElement.lang=lang==='en'?'en':(lang==='pm'?'ms':'th');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(copy[lang][k])el.textContent=copy[lang][k];});
+  document.documentElement.lang=lang==='en'?'en':(lang==='ms'?'ms':'th');
 }
 document.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
 setLang(localStorage.getItem('uiLanguage')||'th');
+
+const sections = document.querySelectorAll('[id]');
+const dots = document.querySelectorAll('.side-dot');
+window.addEventListener('scroll',()=>{
+  let cur = '';
+  sections.forEach(s=>{if(window.scrollY >= s.offsetTop-120) cur = s.id;});
+  dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+cur));
+});
 </script>
 </body>
 </html>
