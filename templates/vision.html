@@ -169,56 +169,91 @@ body{
     </div>
   </div>
 
-  <div class="row g-3 mb-3">
-    <div class="col-lg-6">
-      <div class="vision-card">
-        <div class="eyebrow">Product direction</div>
-        <h3 data-i18n="productTitle">ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง</h3>
-        <p data-i18n="productText">How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก</p>
-        <div>
-          <span class="roadmap-pill"><i class="bi bi-tags"></i>Asset-tag tickets</span>
-          <span class="roadmap-pill"><i class="bi bi-graph-up"></i>Branch dashboard</span>
-          <span class="roadmap-pill"><i class="bi bi-map"></i>BI maps/routes</span>
-          <span class="roadmap-pill"><i class="bi bi-robot"></i>Human-approved AI helper</span>
+  <div class="vision-card mb-3">
+    <div class="eyebrow">Product direction</div>
+    <h3 data-i18n="productTitle">ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง</h3>
+    <p class="mb-3" data-i18n="productText">How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก</p>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="future-card" style="border-left:4px solid #27ae60">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-tags" style="color:#27ae60;font-size:1.2rem"></i>
+            <strong style="color:#1a5276;font-size:.92rem">Asset-tag tickets</strong>
+            <span class="badge bg-success" style="font-size:.65rem">Core</span>
+          </div>
+          <p data-i18n="pdAsset1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">เชื่อมโยงข้อมูลทรัพย์สน (Asset) เข้ากับ Ticket ทุกใบ เพื่อเห็นประวัติการซ่อม อายุการใช้งาน และสถานะปัจจุบันของอุปกรณ์ได้ทันที</p>
+          <p data-i18n="pdAsset2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">ค้นหา/กรอง ticket จาก asset tag, ดูว่าเครื่องเคยมีปัญหาเดิมซ้ำหรือไม่, ช่วยตัดสินใจว่าซ่อมหรือเปลี่ยน</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="future-card" style="border-left:4px solid #2980b9">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-graph-up" style="color:#2980b9;font-size:1.2rem"></i>
+            <strong style="color:#1a5276;font-size:.92rem">Branch dashboard</strong>
+            <span class="badge bg-primary" style="font-size:.65rem">Planned</span>
+          </div>
+          <p data-i18n="pdBranch1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">แดชบอร์ดแยกตามสาขา: ดูจำนวน ticket ค้าง อายุงานที่รอ สถานะ SLA และเทรนด์รายสัปดาห์ได้ในหน้าเดียว</p>
+          <p data-i18n="pdBranch2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">เจ้าหน้าที่บริหารสาขาสามารถเห็นภาพรวมโดยไม่ต้องเปิดทีละ ticket — เน้นตัวเลขสำคัญและสีสถานะให้อ่านง่าย</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="future-card" style="border-left:4px solid #e67e22">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-map" style="color:#e67e22;font-size:1.2rem"></i>
+            <strong style="color:#1a5276;font-size:.92rem">BI maps &amp; routes</strong>
+            <span class="badge" style="font-size:.65rem;background:#e67e22;color:#fff">Phase 2</span>
+          </div>
+          <p data-i18n="pdMap1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">แผนที่แสดงตำแหน่งสาขาและจุดที่มี ticket หนาแน่น พร้อม route แนะนำช่างภาคสนามให้เดินทางครบหลายจุดอย่างมีประสิทธิภาพ</p>
+          <p data-i18n="pdMap2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">ใช้ Leaflet + ข้อมูลถนนจริง: วิเคราะห์ hotspot ปัญหาซ้ำ, วางแผน preventive maintenance ตามพื้นที่</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="future-card" style="border-left:4px solid #8e44ad">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-robot" style="color:#8e44ad;font-size:1.2rem"></i>
+            <strong style="color:#1a5276;font-size:.92rem">Human-approved AI helper</strong>
+            <span class="badge" style="font-size:.65rem;background:#8e44ad;color:#fff">Phase 2</span>
+          </div>
+          <p data-i18n="pdAi1" style="font-size:.82rem;color:#5d6f7d;margin:0;line-height:1.55">AI ช่วยแนะนำหมวดหมู่, priority, และ similar ticket ที่เคยแก้ไขแล้ว — แต่ทุกการเปลี่ยนสถานะต้องมีคนกดยืนยันก่อน</p>
+          <p data-i18n="pdAi2" style="font-size:.78rem;color:#7b8b99;margin:4px 0 0;line-height:1.5">เสนอคำตอบ draft KB, สรุม ticket ยาวให้สั้น แจ้งเตือนเมื่อ SLA ใกล้หมด — AI ช่วยคิด คนตัดสินใจ</p>
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
-      <div class="vision-card">
-        <div class="eyebrow">Mobile demo</div>
-        <h3 data-i18n="mobileTitle">ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย</h3>
-        <p data-i18n="mobileText">หน้า public ใช้ข้อความสั้น การ์ดอ่านง่าย และ link ชัดเจน เพื่อให้คนที่ไม่ใช่ IT เปิดจาก QR, tablet หรือมือถือแล้วเข้าใจทันทีว่าระบบช่วยงานอะไร ต่อไป How To จะเป็นคู่มือใช้งานสั้น ๆ และ Vision จะเก็บแผนอนาคตที่ลึกกว่า</p>
-      </div>
-    </div>
+  </div>
+  <div class="vision-card mb-3">
+    <div class="eyebrow">Mobile demo</div>
+    <h3 data-i18n="mobileTitle">ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย</h3>
+    <p data-i18n="mobileText">หน้า public ใช้ข้อความสั้น การ์ดอ่านง่าย และ link ชัดเจน เพื่อให้คนที่ไม่ใช่ IT เปิดจาก QR, tablet หรือมือถือแล้วเข้าใจทันทีว่าระบบช่วยงานอะไร ต่อไป How To จะเป็นคู่มือใช้งานสั้น ๆ และ Vision จะเก็บแผนอนาคตที่ลึกกว่า</p>
   </div>
 
 
   <div class="vision-card mb-3">
     <div class="eyebrow">Future principles</div>
     <h3 data-i18n="futureTitle">หลักคิดระยะยาว: ใช้เครื่องมือให้ถูกที่ ปลอดภัย และคุ้มค่า</h3>
+    <p class="mb-3" data-i18n="futureIntro" style="font-size:.88rem;color:#536675;line-height:1.6">ในอนาคต ระบบจะค่อย ๆ เปลี่ยนไปใช้โซลูชัน open-source ที่ต้นทุนต่ำแต่เชื่่อถือได้ แทนการพึ่งพาเครื่องมือที่มีค่าใช้จ่ายสูง โดยยังคงความปลอดภัยและความเสถียรเป็นอันดับแรก — นี่คือทิศทาง ไม่ใช่สิ่งที่ทำอยู่ตอนนี้</p>
     <div class="row g-3">
       <div class="col-md-6 col-lg-3">
-        <div class="future-card">
-          <strong><i class="bi bi-hdd-stack me-1"></i><span data-i18n="futureLocalTitle">Local-first เมื่อข้อมูลอ่อนไหว</span></strong>
-          <p data-i18n="futureLocalText">งานจริงควรเก็บข้อมูลสำคัญใน local database/server และใช้ local LLM/private mode ก่อนส่ง raw data ไปข้างนอก</p>
+        <div class="future-card" style="border-left:4px solid #1a5276">
+          <strong><i class="bi bi-hdd-stack me-1"></i><span data-i18n="futureLocalTitle">Local-first AI เมื่อข้อมูลอ่อนไหว</span></strong>
+          <p data-i18n="futureLocalText">งานจริงควรเก็บข้อมูลสำคัญไว้ใน local database หรือ server ภายใน และใช้ local LLM หรือ private mode เป็นทางเลือกหลัก ก่อนที่จะส่ง raw data ไปยังระบบภายนอก</p>
         </div>
       </div>
       <div class="col-md-6 col-lg-3">
-        <div class="future-card">
-          <strong><i class="bi bi-database-gear me-1"></i><span data-i18n="futureEngineTitle">เลือก engine ให้เหมาะกับงาน</span></strong>
-          <p data-i18n="futureEngineText">ถ้า Excel/Sheets เริ่มช้า ให้ย้ายงานหนักไป DB, Power Query หรือ local processing แต่ยังให้หน้าจอใช้ง่ายเหมือนเดิม</p>
+        <div class="future-card" style="border-left:4px solid #27ae60">
+          <strong><i class="bi bi-database-gear me-1"></i><span data-i18n="futureEngineTitle">เลือกเครื่องมือให้เหมาะกับงาน</span></strong>
+          <p data-i18n="futureEngineText">เมื่อ Excel หรือ Sheets เริ่มช้า ให้ย้ายงานหนักไปยัง database, Power Query หรือ local processing แต่ยังคงให้หน้าจอใช้งานง่ายเหมือนเดิม</p>
         </div>
       </div>
       <div class="col-md-6 col-lg-3">
-        <div class="future-card">
+        <div class="future-card" style="border-left:4px solid #e67e22">
           <strong><i class="bi bi-pc-display me-1"></i><span data-i18n="futureReuseTitle">Reuse เครื่องเก่าแบบมืออาชีพ</span></strong>
-          <p data-i18n="futureReuseText">Linux Mint/เครื่องเก่าสามารถเป็นทางเลือก low-bloat, cost-aware และ private ได้ ถ้าจัดการ patch, backup และ policy ให้ดี</p>
+          <p data-i18n="futureReuseText">คอมพิวเตอร์เก่าสามารถลง Linux Mint เป็นทางเลือกที่ low-bloat, cost-aware และ private ได้ หากจัดการ patch, backup และ security policy อย่างเหมาะสม</p>
         </div>
       </div>
       <div class="col-md-6 col-lg-3">
-        <div class="future-card">
-          <strong><i class="bi bi-shield-check me-1"></i><span data-i18n="futureSecTitle">Security ที่อธิบายง่าย</span></strong>
-          <p data-i18n="futureSecText">พูดเรื่อง data leak, encryption, recovery, audit และ central management เป็นภาษาคนทำงาน เพื่อให้ผู้ใช้รู้ว่าระบบป้องกันอะไร</p>
+        <div class="future-card" style="border-left:4px solid #c0392b">
+          <strong><i class="bi bi-shield-check me-1"></i><span data-i18n="futureSecTitle">Security ที่สำคัญจริง ๆ</span></strong>
+          <p data-i18n="futureSecText">ให้ความสำคัญกับ data leak prevention, encryption, recovery, audit และ central management อย่าง LAPS เพื่อให้ผู้ใช้เข้าใจว่าระบบป้องกันอะไรบ้าง</p>
         </div>
       </div>
     </div>
@@ -251,6 +286,15 @@ const copy={
     aiTitle:'AI เป็นผู้ช่วย ไม่ใช่คนตัดสินใจแทน',aiOne:'ข้อมูลอ่อนไหวควรใช้ local LLM / private mode เป็นทางหลักเมื่อเป็นงานจริง',aiTwo:'Cloud AI หรือ API ต้อง opt-in ส่งเฉพาะข้อมูลจำเป็น และให้คนอนุมัติก่อนเปลี่ยนสถานะงาน',aiThree:'AI เหมาะกับสรุป ticket, แนะนำ category/priority, หา similar ticket, draft KB และช่วยดู insight',
     productTitle:'ต่อยอดจากงาน ITSM ไปสู่ insight ที่ใช้งานจริง',productText:'How To คือวิธีใช้งานปัจจุบัน ส่วน Vision คือทิศทางระยะยาว: ต่อจาก Ticket + Asset + Staff + Knowledge ไปสู่ dashboard, map/route, AI helper และ workflow ที่ช่วยตัดสินใจได้จริงโดยไม่ทำให้หน้าจอรก',
     mobileTitle:'ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย',mobileText:'หน้า public ใช้ข้อความสั้น การ์ดอ่านง่าย และ link ชัดเจน เพื่อให้คนที่ไม่ใช่ IT เปิดจาก QR, tablet หรือมือถือแล้วเข้าใจทันทีว่าระบบช่วยงานอะไร ต่อไป How To จะเป็นคู่มือใช้งานสั้น ๆ และ Vision จะเก็บแผนอนาคตที่ลึกกว่า',
+    pdAsset1:'เชื่อมโยงข้อมูลทรัพย์สน (Asset) เข้ากับ Ticket ทุกใบ เพื่อเห็นประวัติการซ่อม อายุการใช้งาน และสถานะปัจจุบันของอุปกรณ์ได้ทันที',pdAsset2:'ค้นหา/กรอง ticket จาก asset tag, ดูว่าเครื่องเคยมีปัญหาเดิมซ้ำหรือไม่, ช่วยตัดสินใจว่าซ่อมหรือเปลี่ยน',
+    pdBranch1:'แดชบอร์ดแยกตามสาขา: ดูจำนวน ticket ค้าง อายุงานที่รอ สถานะ SLA และเทรนด์รายสัปดาห์ได้ในหน้าเดียว',pdBranch2:'เจ้าหน้าที่บริหารสาขาสามารถเห็นภาพรวมโดยไม่ต้องเปิดทีละ ticket — เน้นตัวเลขสำคัญและสีสถานะให้อ่านง่าย',
+    pdMap1:'แผนที่แสดงตำแหน่งสาขาและจุดที่มี ticket หนาแน่น พร้อม route แนะนำช่างภาคสนามให้เดินทางครบหลายจุดอย่างมีประสิทธิภาพ',pdMap2:'ใช้ Leaflet + ข้อมูลถนนจริง: วิเคราะห์ hotspot ปัญหาซ้ำ, วางแผน preventive maintenance ตามพื้นที่',
+    pdAi1:'AI ช่วยแนะนำหมวดหมู่, priority, และ similar ticket ที่เคยแก้ไขแล้ว — แต่ทุกการเปลี่ยนสถานะต้องมีคนกดยืนยันก่อน',pdAi2:'เสนอคำตอบ draft KB, สรุม ticket ยาวให้สั้น แจ้งเตือนเมื่อ SLA ใกล้หมด — AI ช่วยคิด คนตัดสินใจ',
+    futureIntro:'ในอนาคต ระบบจะค่อย ๆ เปลี่ยนไปใช้โซลูชัน open-source ที่ต้นทุนต่ำแต่เชื่อถือได้ แทนการพึ่งพาเครื่องมือที่มีค่าใช้จ่ายสูง โดยยังคงความปลอดภัยและความเสถียรเป็นอันดับแรก — นี่คือทิศทาง ไม่ใช่สิ่งที่ทำอยู่ตอนนี้',
+    futureLocalTitle:'Local-first AI เมื่อข้อมูลอ่อนไหว',futureLocalText:'งานจริงควรเก็บข้อมูลสำคัญไว้ใน local database หรือ server ภายใน และใช้ local LLM หรือ private mode เป็นทางเลือกหลัก ก่อนที่จะส่ง raw data ไปยังระบบภายนอก',
+    futureEngineTitle:'เลือกเครื่องมือให้เหมาะกับงาน',futureEngineText:'เมื่อ Excel หรือ Sheets เริ่มช้า ให้ย้ายงานหนักไปยัง database, Power Query หรือ local processing แต่ยังคงให้หน้าจอใช้งานง่ายเหมือนเดิม',
+    futureReuseText:'คอมพิวเตอร์เก่าสามารถลง Linux Mint เป็นทางเลือกที่ low-bloat, cost-aware และ private ได้ หากจัดการ patch, backup และ security policy อย่างเหมาะสม',
+    futureSecTitle:'Security ที่สำคัญจริง ๆ',futureSecText:'ให้ความสำคัญกับ data leak prevention, encryption, recovery, audit และ central management อย่าง LAPS เพื่อให้ผู้ใช้เข้าใจว่าระบบป้องกันอะไรบ้าง',
     trustTitle:'ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย',trustText:'แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ',learnMore:'ดูภาพรวมระบบ'
   },
   en:{
@@ -262,6 +306,15 @@ const copy={
     aiTitle:'AI helps; people decide',aiOne:'For sensitive real data, the preferred path is local LLM / private mode.',aiTwo:'Cloud AI or APIs should be opt-in, minimal, and require human approval before state changes.',aiThree:'Good AI uses include ticket summaries, category/priority suggestions, similar-ticket hints, KB drafts, and dashboard insight.',
     productTitle:'From ITSM workflow to practical insight',productText:'How To stays practical for today; Vision holds the longer-term direction: from Tickets + Assets + Staff + Knowledge toward dashboards, maps/routes, AI helpers, and decision workflows without clutter.',
     mobileTitle:'Designed for showing and sharing',mobileText:'Public pages use short copy, readable cards, and clear links so non-IT viewers can scan a QR or open a tablet and understand the system quickly. How To stays a short guide; Vision carries the deeper future plan.',
+    pdAsset1:'Link Asset data to every ticket so technicians see repair history, device age, and current status at a glance.',pdAsset2:'Search/filter tickets by asset tag, check if the same device had recurring issues, and decide whether to repair or replace.',
+    pdBranch1:'Per-branch dashboard: see open tickets, ageing work, SLA status, and weekly trends in one view.',pdBranch2:'Branch managers get a full picture without opening individual tickets — key numbers and color-coded statuses at a glance.',
+    pdMap1:'Map showing branch locations and ticket hotspots, with suggested routes for field techs to cover multiple sites efficiently.',pdMap2:'Built on Leaflet + real road data: analyze recurring problem hotspots and plan preventive maintenance by area.',
+    pdAi1:'AI suggests category, priority, and previously resolved similar tickets — but every status change requires human confirmation.',pdAi2:'Draft KB answers, summarize long tickets, alert before SLA expiry — AI thinks, people decide.',
+    futureIntro:'In the future, the system will gradually transition to open-source, low-cost but reliable solutions instead of depending on expensive tools — while keeping security and stability as top priorities. This is the direction, not what is being done right now.',
+    futureLocalTitle:'Local-first AI for sensitive data',futureLocalText:'Real workloads should keep critical data in a local database or internal server, and use local LLM or private mode as the primary path before sending raw data to external systems.',
+    futureEngineTitle:'Choose the right tool for the job',futureEngineText:'When Excel or Sheets starts to slow down, move heavy work to a database, Power Query, or local processing — while keeping the interface just as easy to use.',
+    futureReuseText:'Old computers can run Linux Mint as a low-bloat, cost-aware, and private option — if patch management, backup, and security policy are handled properly.',
+    futureSecTitle:'Security that truly matters',futureSecText:'Prioritize data leak prevention, encryption, recovery, audit, and central management such as LAPS — so users understand what the system protects against.',
     trustTitle:'Trust comes from roles, review, and QA',trustText:'The direction is role-based access, audit trails, demo data separated from real data, review/QA before deploy, encryption/recovery for real use, and no silent AI/automation changes to important work.',learnMore:'See system overview'
   },
   ms:{
@@ -273,6 +326,15 @@ const copy={
     aiTitle:'AI tolong, manusia tetap decide',aiOne:'Data sensitif elok guna local LLM / private mode bila masuk kerja sebenar.',aiTwo:'Cloud AI/API kena opt-in, hantar data perlu saja, dan manusia approve dulu sebelum tukar status kerja.',aiThree:'AI sesuai untuk ringkas ticket, cadang category/priority, cari ticket hampir sama, draft KB, dan bantu baca insight.',
     productTitle:'Dari ITSM ke insight yang pakai betul',productText:'How To untuk cara guna hari ni; Vision simpan hala tuju panjang: dari Ticket + Asset + Staff + Knowledge pergi dashboard, map/route, AI helper, dan workflow bantu decide tanpa serabutkan skrin.',
     mobileTitle:'Senang buka tunjuk dan kongsi',mobileText:'Page public guna ayat pendek, card mudah baca, link jelas. Orang bukan IT scan QR atau buka tablet pun faham sistem ni bantu apa. How To jadi guide pendek; Vision simpan plan masa depan yang lebih dalam.',
+    pdAsset1:'Sambung data Asset ke setiap ticket supaya technician boleh lihat sejarah repair, umur peranti, dan status terkini terus.',pdAsset2:'Cari/tapis ticket ikut asset tag, semak kalau peranti sama ada masalah berulang, dan decide nak repair atau ganti.',
+    pdBranch1:'Dashboard ikut cawangan: lihat ticket terbuka, kerja menunggu, status SLA, dan trend mingguan dalam satu paparan.',pdBranch2:'Pengurus cawangan dapat gambaran penuh tanpa buka ticket satu-satu — nombor penting dan warna status senang baca.',
+    pdMap1:'Peta tunjuk lokasi cawangan dan hotspot ticket, dengan cadangan laluan untuk teknisi jalanan cover beberapa lokasi dengan cekap.',pdMap2:'Guna Leaflet + data jalan sebenar: analisis hotspot masalah berulang, dan plan preventive maintenance ikut kawasan.',
+    pdAi1:'AI cadang category, priority, dan ticket serupa yang pernah diselesaikan — tapi setiap perubahan status kena ada manusia confirm dulu.',pdAi2:'Draft jawapan KB, ringkas ticket panjang, alert sebelum SLA hampir habis — AI fikir, manusia decide.',
+    futureIntro:'Di masa hadapan, sistem akan beransur-ansur beralih kepada penyelesaian open-source yang kos rendah tetapi dipercayai, bergantung kepada alat yang mahal — sambil mengekalkan keselamatan dan kestabilan sebagai keutamaan utama. Ini adalah arah tuju, bukan perkara yang sedang dilakukan sekarang.',
+    futureLocalTitle:'Local-first AI untuk data sensitif',futureLocalText:'Kerja sebenar sepatutnya simpan data penting dalam database atau server dalaman, dan guna local LLM atau private mode sebagai laluan utama sebelum hantar data mentah ke sistem luar.',
+    futureEngineTitle:'Pilih alat yang sesuai untuk kerja itu',futureEngineText:'Bila Excel atau Sheets mula lambat, pindah kerja berat ke database, Power Query, atau local processing — tapi kekalkan antara muka yang senang digunakan.',
+    futureReuseText:'Komputer lama boleh jalankan Linux Mint sebagai pilihan low-bloat, cost-aware, dan private — jika patch management, backup, dan security policy diuruskan dengan baik.',
+    futureSecTitle:'Security yang penting betul-betul',futureSecText:'Utamakan data leak prevention, encryption, recovery, audit, dan central management macam LAPS — supaya pengguna faham sistem ni melindungi apa.',
     trustTitle:'Percaya sebab ada role, review, dan QA',trustText:'Arah sistem ialah role-based access, audit trail, demo data asing dari data sebenar, review/QA sebelum deploy, encryption/recovery untuk kerja sebenar, dan AI/automation tak tukar kerja penting senyap-senyap.',learnMore:'Tengok overview'
   }
 };
