@@ -72,11 +72,12 @@
               <th style="width:48px">#</th>
               <th>อำเภอ</th>
               <th>จังหวัด</th>
-              <th class="text-end">งาน</th>
+              <th class="text-end">งานยังไม่จบ</th>
+              <th class="text-end col-assets">สินทรัพย์</th>
             </tr>
           </thead>
           <tbody id="rank-table">
-            <tr><td colspan="4" class="text-muted text-center py-3">กำลังโหลด...</td></tr>
+            <tr><td colspan="5" class="text-muted text-center py-3">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
@@ -84,6 +85,80 @@
         <div id="map"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-header bg-dark text-white fw-bold" style="background:#0F172A!important"><i class="bi bi-route me-2"></i>ลำดับแนะนำสำหรับออกไซต์</div>
+  <div class="card-body p-0">
+    {% for d in route_points %}
+    <div class="px-3 py-3 border-bottom">
+      <div class="d-flex align-items-center gap-3">
+        <span class="route-step {% if d.color == 'orange' %}priority-high{% elif d.color == 'yellow' %}priority-mid{% else %}priority-low{% endif %}">{{ loop.index }}</span>
+        <div class="flex-grow-1">
+          <div class="fw-bold">{{ d.short_branch }} — {{ d.name }}</div>
+          <div class="small text-muted">ใกล้ HQ/สาขาก่อนหน้า ~{{ d.leg_km }} กม. · <span class="{% if d.critical > 0 %}text-danger fw-bold{% endif %}">C{{ d.critical }}</span> <span class="{% if d.high > 0 %}text-warning fw-bold{% endif %}">H{{ d.high }}</span> M{{ d.medium }} L{{ d.low }}</div>
+        </div>
+        <div class="text-end small"><span class="badge bg-danger">{{ d.tickets }} Case</span><div class="mt-1">คะแนน {{ d.score }}</div></div>
+      </div>
+      {% if d.categories %}
+      <div class="mt-2 ps-5">
+        <div class="small fw-bold text-muted mb-1"><i class="bi bi-tools me-1"></i>เตรียมอุปกรณ์/อะไหล่:</div>
+        <div class="d-flex flex-wrap gap-1">
+          {% for cat, cnt in d.categories.items()|sort(reverse=true) %}
+          <span class="badge bg-light text-dark border">
+            {% if 'เครื่องพิมพ์' in cat or 'printer' in cat.lower() %}<i class="bi bi-printer me-1 text-primary"></i>
+            {% elif 'เครือข่าย' in cat or 'network' in cat.lower() %}<i class="bi bi-wifi me-1 text-success"></i>
+            {% elif 'VPN' in cat %}<i class="bi bi-shield-lock me-1 text-warning"></i>
+            {% elif 'คอมพิวเตอร์' in cat or 'computer' in cat.lower() %}<i class="bi bi-pc-display me-1 text-info"></i>
+            {% elif 'Core Banking' in cat or 'banking' in cat.lower() %}<i class="bi bi-bank me-1 text-danger"></i>
+            {% else %}<i class="bi bi-gear me-1 text-secondary"></i>{% endif %}
+            {{ cat }} ({{ cnt }})
+          </span>
+          {% endfor %}
+        </div>
+        <div class="small text-muted mt-1">
+          {% set prep_notes = [] %}
+          {% for cat in d.categories %}
+            {% if 'เครื่องพิมพ์' in cat or 'printer' in cat.lower() %}
+              {% if 'หมึก/ผงซักฟอก/หัวพิมพ์' not in prep_notes %}{{ prep_notes.append('หมึก/ผงซักฟอก/หัวพิมพ์') }}{% endif %}
+            {% elif 'เครือข่าย' in cat or 'network' in cat.lower() %}
+              {% if 'สาย LAN/tester/switch' not in prep_notes %}{{ prep_notes.append('สาย LAN/tester/switch') }}{% endif %}
+            {% elif 'VPN' in cat %}
+              {% if 'VPN config/credential' not in prep_notes %}{{ prep_notes.append('VPN config/credential') }}{% endif %}
+            {% elif 'คอมพิวเตอร์' in cat or 'computer' in cat.lower() %}
+              {% if 'อะไหล่ PC/SSD/RAM' not in prep_notes %}{{ prep_notes.append('อะไหล่ PC/SSD/RAM') }}{% endif %}
+            {% elif 'Core Banking' in cat or 'banking' in cat.lower() %}
+              {% if 'ติดต่อทีม banking ล่วงหน้า' not in prep_notes %}{{ prep_notes.append('ติดต่อทีม banking ล่วงหน้า') }}{% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if prep_notes %}<i class="bi bi-check2-circle me-1 text-success"></i>{{ prep_notes | join(' · ') }}{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">ไม่มี active case สำหรับวางแผน dispatch</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-bold"><i class="bi bi-list-ol me-2"></i>ทุกสาขาเรียงตามความเร่งด่วน</div>
+  <div class="card-body p-0">
+    {% for d in districts %}
+    <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom small">
+      <span class="badge" style="width:54px;{% if d.critical > 0 %}background:#fee2e2;color:#dc2626;{% elif d.high > 0 %}background:#ffedd5;color:#f97316;{% elif d.color == 'green' %}background:#dcfce7;color:#16a34a;{% else %}background:#f1f5f9;color:#64748b;{% endif %}">{{ d.tickets }}</span>
+      <div class="flex-grow-1"><b>{{ d.short_branch }}</b> — {{ d.name }} <span class="text-muted">{{ d.province }}</span></div>
+      <div class="text-end text-muted">
+        <span class="text-danger">C{{ d.critical }}</span> /
+        <span class="text-warning">H{{ d.high }}</span> /
+        <span class="text-info">M{{ d.medium }}</span> /
+        <span class="text-success">L{{ d.low }}</span>
+        {% if d.categories %}<br><span class="small">{{ d.category_summary }}</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}
@@ -334,7 +409,8 @@
           return {
             name: sn,
             province: f.properties.province || f.properties.PROVINCE || '',
-            value: liveDatabaseData[sn] || 0
+            value: liveDatabaseData[sn] || 0,
+            assets: f.properties.assets || 0
           };
         }).sort(function(a, b) { return b.value - a.value; });
 
@@ -346,7 +422,8 @@
             '<td><b>' + (i + 1) + '</b></td>' +
             '<td>' + item.name + '</td>' +
             '<td>' + item.province + '</td>' +
-            '<td class="text-end"><span class="badge" style="background:' + color + ';color:#fff;">' + item.value + '</span></td>';
+            '<td class="text-end"><span class="badge" style="background:' + color + ';color:#fff;">' + item.value + '</span></td>' +
+            '<td class="text-end col-assets">' + (item.assets > 0 ? '<span class="badge bg-primary">' + item.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
           row.addEventListener('click', function() {
             var target = layerByName[item.name];
             if (target) {
