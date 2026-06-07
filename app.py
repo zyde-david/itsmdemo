@@ -1156,7 +1156,7 @@ def ai_insight():
                     'Content-Type': 'application/json'
                 },
                 json={
-                    'model': 'openrouter/owl-alpha:free',
+                    'model': 'openrouter/owl-alpha',
                     'messages': [
                         {'role': 'system', 'content': 'คุณเป็น IT Analyst วิเคราะภาพ Dashboard ให้ insight สั้น ๆ เป็นภาษาไทย เชิงปฏิบัติ'},
                         {'role': 'user', 'content': prompt}
@@ -1165,13 +1165,15 @@ def ai_insight():
                 },
                 timeout=10
             )
+            logging.info(f"AI Insight OpenRouter status: {r.status_code}")
             if r.status_code == 200:
                 ai_text = r.json()['choices'][0]['message']['content'].strip()
-                # Split into lines and filter empty
                 lines = [l.strip() for l in ai_text.split('\n') if l.strip()]
                 return jsonify(insights=lines[:3], source='ai')
-        except:
-            pass
+            else:
+                logging.warning(f"AI Insight OpenRouter error: {r.text[:100]}")
+        except Exception as e:
+            logging.warning(f"AI Insight OpenRouter exception: {e}")
 
     # Fallback: static insights from data
     return jsonify(insights=[
@@ -1240,7 +1242,7 @@ def chatbot():
                     'Content-Type': 'application/json'
                 },
                 json={
-                    'model': 'openrouter/owl-alpha:free',
+                    'model': 'openrouter/owl-alpha',
                     'messages': [
                         {'role':'system','content':'คุณเป็น IT HelpBot สำหรับสหกรณ์ออมทรัพย์ ตอบเป็นภาษาไทย สั้น เป็นขั้นตอน ไม่เกิน 5 ขั้นตอน ถ้าไม่รู้ให้แนะนำโทร 888'},
                         {'role':'user','content':q}
@@ -1249,11 +1251,14 @@ def chatbot():
                 },
                 timeout=8
             )
+            logging.info(f"OpenRouter status: {r.status_code}")
             if r.status_code == 200:
                 ai_answer = r.json()['choices'][0]['message']['content'].strip()
-                return jsonify(answer=ai_answer)
-        except:
-            pass  # fallback to keyword
+                return jsonify(answer=ai_answer, source='ai')
+            else:
+                logging.warning(f"OpenRouter error: {r.text[:100]}")
+        except Exception as e:
+            logging.warning(f"OpenRouter exception: {e}")
 
     # ── Fallback: keyword matching ──
     ql = q.lower()
