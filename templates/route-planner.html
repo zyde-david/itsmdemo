@@ -90,7 +90,7 @@
 
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-dark text-white fw-bold" style="background:#0F172A!important"><i class="bi bi-route me-2"></i>ลำดับแนะนำสำหรับออกไซต์</div>
-  <div class="card-body p-0" id="route-sequence">
+  <div class="card-body p-0">
     {% for d in route_points %}
     <div class="px-3 py-3 border-bottom">
       <div class="d-flex align-items-center gap-3">
@@ -259,23 +259,7 @@
   }
 
   // ══════════════════════════════════════════════════════════════
-  // 5. CENTROID CALCULATOR — with Mai Kaen override
-  // ══════════════════════════════════════════════════════════════
-  function getCentroid(layer, districtName) {
-    // HARDCODED OVERRIDE: Mai Kaen coastal fix
-    if (districtName === 'ไม้แก่น') {
-      return L.latLng(6.62, 101.67);
-    }
-    // Standard: use Leaflet's built-in polygon centroid
-    if (layer && typeof layer.getCenter === 'function') {
-      return layer.getCenter();
-    }
-    // Fallback: bounding box center
-    return layer.getBounds().getCenter();
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // 6. INFO PANEL (topright, dark theme)
+  // 5. INFO PANEL (topright, dark theme)
   // ══════════════════════════════════════════════════════════════
   var info = L.control({position: 'topright'});
   info.onAdd = function() {
@@ -302,185 +286,183 @@
   info.addTo(map);
 
   // ══════════════════════════════════════════════════════════════
-  // 7. USE SERVER-PROVIDED GEOJSON (already filtered to 3 provinces)
+  // 7. FILTER & SORT — suppress zero-values, sort by score desc
   // ══════════════════════════════════════════════════════════════
   var filtered = {{ south_geojson|safe }};
 
-  // Update stats
-  document.getElementById('stat-districts').textContent = filtered.features.length;
-  var totalTickets = 0, totalCritical = 0;
-  filtered.features.forEach(function(f) {
+  // Build active districts array with score data, filter out zeros
+  var activeDistricts = filtered.features.filter(function(f) {
     var sn = getShortName(f.properties.name);
-    var v = liveDatabaseData[sn] || 0;
-    totalTickets += v;
-    if (v === 3) totalCritical++;
+    return liveDatabaseData[sn] && liveDatabaseData[sn] > 0;
+  }).map(function(f) {
+    var sn = getShortName(f.properties.name);
+    return {
+      feature: f,
+      name: sn,
+      province: f.properties.province || f.properties.PROVINCE || '',
+      value: liveDatabaseData[sn] || 0,
+      assets: f.properties.assets || 0,
+      score: liveDatabaseData[sn] || 0  // use value as score for sorting
+    };
+  }).sort(function(a, b) { return b.score - a.score; });
+
+  // Update stats (only active districts)
+  document.getElementById('stat-districts').textContent = activeDistricts.length;
+  var totalTickets = 0, totalCritical = 0;
+  activeDistricts.forEach(function(d) {
+    totalTickets += d.value;
+    if (d.value === 3) totalCritical++;
   });
   document.getElementById('stat-tickets').textContent = totalTickets;
   document.getElementById('stat-critical').textContent = totalCritical;
 
   // Build layer lookup for centroids
   var layerByName = {};
+  var hotspotLayer = L.layerGroup().addTo(map);
 
-  // RENDER GEOJSON
-      geojsonLayer = L.geoJson(filtered, {
-        style: function(feature) {
-          var sn = getShortName(feature.properties.name);
-          var val = liveDatabaseData[sn] || 0;
-          var color = getPriorityColor(val);
-          var opacity = val === 0 ? 0.3 : 0.75;
-          return {
-            fillColor: color,
-            weight: 1.5,
-            opacity: 1,
-            color: '#ffffff',
-            fillOpacity: opacity
-          };
+  // RENDER GEOJSON — only active districts
+  geojsonLayer = L.geoJson(activeDistricts.map(function(d) { return d.feature; }), {
+    style: function(feature) {
+      var sn = getShortName(feature.properties.name);
+      var val = liveDatabaseData[sn] || 0;
+      return {
+        fillColor: getPriorityColor(val),
+        weight: 1.5,
+        opacity: 1,
+        color: '#ffffff',
+        fillOpacity: 0.75
+      };
+    },
+    onEachFeature: function(feature, layer) {
+      var sn = getShortName(feature.properties.name);
+      layerByName[sn] = layer;
+
+      layer.on({
+        mouseover: function(e) {
+          e.target.setStyle({weight: 3, color: '#00ff88', fillOpacity: 0.9});
+          info.update(e.target.feature.properties);
         },
-        onEachFeature: function(feature, layer) {
-          var sn = getShortName(feature.properties.name);
-          layerByName[sn] = layer;
-
-          layer.on({
-            mouseover: function(e) {
-              e.target.setStyle({weight: 3, color: '#00ff88', fillOpacity: 0.9});
-              info.update(e.target.feature.properties);
-            },
-            mouseout: function(e) {
-              geojsonLayer.resetStyle(e.target);
-              info.update();
-            },
-            click: function(e) {
-              map.fitBounds(e.target.getBounds());
-              info.update(e.target.feature.properties);
-            }
-          });
+        mouseout: function(e) {
+          geojsonLayer.resetStyle(e.target);
+          info.update();
+        },
+        click: function(e) {
+          map.fitBounds(e.target.getBounds());
+          info.update(e.target.feature.properties);
         }
-      }).addTo(map);
+      });
+    }
+  }).addTo(map);
 
-      // Fit map to filtered bounds
-      if (filtered.features.length > 0) {
-        map.fitBounds(geojsonLayer.getBounds().pad(0.05));
-      }
+  // Fit map to filtered bounds
+  if (activeDistricts.length > 0) {
+    map.fitBounds(geojsonLayer.getBounds().pad(0.05));
+  }
 
-      // ══════════════════════════════════════════════════════════
-      // 8. RENDER LABELS — clean text, no boxes, conditional
-      // ══════════════════════════════════════════════════════════
-      function renderLabels() {
-        labelLayer.clearLayers();
+  // ══════════════════════════════════════════════════════════
+  // 8. RENDER HOTSPOTS & LABELS — circle markers + cardless text
+  // ══════════════════════════════════════════════════════════
+  function getHotspotCenter(layer, districtName) {
+    // HARDCODED LAND ANCHORS — coastal districts
+    if (districtName === 'ไม้แก่น') return L.latLng(6.615, 101.668);
+    if (districtName === 'สายบุรี') return L.latLng(6.702, 101.616);
+    if (districtName === 'แม่ลาน') return L.latLng(6.685, 101.585);
 
-        filtered.features.forEach(function(f) {
-          var rawName = f.properties.name;
-          var shortName = getShortName(rawName);
-          var val = liveDatabaseData[shortName] || 0;
+    if (layer && typeof layer.getCenter === 'function') {
+      return layer.getCenter();
+    }
+    return layer.getBounds().getCenter();
+  }
 
-          // CRITICAL: hide if no value
-          if (!val || val === 0) return;
+  function renderHotspots() {
+    labelLayer.clearLayers();
+    hotspotLayer.clearLayers();
 
-          var layer = layerByName[shortName];
-          var centroid = getCentroid(layer, shortName);
-          var numColor = getPriorityColor(val);
+    activeDistricts.forEach(function(d) {
+      var layer = layerByName[d.name];
+      var center = getHotspotCenter(layer, d.name);
+      var color = getPriorityColor(d.value);
 
-          // Build clean floating text: "[Value] [Short Name]"
-          var html =
-            '<div class="map-label-icon" style="text-align:center;white-space:nowrap;line-height:1.3;">' +
-              '<span style="color:' + numColor + ';font-weight:800;font-size:14px;' +
-                'text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 9px #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
-                'paint-order:stroke fill;">' + val + '</span>' +
-              '<span style="color:#000000;font-weight:700;font-size:10px;margin-left:3px;' +
-                'text-shadow:0 0 3px #fff,0 0 6px #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
-                'paint-order:stroke fill;">' + shortName + '</span>' +
-            '</div>';
+      // 1) Circle hotspot dot
+      L.circleMarker(center, {
+        radius: 7,
+        fillColor: color,
+        color: '#ffffff',
+        weight: 1.5,
+        fillOpacity: 1
+      }).addTo(hotspotLayer);
 
-          var icon = L.divIcon({
-            className: 'map-label-icon',
-            html: html,
-            iconSize: [90, 28],
-            iconAnchor: [45, 14]
-          });
+      // 2) Cardless floating label — raw text only, no box
+      var html =
+        '<div style="text-align:center;white-space:nowrap;line-height:1.3;' +
+          'background:none!important;border:none!important;box-shadow:none!important;">' +
+          '<span style="color:' + color + ';font-weight:800;font-size:14px;' +
+            'text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 9px #fff,' +
+            '-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
+            'paint-order:stroke fill;">' + d.value + '</span>' +
+          '<span style="color:#000;font-weight:700;font-size:10px;margin-left:3px;' +
+            'text-shadow:0 0 3px #fff,0 0 6px #fff,' +
+            '-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
+            'paint-order:stroke fill;">' + d.name + '</span>' +
+        '</div>';
 
-          L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
-        });
-      }
+      var icon = L.divIcon({
+        className: 'map-label-icon',
+        html: html,
+        iconSize: [90, 28],
+        iconAnchor: [45, 14]
+      });
 
-      // Initial render
-      renderLabels();
+      L.marker(center, {icon: icon, interactive: false}).addTo(labelLayer);
+    });
+  }
 
-      // ══════════════════════════════════════════════════════════
-      // 9. SIDEBAR RANKING TABLE
-      // ══════════════════════════════════════════════════════════
-      function renderSidebar() {
-        var tbody = document.getElementById('rank-table');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+  // Initial render
+  renderHotspots();
 
-        // Build route order from the rendered route sequence (server-side order)
-        var routeOrder = [];
-        var routeSteps = document.querySelectorAll('#route-sequence .route-step');
-        routeSteps.forEach(function(step) {
-          var row = step.closest('.px-3');
-          if (!row) return;
-          var nameEl = row.querySelector('.fw-bold');
-          if (!nameEl) return;
-          var fullName = nameEl.textContent.trim();
-          var shortName = fullName.split(' — ')[0].trim();
-          routeOrder.push(shortName);
-        });
+  // ══════════════════════════════════════════════════════════
+  // 9. SIDEBAR RANKING TABLE — sorted by score desc
+  // ══════════════════════════════════════════════════════════
+  function renderSidebar() {
+    var tbody = document.getElementById('rank-table');
+    if (!tbody) return;
+    tbody.innerHTML = '';
 
-        var sorted = filtered.features.map(function(f) {
-          var sn = getShortName(f.properties.name);
-          return {
-            name: sn,
-            province: f.properties.province || f.properties.PROVINCE || '',
-            value: liveDatabaseData[sn] || 0,
-            assets: f.properties.assets || 0
-          };
-        });
-
-        // Sort by route order first, then by value desc for any not in route
-        sorted.sort(function(a, b) {
-          var ai = routeOrder.indexOf(a.name);
-          var bi = routeOrder.indexOf(b.name);
-          if (ai >= 0 && bi >= 0) return ai - bi;
-          if (ai >= 0) return -1;
-          if (bi >= 0) return 1;
-          return b.value - a.value;
-        });
-
-        var rank = 0;
-        sorted.forEach(function(item) {
-          if (item.value === 0) return;
-          rank++;
-          var color = getPriorityColor(item.value);
-          var row = document.createElement('tr');
-          row.innerHTML =
-            '<td><b>' + rank + '</b></td>' +
-            '<td>' + item.name + '</td>' +
-            '<td>' + item.province + '</td>' +
-            '<td class="text-end"><span class="badge" style="background:' + color + ';color:#fff;">' + item.value + '</span></td>' +
-            '<td class="text-end col-assets">' + (item.assets > 0 ? '<span class="badge bg-primary">' + item.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
-          row.addEventListener('click', function() {
-            var target = layerByName[item.name];
-            if (target) {
-              map.fitBounds(target.getBounds());
-              target.setStyle({weight: 4, color: '#00ff88'});
-              info.update(target.feature.properties);
-              setTimeout(function() { geojsonLayer.resetStyle(target); }, 2000);
-            }
-          });
-          tbody.appendChild(row);
-        });
-
-        if (rank === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center py-3">ไม่มีอำเภอที่มีงานค้าง</td></tr>';
+    // activeDistricts is already sorted by score desc
+    var rank = 0;
+    activeDistricts.forEach(function(d) {
+      rank++;
+      var color = getPriorityColor(d.value);
+      var row = document.createElement('tr');
+      row.innerHTML =
+        '<td><b>' + rank + '</b></td>' +
+        '<td>' + d.name + '</td>' +
+        '<td>' + d.province + '</td>' +
+        '<td class="text-end"><span class="badge" style="background:' + color + ';color:#fff;">' + d.value + '</span></td>' +
+        '<td class="text-end col-assets">' + (d.assets > 0 ? '<span class="badge bg-primary">' + d.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
+      row.addEventListener('click', function() {
+        var target = layerByName[d.name];
+        if (target) {
+          map.fitBounds(target.getBounds());
+          target.setStyle({weight: 4, color: '#00ff88'});
+          info.update(target.feature.properties);
+          setTimeout(function() { geojsonLayer.resetStyle(target); }, 2000);
         }
-      }
+      });
+      tbody.appendChild(row);
+    });
 
-      renderSidebar();
+    if (rank === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center py-3">ไม่มีอำเภอที่มีงานค้าง</td></tr>';
+    }
+  }
 
-      // Refresh labels every 30s (simulating live data)
-      setInterval(function() {
-        renderLabels();
-      }, 30000);
+  renderSidebar();
+
+  // Refresh hotspots every 30s (simulating live data)
+  setInterval(function() {
+    renderHotspots();
+  }, 30000);
 
 </script>
 {% endblock %}
