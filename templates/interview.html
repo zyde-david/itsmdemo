@@ -25,12 +25,6 @@ body{font-family:'Segoe UI','Noto Sans Thai',Arial,sans-serif;background:linear-
 .slide-card{background:#fff;border:1px solid #e7edf3;border-radius:22px;padding:22px;box-shadow:0 8px 28px rgba(21,54,82,.08);height:100%}
 .slide-label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#5d7890;font-weight:800;margin-bottom:8px}.slide-title{font-weight:800;color:var(--blue);font-size:1.15rem;margin-bottom:10px}.slide-card p,.slide-card li{font-size:.9rem;line-height:1.6;color:#536675}.icon-bubble{width:48px;height:48px;border-radius:16px;background:#eaf5ff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.45rem;margin-bottom:12px}
 .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.flow-step{background:var(--soft);border:1px solid #dcebf6;border-radius:16px;padding:12px 8px;text-align:center;font-size:.78rem;font-weight:700;color:var(--blue)}.flow-step i{display:block;font-size:1.25rem;margin-bottom:5px;color:var(--green)}
-.future-pill{display:inline-flex;align-items:center;gap:6px;background:#f6faf7;border:1px solid #dbeee2;border-radius:999px;padding:7px 10px;margin:3px;font-size:.8rem;color:#315b42}
-.future-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:10px}
-.future-item{background:#f6faf7;border:1px solid #dbeee2;border-radius:14px;padding:12px 14px}
-.future-head{font-weight:800;color:#315b42;font-size:.85rem;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.future-item ul{margin:0;padding-left:16px}
-.future-item li{font-size:.78rem;line-height:1.55;color:#4a6070}
 .footer-note{text-align:center;color:#7b8b99;font-size:.78rem;margin-top:24px}.lang-panel{display:none}.lang-panel.active{display:block}
 @media(max-width:767.98px){.hero{border-radius:20px;padding:22px 16px}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.slide-card{padding:18px}.lang-switch{border-radius:16px}.lang-btn{font-size:.72rem;padding:6px 9px}.badge-line span{font-size:.72rem}.btn-open,.btn-secondary-link{width:100%;justify-content:center;margin-bottom:8px}}
 </style>
@@ -115,84 +109,19 @@ body{font-family:'Segoe UI','Noto Sans Thai',Arial,sans-serif;background:linear-
   </div>
 
   <div class="slide-card">
-    <div class="slide-label">Future Geo BI / Map Ideas Only</div>
-    <div class="slide-title" data-i18n="futureTitle">Future direction beyond the core demo</div>
-    <p class="mb-2" data-i18n="futureText">ไอเดียต่อยอดในอนาคต ไม่ใช่ core feature ตอนนี้ — อธิบายเป็นรายข้อเพื่อไม่ให้ผู้สัมภาษณ์พลาดประเด็น:</p>
-    <div class="future-grid">
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-people"></i>Member density</div>
-        <ul>
-          <li>แสดงจำนวนลูกสมาชิกต่อตำบล/เขต (ไม่ใช่แค่จำนวน loan account)</li>
-          <li>Heatmap ความหนาแน่น → รู้ว่าเขตไหนมีสมาชิกเยอะแต่ใช้บริการน้อย</li>
-          <li>เปรียบเทียบกับศักยภาพตลาด (population / household data)</li>
-        </ul>
-      </div>
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-cash-stack"></i>Loans</div>
-        <ul>
-          <li>แสดงยอดสินเชื่อรวม (outstanding) แทนจำนวน account</li>
-          <li>เปรียบเทียบ loan-to-member ratio ระหว่างเขต</li>
-          <li>เห็นเขตที่มีสมาชิกเยอะแต่ยอดสินเชื่อต่ำ → โอกาสเติมเต็ม</li>
-        </ul>
-      </div>
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-piggy-bank"></i>Savings</div>
-        <ul>
-          <li>แสดงยอดเงินฝากรวม (deposit) แทนจำนวน account</li>
-          <li>เปรียบเทียบ savings-to-loan ratio</li>
-          <li>ระบุเขตที่มีสภาพคล่องสูง/ต่ำ</li>
-        </ul>
-      </div>
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-graph-down-arrow"></i>NPL</div>
-        <ul>
-          <li>แสดง % NPL และยอด NPL รวม</li>
-          <li>เปรียบเทียบระหว่างเขต → ระบุเขตเสี่ยง</li>
-          <li>เชื่อมกับ debt route planning เพื่อลด NPL</li>
-        </ul>
-      </div>
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-signpost-split"></i>Debt route planning</div>
-        <ul>
-          <li>จัดเส้นทางเก็บหนี้ตำแหน่งจริง (GPS)</li>
-          <li>จัดลำดับความสำคัญตามยอดหนี้/ค้าง/ระยะทาง</li>
-          <li>ติดตามผลเก็บหนี้จริง (collector performance)</li>
-        </ul>
-      </div>
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-funnel"></i>Paid-status filtering</div>
-        <ul>
-          <li>กรองสมาชิกตามสถานะ: ปกติ / ค้าง / ปิดบัญชี</li>
-          <li>แสดงเฉพาะ account ที่ยัง active</li>
-          <li>เปรียบเทียบ portfolio quality ระหว่างเขต</li>
-        </ul>
-      </div>
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-envelope-paper"></i>DB letter generation</div>
-        <ul>
-          <li>สร้างจดหมายแจ้งหนี้/ติดตามหนี้อัตโนมัติ</li>
-          <li>ใช้ template + ข้ออมูลจริงจากระบบ</li>
-          <li>พิมพ์/ส่งอีเมล/ดาวน์โหลด PDF</li>
-        </ul>
-      </div>
-      <div class="future-item">
-        <div class="future-head"><i class="bi bi-file-earmark-text"></i>Collateral docs/maps</div>
-        <ul>
-          <li>แสดงตำแหน่งทรัพย์สินหลักประกันบนแผนที่</li>
-          <li>เชื่อมกับเอกสารสินเชื่อ (scan/link)</li>
-          <li>ประเมินค่าหลักประกันตามพื้นที่ (area-based valuation)</li>
-        </ul>
-      </div>
-    </div>
+    <div class="slide-label">Future direction</div>
+    <div class="slide-title" data-i18n="futureDirectionTitle">แผนต่อยอดในอนาคต — ดูรายละเอียดเพิ่มเติม</div>
+    <p data-i18n="futureDirectionText">ไอเดียต่อยอด เช่น Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — อยู่ในหน้า Vision & Future Plan</p>
+    <a href="/vision" class="btn-secondary-link mt-2"><i class="bi bi-stars me-1"></i><span data-i18n="viewVision">ดู Vision & Future Plan</span></a>
   </div>
 
   <div class="footer-note">Built by Zyde · QR target: /interview · Demo data only</div>
 </div>
 <script>
 const copy={
-  th:{openDemo:'Open Demo',overview:'System overview',vision:'Vision & AI privacy',painTitle:'งาน IT กระจายหลายทาง',painText:'สาขาแจ้งปัญหา printer, network, VPN, core banking และหน่วยบริการเคลื่อนที่หลายช่องทาง ถ้าไม่มี workflow เดียว จะเห็นสถานะ ผู้รับผิดชอบ และปัญหาซ้ำได้ยาก',workflowTitle:'Service flow เดียวที่ชัดเจน',workflowText:'Ticket เชื่อมกับ asset, ผู้รับผิดชอบ, knowledge และตำแหน่งสาขา เพื่อช่วยจัดลำดับงานและเรียนรู้จากปัญหาที่เจอซ้ำ',directionTitle:'ต่อยอดเป็น product แบบ modular',directionText:'เริ่มจาก ITSM core ก่อน แล้วค่อยเพิ่ม HR leave, project tracker, route planning, document support และ BI map ตามความพร้อมองค์กร',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureTitle:'แนวทางอนาคตหลังจาก core demo',futureText:'ไอเดียต่อยอดในอนาคต ไม่ใช่ core feature ตอนนี้ — อธิบายเป็นรายข้อเพื่อไม่ให้ผู้สัมภาษณ์พลาดประเด็น:'},
-  en:{openDemo:'Open Demo',overview:'System overview',vision:'Vision & AI privacy',painTitle:'IT support gets scattered',painText:'Branches report printer, network, VPN, core banking, and mobile service issues through many channels. Without one workflow, status, ownership, and recurring fixes are hard to see.',workflowTitle:'One clear service flow',workflowText:'Tickets connect to assets, staff responsibility, knowledge articles, and branch location so the team can prioritize work and learn from repeat incidents.',directionTitle:'Modular product path',directionText:'Start with ITSM core, then add modules gradually: HR leave, project tracker, route planning, document support, and BI maps as the organization is ready.',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureTitle:'Future direction beyond the core demo',futureText:'Future extensions only — not core features now. Explained item by item so the interviewer sees the substance, not just the headline:'},
-  pm:{openDemo:'Buka Demo',overview:'Lihat ringkas sistem',vision:'Vision & AI privacy',painTitle:'Kerja IT pecah banyak tempat',painText:'Cawangan lapor masalah printer, network, VPN, core banking dan servis bergerak dari banyak cara. Kalau tiada satu aliran kerja, susah nak nampak status, siapa pegang kerja, dan masalah yang selalu ulang.',workflowTitle:'Satu jalan kerja yang jelas',workflowText:'Ticket sambung dengan barang IT, orang yang bertanggungjawab, artikel ilmu, dan lokasi cawangan supaya pasukan boleh pilih kerja penting dulu.',directionTitle:'Produk boleh tambah ikut modul',directionText:'Mula dengan asas ITSM dulu, lepas tu tambah HR leave, project tracker, route planning, dokumen, dan peta BI bila organisasi sudah sedia.',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureTitle:'Hala tuju masa depan lepas core demo',futureText:'Cadangan masa depan sahaja — bukan feature utama sekarang. Dijelaskan satu supaya interviewer faham isi kandungan, bukan tajuk sahaja:'}
+  th:{openDemo:'Open Demo',overview:'System overview',vision:'Vision & AI privacy',painTitle:'งาน IT กระจายหลายทาง',painText:'สาขาแจ้งปัญหา printer, network, VPN, core banking และหน่วยบริการเคลื่อนที่หลายช่องทาง ถ้าไม่มี workflow เดียว จะเห็นสถานะ ผู้รับผิดชอบ และปัญหาซ้ำได้ยาก',workflowTitle:'Service flow เดียวที่ชัดเจน',workflowText:'Ticket เชื่อมกับ asset, ผู้รับผิดชอบ, knowledge และตำแหน่งสาขา เพื่อช่วยจัดลำดับงานและเรียนรู้จากปัญหาที่เจอซ้ำ',directionTitle:'ต่อยอดเป็น product แบบ modular',directionText:'เริ่มจาก ITSM core แล้วเพิ่ม module ทีละส่วน: HR leave, project tracker, route planning, document support และ BI maps ตามความพร้อมขององค์กร',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureDirectionTitle:'แผนต่อยอดในอนาคต — ดูรายละเอียดเพิ่มเติม',futureDirectionText:'ไอเดียต่อยอด เช่น Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — อยู่ในหน้า Vision & Future Plan',viewVision:'ดู Vision & Future Plan'},
+  en:{openDemo:'Open Demo',overview:'System overview',vision:'Vision & AI privacy',painTitle:'IT support gets scattered',painText:'Branches report printer, network, VPN, core banking, and mobile service issues through many channels. Without one workflow, status, ownership, and recurring fixes are hard to see.',workflowTitle:'One clear service flow',workflowText:'Tickets connect to assets, staff responsibility, knowledge articles, and branch location so the team can prioritize work and learn from repeat incidents.',directionTitle:'Modular product path',directionText:'Start with ITSM core, then add modules gradually: HR leave, project tracker, route planning, document support, and BI maps as the organization is ready.',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureDirectionTitle:'Future plans — see full details',futureDirectionText:'Extended ideas like Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — all on the Vision & Future Plan page',viewVision:'View Vision & Future Plan'},
+  pm:{openDemo:'Buka Demo',overview:'Lihat ringkas sistem',vision:'Vision & AI privacy',painTitle:'Kerja IT pecah banyak tempat',painText:'Cawangan lapor masalah printer, network, VPN, core banking dan servis bergerak dari banyak cara. Kalau tiada satu aliran kerja, susah nak nampak status, siapa pegang kerja, dan masalah yang selalu ulang.',workflowTitle:'Satu jalan kerja yang jelas',workflowText:'Ticket sambung dengan barang IT, orang yang bertanggungjawab, artikel ilmu, dan lokasi cawangan supaya pasukan boleh susun kerja dan belajar dari masalah berulang.',directionTitle:'Product modular',directionText:'Mula dengan ITSM core, tambah module beransur-ansur: HR leave, project tracker, route planning, document support, dan BI maps ikut kesediaan organisasi.',flowTitle:'Tickets → Assets → Staff → Knowledge → Map',futureDirectionTitle:'Plan masa hadapan — lihat lebih lanjut',futureDirectionText:'Idea lanjutan macam Geo BI / Map, Asset-tag tickets, Branch dashboard, Human-approved AI helper — semua dalam page Vision & Future Plan',viewVision:'Lihat Vision & Future Plan'}
 };
 function setLang(lang){
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));

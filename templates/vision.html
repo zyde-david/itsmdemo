@@ -220,6 +220,51 @@ body{
       </div>
     </div>
   </div>
+
+  <div class="vision-card mb-3">
+    <div class="eyebrow">Geo BI / Map — Ideas Only</div>
+    <h3 data-i18n="geoBiTitle">แนวทางขยายไปสู่ Business Intelligence บนแผนที่</h3>
+    <p class="mb-3" data-i18n="geoBiText" style="font-size:.85rem;color:#536675;line-height:1.6">ไอเดียต่อยอดในอนาคต — ยังไม่ใช่ feature ตอนนี้ เน้นแสดงว่าคิดลึกถึงข้อมูลจริงที่องค์กรต้องการ</p>
+    <div class="row g-2">
+      <div class="col-md-6 col-lg-4">
+        <div class="future-card" style="border-left:4px solid #2980b9">
+          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-people me-1"></i>Member density</strong>
+          <p data-i18n="geoBiMember" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดงจำนวนสมาชิกต่อเขต — heatmap ความหนาแน่น เทียบกับศักยภาพตลาด (population/household) เห็นเขตที่มีสมาชิกเยอะแต่ใช้บริการน้อย</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="future-card" style="border-left:4px solid #27ae60">
+          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-cash-stack me-1"></i>Loans</strong>
+          <p data-i18n="geoBiLoans" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดงยอดสินเชื่อรวม (outstanding) — เทียบ loan-to-member ratio ระหว่างเขต เห็นเขตที่มีสมาชิกเยอะแต่ยอดสินเชื่อต่ำ → โอกาสเติมเต็ม</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="future-card" style="border-left:4px solid #f39c12">
+          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-piggy-bank me-1"></i>Savings</strong>
+          <p data-i18n="geoBiSavings" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดงยอดเงินฝากรวม (deposit) — เทียบ savings-to-loan ratio ระบุเขตที่มีสภาพคล่องสูง/ต่ำ</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="future-card" style="border-left:4px solid #e74c3c">
+          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-graph-down-arrow me-1"></i>NPL</strong>
+          <p data-i18n="geoBiNpl" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">แสดง % NPL และยอด NPL รวม — เทียบระหว่างเขต ระบุเขตเสี่ยง เชื่อมกับ debt route planning</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="future-card" style="border-left:4px solid #8e44ad">
+          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-signpost-split me-1"></i>Debt route planning</strong>
+          <p data-i18n="geoBiDebt" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">จัดเส้นทางเก็บหนี้ตำแหน่งจริง (GPS) — จัดลำดับตามยอดหนี้/ค้าง/ระยะทาง ติดตามผลเก็บหนี้จริง</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="future-card" style="border-left:4px solid #16a085">
+          <strong style="color:#1a5276;font-size:.85rem"><i class="bi bi-funnel me-1"></i>Paid-status filtering</strong>
+          <p data-i18n="geoBiFilter" style="font-size:.78rem;color:#5d6f7d;margin:4px 0 0;line-height:1.5">กรองสมาชิกตามสถานะ: ปกติ / ค้าง / ปิดบัญชี — เทียบ portfolio quality ระหว่างเขต</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="vision-card mb-3">
     <div class="eyebrow">Mobile demo</div>
     <h3 data-i18n="mobileTitle">ออกแบบให้เปิดโชว์และส่งต่อได้ง่าย</h3>
@@ -295,6 +340,13 @@ const copy={
     futureEngineTitle:'เลือกเครื่องมือให้เหมาะกับงาน',futureEngineText:'เมื่อ Excel หรือ Sheets เริ่มช้า ให้ย้ายงานหนักไปยัง database, Power Query หรือ local processing แต่ยังคงให้หน้าจอใช้งานง่ายเหมือนเดิม',
     futureReuseText:'คอมพิวเตอร์เก่าสามารถลง Linux Mint เป็นทางเลือกที่ low-bloat, cost-aware และ private ได้ หากจัดการ patch, backup และ security policy อย่างเหมาะสม',
     futureSecTitle:'Security ที่สำคัญจริง ๆ',futureSecText:'ให้ความสำคัญกับ data leak prevention, encryption, recovery, audit และ central management อย่าง LAPS เพื่อให้ผู้ใช้เข้าใจว่าระบบป้องกันอะไรบ้าง',
+    geoBiTitle:'แนวทางขยายไปสู่ Business Intelligence บนแผนที่',geoBiText:'ไอเดียต่อยอดในอนาคต — ยังไม่ใช่ feature ตอนนี้ เน้นแสดงว่าคิดลึกถึงข้อมูลจริงที่องค์กรต้องการ',
+    geoBiMember:'แสดงจำนวนสมาชิกต่อเขต — heatmap ความหนาแน่น เทียบกับศักยภาพตลาด (population/household) เห็นเขตที่มีสมาชิกเยอะแต่ใช้บริการน้อย',
+    geoBiLoans:'แสดงยอดสินเชื่อรวม (outstanding) — เทียบ loan-to-member ratio ระหว่างเขต เห็นเขตที่มีสมาชิกเยอะแต่ยอดสินเชื่อต่ำ → โอกาสเติมเต็ม',
+    geoBiSavings:'แสดงยอดเงินฝากรวม (deposit) — เทียบ savings-to-loan ratio ระบุเขตที่มีสภาพคล่องสูง/ต่ำ',
+    geoBiNpl:'แสดง % NPL และยอด NPL รวม — เทียบระหว่างเขต ระบุเขตเสี่ยง เชื่อมกับ debt route planning',
+    geoBiDebt:'จัดเส้นทางเก็บหนี้ตำแหน่งจริง (GPS) — จัดลำดับตามยอดหนี้/ค้าง/ระยะทาง ติดตามผลเก็บหนี้จริง',
+    geoBiFilter:'กรองสมาชิกตามสถานะ: ปกติ / ค้าง / ปิดบัญชี — เทียบ portfolio quality ระหว่างเขต',
     trustTitle:'ไว้ใจได้เพราะมีสิทธิ์ตามบทบาทและตรวจทุกครั้งก่อนปล่อย',trustText:'แนวทางคือ role-based access, audit trail, demo data แยกจากข้อมูลจริง, review/QA ก่อน deploy, encryption/recovery สำหรับงานจริง และไม่ให้ AI หรือ automation เปลี่ยนงานสำคัญแบบเงียบ ๆ',learnMore:'ดูภาพรวมระบบ'
   },
   en:{
@@ -315,6 +367,13 @@ const copy={
     futureEngineTitle:'Choose the right tool for the job',futureEngineText:'When Excel or Sheets starts to slow down, move heavy work to a database, Power Query, or local processing — while keeping the interface just as easy to use.',
     futureReuseText:'Old computers can run Linux Mint as a low-bloat, cost-aware, and private option — if patch management, backup, and security policy are handled properly.',
     futureSecTitle:'Security that truly matters',futureSecText:'Prioritize data leak prevention, encryption, recovery, audit, and central management such as LAPS — so users understand what the system protects against.',
+    geoBiTitle:'Extending toward map-based Business Intelligence',geoBiText:'Future ideas only — not current features. Shows deep thinking about real organizational data needs.',
+    geoBiMember:'Show members per district — heatmap density vs market potential (population/household). Spot areas with many members but low service usage.',
+    geoBiLoans:'Show total loan outstanding — compare loan-to-member ratio across districts. Find areas with many members but low loans → growth opportunity.',
+    geoBiSavings:'Show total deposits — compare savings-to-loan ratio. Identify districts with high/low liquidity.',
+    geoBiNpl:'Show % NPL and total NPL — compare across districts, flag risk areas. Link to debt route planning.',
+    geoBiDebt:'Plan real GPS debt collection routes — prioritize by amount/due/distance. Track actual collector performance.',
+    geoBiFilter:'Filter members by status: normal / overdue / closed — compare portfolio quality across districts.',
     trustTitle:'Trust comes from roles, review, and QA',trustText:'The direction is role-based access, audit trails, demo data separated from real data, review/QA before deploy, encryption/recovery for real use, and no silent AI/automation changes to important work.',learnMore:'See system overview'
   },
   ms:{
@@ -335,6 +394,13 @@ const copy={
     futureEngineTitle:'Pilih alat yang sesuai untuk kerja itu',futureEngineText:'Bila Excel atau Sheets mula lambat, pindah kerja berat ke database, Power Query, atau local processing — tapi kekalkan antara muka yang senang digunakan.',
     futureReuseText:'Komputer lama boleh jalankan Linux Mint sebagai pilihan low-bloat, cost-aware, dan private — jika patch management, backup, dan security policy diuruskan dengan baik.',
     futureSecTitle:'Security yang penting betul-betul',futureSecText:'Utamakan data leak prevention, encryption, recovery, audit, dan central management macam LAPS — supaya pengguna faham sistem ni melindungi apa.',
+    geoBiTitle:'Melanjutkan ke Business Intelligence berasaskan peta',geoBiText:'Idea masa hadapan sahaja — bukan feature sekarang. Tunjuk pemikiran mendalam tentang data sebenar yang organisasi perlukan.',
+    geoBiMember:'Tunjuk ahli per daerah — heatmap ketumpatan vs potensi pasaran (population/household). Nampak kawasan ramai ahli tapi guna servis sedikit.',
+    geoBiLoans:'Tunjuk jumlah pinjaman (outstanding) — banding loan-to-member ratio antara daerah. Cari kawasan ramai ahli tapi pinjangan rendah → peluang tumbuh.',
+    geoBiSavings:'Tunjuk jumlah deposit — banding savings-to-loan ratio. Kenal pasti daerah dengan kecairan tinggi/rendah.',
+    geoBiNpl:'Tunjuk % NPL dan jumlah NPL — banding antara daerah, tanda daerah risiko. Sambung ke debt route planning.',
+    geoBiDebt:'Rancang laluan kutipan hutang GPS sebenar — susun ikut jumlah/baki/jarak. Jejak prestasi kutipan sebenar.',
+    geoBiFilter:'Tapis ahli ikut status: normal / tertunggak / tutup — banding portfolio quality antara daerah.',
     trustTitle:'Percaya sebab ada role, review, dan QA',trustText:'Arah sistem ialah role-based access, audit trail, demo data asing dari data sebenar, review/QA sebelum deploy, encryption/recovery untuk kerja sebenar, dan AI/automation tak tukar kerja penting senyap-senyap.',learnMore:'Tengok overview'
   }
 };
