@@ -1549,6 +1549,24 @@ def api_holiday_delete(hid):
     c.commit()
     return jsonify({'ok': True})
 
+@app.route('/api/holidays/<int:hid>', methods=['PUT'])
+@login_required
+def api_holiday_update(hid):
+    if not is_manager():
+        return forbidden_response()
+    data = request.get_json(force=True) or {}
+    date = (data.get('date') or '').strip()
+    name = (data.get('name') or '').strip()
+    if not date or not name:
+        return jsonify({'error': 'date and name required'}), 400
+    try:
+        c = get_db()
+        c.execute('UPDATE holidays SET date=?, name=? WHERE id=?', (date, name, hid))
+        c.commit()
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/leave', methods=['GET','POST'])
 @login_required
 def leave_page():
