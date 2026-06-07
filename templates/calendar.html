@@ -221,8 +221,11 @@ document.addEventListener('DOMContentLoaded', function(){
       if (y && m) url += '?year=' + y + '&month=' + m;
       fetch(url).then(r => r.json()).then(function(data) {
         hList.innerHTML = '';
+        if (document.getElementById('holidayCount')) {
+          document.getElementById('holidayCount').textContent = data.length + ' รายการ';
+        }
         if (!data.length) {
-          hList.innerHTML = '<div class="text-muted small">ยังไม่มีวันหยุดในเดือนนี้</div>';
+          hList.innerHTML = '<div class="text-muted small text-center py-2">ยังไม่มีวันหยุดในเดือนนี้</div>';
           return;
         }
         data.forEach(function(h) {
@@ -243,6 +246,8 @@ document.addEventListener('DOMContentLoaded', function(){
             saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>บันทึกการแก้ไข';
             saveBtn.classList.remove('btn-danger');
             saveBtn.classList.add('btn-primary');
+            var formTitle = document.getElementById('holidayFormTitle');
+            if (formTitle) formTitle.textContent = 'แก้ไขวันหยุด';
           });
         });
         hList.querySelectorAll('button[data-id]').forEach(function(btn) {
@@ -266,6 +271,8 @@ document.addEventListener('DOMContentLoaded', function(){
       saveBtn.innerHTML = '<i class="bi bi-plus-lg me-1"></i>เพิ่มวันหยุด';
       saveBtn.classList.remove('btn-primary');
       saveBtn.classList.add('btn-danger');
+      var formTitle = document.getElementById('holidayFormTitle');
+      if (formTitle) formTitle.textContent = 'เพิ่มวันหยุด';
     });
 
     var saveBtn = document.getElementById('holidaySaveBtn');
@@ -287,6 +294,8 @@ document.addEventListener('DOMContentLoaded', function(){
             saveBtn.innerHTML = '<i class="bi bi-plus-lg me-1"></i>เพิ่มวันหยุด';
             saveBtn.classList.remove('btn-primary');
             saveBtn.classList.add('btn-danger');
+            var ft = document.getElementById('holidayFormTitle');
+            if (ft) ft.textContent = 'เพิ่มวันหยุด';
             loadHolidays();
             location.reload();
           });
@@ -318,21 +327,25 @@ document.addEventListener('DOMContentLoaded', function(){
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="row g-2 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="small fw-bold">วันหยุดในเดือนนี้</div>
+          <span class="text-muted small" id="holidayCount"></span>
+        </div>
+        <div id="holidayList" style="max-height:200px;overflow-y:auto" class="mb-3"></div>
+        <hr>
+        <div class="small fw-bold mb-2" id="holidayFormTitle">เพิ่มวันหยุด</div>
+        <div class="row g-2 mb-2">
           <div class="col-5">
-            <label class="form-label small">วันที่</label>
+            <label class="form-label small text-muted">วันที่</label>
             <input type="date" class="form-control form-control-sm" id="holidayDate">
           </div>
           <div class="col-7">
-            <label class="form-label small">ชื่อวันหยุด</label>
+            <label class="form-label small text-muted">ชื่อวันหยุด</label>
             <input type="text" class="form-control form-control-sm" id="holidayName" placeholder="เช่น วันสงกรานต์">
           </div>
         </div>
         <button class="btn btn-sm btn-danger w-100 mb-2" id="holidaySaveBtn"><i class="bi bi-plus-lg me-1"></i>เพิ่มวันหยุด</button>
         <div id="holidayMsg" class="text-danger small"></div>
-        <hr>
-        <div class="small fw-bold mb-1">วันหยุดในเดือนนี้</div>
-        <div id="holidayList" style="max-height:200px;overflow-y:auto"></div>
       </div>
     </div>
   </div>
