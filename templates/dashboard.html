@@ -161,19 +161,12 @@
     <!-- AI Insight -->
     <div class="col-md-4">
         <div class="card h-100 border-primary">
-            <div class="card-header fw-bold text-primary">
-                <span class="ai-badge"><i class="bi bi-stars me-1"></i>AI Insight</span>
+            <div class="card-header fw-bold text-primary d-flex justify-content-between align-items-center">
+                <span><span class="ai-badge"><i class="bi bi-stars me-1"></i>AI Insight</span></span>
+                <button class="btn btn-sm btn-outline-primary" onclick="loadAiInsight()" title="รีเฟรช insight" style="font-size:.7rem;padding:2px 8px"><i class="bi bi-arrow-clockwise"></i></button>
             </div>
-            <div class="card-body">
-                <div class="alert alert-light border-0 mb-2">
-                    <small><i class="bi bi-lightbulb text-warning me-1"></i><strong>แนะนำ:</strong> เครื่องพิมพ์สมุดคือปัญหาที่พบบ่อยที่สุด ({{ top_cat_pct }}%) ควรวางแผน PM รายไตรมาส</small>
-                </div>
-                <div class="alert alert-light border-0 mb-2">
-                    <small><i class="bi bi-lightbulb text-warning me-1"></i><strong>Alert:</strong> สาขา{{ top_branch }} มี Ticket ค้างมากที่สุด</small>
-                </div>
-                <div class="alert alert-light border-0 mb-0">
-                    <small><i class="bi bi-lightbulb text-success me-1"></i><strong>Tips:</strong> ใช้ Chatbot ช่วยแก้ปัญหาเบื้องต้นได้ 70%</small>
-                </div>
+            <div class="card-body" id="aiInsightBody">
+                <div class="text-center py-3 text-muted"><small><i class="bi bi-arrow-clockwise spin me-1"></i>กำลังวิเคราะภาพ...</small></div>
             </div>
         </div>
     </div>
@@ -222,4 +215,29 @@
     </div>
 </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadAiInsight(){
+  const el = document.getElementById('aiInsightBody');
+  el.innerHTML = '<div class="text-center py-3 text-muted"><small><i class="bi bi-arrow-clockwise spin me-1"></i>กำลังวิเคราะภาพ...</small></div>';
+  try {
+    const r = await fetch('/api/ai-insight');
+    const d = await r.json();
+    if(d.insights && d.insights.length){
+      el.innerHTML = d.insights.map((txt,i) =>
+        '<div class="alert alert-light border-0 mb-'+(i<d.insights.length-1?'2':'0')+'"><small><i class="bi bi-lightbulb text-warning me-1"></i>'+txt+'</small></div>'
+      ).join('');
+      if(d.source==='ai') el.innerHTML += '<div class="text-end mt-1"><small class="text-muted" style="font-size:.65rem"><i class="bi bi-stars me-1"></i>Powered by AI</small></div>';
+    } else {
+      el.innerHTML = '<div class="text-center text-muted py-2"><small>ไม่มีข้อมูล</small></div>';
+    }
+  } catch(e) {
+    el.innerHTML = '<div class="text-center text-muted py-2"><small>ไม่สามารถโหลดได้</small></div>';
+  }
+}
+// Auto-load on page load
+loadAiInsight();
+</script>
 {% endblock %}

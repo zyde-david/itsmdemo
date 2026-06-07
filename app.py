@@ -1101,6 +1101,85 @@ def api_notes_add(tid):
     c.commit();nid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,id=nid)
 
+@app.route('/api/ai-insight',methods=['GET'])
+@login_required
+def ai_insight():
+    """Generate real AI insights from dashboard data using OpenRouter."""
+    c = get_db()
+
+    # Gather dashboard data
+    total = c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0]
+    open_tickets = c.execute("SELECT COUNT(*) FROM tickets WHERE status='open'").fetchone()[0]
+    critical = c.execute("SELECT COUNT(*) FROM tickets WHERE priority='critical'").fetchone()[0]
+
+    # Top category
+    top_cat = c.execute('SELECT category,COUNT(*) as cnt FROM tickets GROUP BY category ORDER BY cnt DESC LIMIT 1').fetchone()
+    top_cat_name = top_cat['category'] if top_cat else 'N/A'
+    top_cat_cnt = top_cat['cnt'] if top_cat else 0
+    top_cat_pct = round(top_cat_cnt/total*100) if total > 0 else 0
+
+    # Top branch
+    top_branch = c.execute('SELECT branch,COUNT(*) as cnt FROM tickets GROUP BY branch ORDER BY cnt DESC LIMIT 1').fetchone()
+    top_branch_name = top_branch['branch'] if top_branch else 'N/A'
+    top_branch_cnt = top_branch['cnt'] if top_branch else 0
+
+    # Province breakdown
+    provinces = c.execute('SELECT province,COUNT(*) as cnt,SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as open_cnt FROM tickets GROUP BY province ORDER BY cnt DESC').fetchall()
+    province_summary = ', '.join([f"{r['province']}: {r['cnt']} เคส (เปิด {r['open_cnt']})" for r in provinces]) if provinces else 'ไม่มีข้อมูล'
+
+    # Recent trend (last 7 days vs previous 7 days)
+    recent = c.execute("SELECT COUNT(*) FROM tickets WHERE created_at >= datetime('now','-7 days')").fetchone()[0]
+    previous = c.execute("SELECT COUNT(*) FROM tickets WHERE created_at BETWEEN datetime('now','-14 days') AND datetime('now','-7 days')").fetchone()[0]
+    trend = "เพิ่มขึ้น" if recent > previous else "ลดลง" if recent < previous else "คงที่"
+
+    # Build prompt
+    prompt = f"""วิเคราะภาพ Dashboard ITSM สหกรณ์ออมทรัพย์:
+
+- ทั้งหมด: {total} เคส | เปิด: {open_tickets} | Critical: {critical}
+- หมวดหมู่มากที่สุด: {top_cat_name} ({top_cat_cnt} เคส, {top_cat_pct}%)
+- สาขาที่มีเคสมากที่สุด: {top_branch_name} ({top_branch_cnt} เคส)
+- แยกตามจังหวัด: {province_summary}
+- เทรนด์ 7 วันล่าสุด: {recent} เคส (ก่อนหน้า {previous}) → {trend}
+
+ให้ 3 ข้อ insight/recommendation สั้น ๆ เป็นภาษาไทย แยกบรรทัด:
+1. [insight เกี่ยวกับหมวดหมู่/ปัญหา]
+2. [insight เกี่ยวกับสาขา/พื้นที่]  
+3. [insight เกี่ยวกับเทรนด์/การวางแผน]"""
+
+    api_key = os.environ.get('OPENROUTER_API_KEY', '')
+    if api_key:
+        try:
+            r = requests.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'model': 'openrouter/owl-alpha:free',
+                    'messages': [
+                        {'role': 'system', 'content': 'คุณเป็น IT Analyst วิเคราะภาพ Dashboard ให้ insight สั้น ๆ เป็นภาษาไทย เชิงปฏิบัติ'},
+                        {'role': 'user', 'content': prompt}
+                    ],
+                    'max_tokens': 400
+                },
+                timeout=10
+            )
+            if r.status_code == 200:
+                ai_text = r.json()['choices'][0]['message']['content'].strip()
+                # Split into lines and filter empty
+                lines = [l.strip() for l in ai_text.split('\n') if l.strip()]
+                return jsonify(insights=lines[:3], source='ai')
+        except:
+            pass
+
+    # Fallback: static insights from data
+    return jsonify(insights=[
+        f"📊 {top_cat_name} เป็นปัญหาที่พบมากที่สุด ({top_cat_pct}%) — ควรวางแผน PM รายไตรมาส",
+        f"🏠 สาขา{top_branch_name} มี Ticket ค้างมากที่สุด ({top_branch_cnt} เคส) — ควรตรวจสอบ",
+        f"📈 เทรนด์ 7 วันล่าสุด: {trend} (จาก {previous} → {recent} เคส)"
+    ], source='rule')
+
 @app.route('/api/chatbot',methods=['POST'])
 @login_required
 def chatbot():
