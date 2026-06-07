@@ -2,7 +2,7 @@
 import hashlib
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, g
 import calendar
-import sqlite3, random, os, logging, json
+import sqlite3, random, os, logging, json, requests
 from datetime import date, datetime, timedelta
 from functools import wraps
 
@@ -1104,73 +1104,85 @@ def api_notes_add(tid):
 @app.route('/api/chatbot',methods=['POST'])
 @login_required
 def chatbot():
-    q=request.json.get('question','').lower()
+    q=request.json.get('question','').strip()
+    if not q:
+        return jsonify(answer="❓ พิมพ์คำถามเกี่ยวกับปัญหา IT ได้เลยครับ")
+
+    # ── Keyword dictionary (fallback) ──
     R={
-        # ── Printer ──
         "printer":"🔧 เครื่องพิมพ์\n1. เช็ค Sensor กระดาษ\n2. ลูกยางรีดกระดาษ\n3. Calibrate หัวพิมพ์\n4. เช็คหมึก/โทนเนอร์\n5. แจ้ง IT ถ้ายังไม่หาย",
         "เครื่องพิมพ์":"🔧 เครื่องพิมพ์\n1. เช็ค Sensor กระดาษ\n2. ลูกยางรีดกระดาษ\n3. Calibrate หัวพิมพ์\n4. เช็คหมึก/โทนเนอร์\n5. แจ้ง IT ถ้ายังไม่หาย",
         "สมุด":"🔧 เครื่องพิมพ์: 1.Sensor 2.ลูกยาง 3.Calibrate 4.หมึก/โทนเนอร์",
         "หมึก":"🔧 หมึกหมด/โทนเนอร์\n1. เช็คระดับหมึกในเครื่อง\n2. เปลี่ยนตลับหมึก/โทนเนอร์\n3. รีเซ็ตตัวนับหมึก",
         "กระดาษติด":"🔧 กระดาษติด\n1. เปิดฝาเครื่อง\n2. ดึงกระดาษที่ติดออก\n3. เช็คลูกยางรีด\n4. ปรับระยะกระดาษให้ตรง",
-
-        # ── VPN ──
         "vpn":"🔒 VPN\n1. เช็คอินเทอร์เน็ตก่อน\n2. รีสตาร์ท Router/Modem\n3. เช็ค WAN IP ว่าไม่เป็น 0.0.0.0\n4. ลองเปลี่ยน VPN Server\n5. แจ้ง IT ถ้ายังเชื่อมต่อไม่ได้",
         "เข้าเน็ตไม่ได้":"🔒 อินเทอร์เน็ตใช้งานไม่ได้\n1. เช็คสาย LAN/WiFi\n2. รีสตาร์ท Router\n3. Ping 8.8.8.8\n4. เช็ค DNS\n5. แจ้ง IT",
-
-        # ── Network ──
         "network":"🌐 เครือข่าย\n1. Ping Gateway (192.168.1.1)\n2. เช็คสาย LAN\n3. รีสตาร์ท Modem/Router\n4. เช็ค IP Conflict\n5. แจ้ง IT",
         "เครือข่าย":"🌐 เครือข่าย\n1. Ping Gateway (192.168.1.1)\n2. เช็คสาย LAN\n3. รีสตาร์ท Modem/Router\n4. เช็ค IP Conflict\n5. แจ้ง IT",
         "อินเทอร์เน็ต":"🌐 อินเทอร์เน็ต\n1. เช็ค Router/Modem\n2. Ping 8.8.8.8\n3. รีสตาร์ทอุปกรณ์\n4. เช็คสายเครือข่าย\n5. แจ้ง IT",
         "wifi":"📶 WiFi\n1. เช็ครหัสผ่าน WiFi\n2. รีสตาร์ท Router\n3. เช็คจำนวนผู้ใช้\n4. เช็คสัญญาณ\n5. แจ้ง IT",
         "สายแลน":"🌐 สาย LAN\n1. เช็คสายสัญญาณ\n2. เปลี่ยนพอร์ตสวิตช์\n3. เช็ค NIC เครื่อง\n4. แจ้ง IT",
-
-        # ── Core Banking ──
         "core":"⚠️ ระบบ Core Banking\n1. เช็ค VPN Tunnel ก่อน\n2. เช็ค Server สถานะ\n3. สำรองข้อมูลก่อนทำอะไร\n4. แจ้ง IT ทันที\n5. ห้ามปิดเครื่องถ้ากำลังประมวลผล",
         "core banking":"⚠️ ระบบ Core Banking\n1. เช็ค VPN Tunnel ก่อน\n2. เช็ค Server สถานะ\n3. สำรองข้อมูลก่อนทำอะไร\n4. แจ้ง IT ทันที\n5. ห้ามปิดเครื่องถ้ากำลังประมวลผล",
         "ระบบหลัก":"⚠️ ระบบ Core Banking\n1. เช็ค VPN Tunnel\n2. เช็ค Server\n3. สำรองข้อมูล\n4. แจ้ง IT ทันที",
-
-        # ── Computer / PC ──
-        "คอม":"💻 คอมพิวเต้ร\n1. รีสตาร์ทเครื่อง\n2. เช็คสายเคเบิล\n3. เช็ค RAM/HDD\n4. แจ้ง IT",
+        "คอม":"💻 คอมพิวเตอร์\n1. รีสตาร์ทเครื่อง\n2. เช็คสายเคเบิล\n3. เช็ค RAM/HDD\n4. แจ้ง IT",
         "คอมพิวเตอร์":"💻 คอมพิวเตอร์\n1. รีสตาร์ทเครื่อง\n2. เช็คสายเคเบิล\n3. เช็ค RAM/HDD\n4. แจ้ง IT",
         "เครื่องช้า":"💻 เครื่องช้า\n1. ปิดโปรแกรมที่ไม่ใช้\n2. เช็ค Disk Space\n3. สแกนไวรัส\n4. รีสตาร์ท\n5. แจ้ง IT",
         "blue screen":"💻 Blue Screen / จอฟ้า\n1. จด Error Code\n2. รีสตาร์ทเครื่อง\n3. เช็ค RAM\n4. แจ้ง IT ทันที",
         "จอฟ้า":"💻 Blue Screen / จอฟ้า\n1. จด Error Code\n2. รีสตาร์ทเครื่อง\n3. เช็ค RAM\n4. แจ้ง IT ทันที",
         "เปิดไม่ติด":"💻 เครื่องเปิดไม่ติด\n1. เช็คสายไฟ\n2. เช็ค Power Supply\n3. ลองเปลี่ยนปลั๊ก\n4. แจ้ง IT",
-
-        # ── Software / Windows ──
         "windows":"🪟 Windows\n1. รีสตาร์ทเครื่อง\n2. เช็ค Windows Update\n3. สแกนไวรัส\n4. แจ้ง IT",
         "อัพเดท":"🔄 Update\n1. เช็ค Internet\n2. ปิดโปรแกรมอื่น\n3. รอให้อัพเดทเสร็จ\n4. รีสตาร์ท",
         "ล็อกอิน":"🔐 ล็อกอินไม่ได้\n1. เช็ค Caps Lock\n2. เช็ครหัสผ่าน\n3. ลองรีเซ็ตรหัสผ่าน\n4. แจ้ง IT/HR",
         "รหัสผ่าน":"🔐 รหัสผ่าน\n1. เช็ค Caps Lock\n2. ลองรีเซ็ตผ่านระบบ\n3. แจ้ง IT/HR\n4. อย่าบอกรหัสผ่านคนอื่น",
-
-        # ── Email ──
         "email":"📧 Email\n1. เช็ค Internet\n2. เช็ครหัสผ่าน Email\n3. เช็ค Mail Server\n4. แจ้ง IT",
         "เมล":"📧 Email\n1. เช็ค Internet\n2. เช็ครหัสผ่าน Email\n3. เช็ค Mail Server\n4. แจ้ง IT",
         "ส่งเมลไม่ได้":"📧 ส่ง Email ไม่ได้\n1. เช็ค Internet\n2. เช็คขนาดไฟล์แนบ\n3. เช็ค Mail Queue\n4. แจ้ง IT",
-
-        # ── Scanner ──
         "scanner":"📠 สแกนเนอร์\n1. เช็คสาย USB/Network\n2. รีสตาร์ทเครื่องสแกน\n3. เช็ค Driver\n4. แจ้ง IT",
         "สแกน":"📠 สแกนเนอร์\n1. เช็คสาย USB/Network\n2. รีสตาร์ทเครื่องสแกน\n3. เช็ค Driver\n4. แจ้ง IT",
-
-        # ── UPS / Power ──
         "ups":"⚡ UPS\n1. เช็คไฟเข้า UPS\n2. เช็ค Battery\n3. รีสตาร์ท UPS\n4. แจ้ง IT ทันที",
         "ไฟฟ้า":"⚡ ไฟฟ้า\n1. เช็คสายไฟ\n2. เช็ค UPS\n3. เช็ค Circuit Breaker\n4. แจ้ง IT/ซ่าม",
         "ไฟดับ":"⚡ ไฟดับ\n1. เช็ค UPS ทำงานไหม\n2. ปิดเครื่องที่ไม่จำเป็น\n3. รอไฟกลับมา\n4. เปิดเครื่องทีละเครื่อง",
-
-        # ── Phone / Telephone ──
         "โทรศัพท์":"📞 โทรศัพท์\n1. เช็คสายโทรศัพท์\n2. เช็คสัญญาณ\n3. รีสตาร์ท PBX\n4. แจ้ง IT",
-        "โทรศัพท์ไม่ดัง":"📞 โทรศัพท์มีปัญหา\n1. เช็คสายโทรศัพท์\n2. เปลี่ยนหูฟัง\n3. เช็คสัญญาณ\n4. แจ้ง IT",
-
-        # ── General IT ──
         "it":"🆘 ติดต่อ IT\n📞 โทร: 888 (IT Hotline)\n📧 Email: it@coop.co.th\n⏰ เวลาทำการ: 08:00-17:00 น.",
         "ติดต่อ it":"🆘 ติดต่อ IT\n📞 โทร: 888 (IT Hotline)\n📧 Email: it@coop.co.th\n⏰ เวลาทำการ: 08:00-17:00 น.",
         "แจ้งซ่อม":"🆘 แจ้งซ่อม\n1. โทร 888 (IT Hotline)\n2. แจ้งอาการปัญหา\n3. แจ้งสาขา/เบอร์ติดต่อ\n4. รอ IT ติดต่อกลับ",
         "help":"🆘 ติดต่อ IT\n📞 โทร: 888 (IT Hotline)\n📧 Email: it@coop.co.th\n⏰ เวลาทำการ: 08:00-17:00 น.",
     }
-    a="❓ ลองถามเรื่อง: เครื่องพิมพ์, VPN, เครือข่าย, Core Banking, คอมพิวเตอร์, Email, สแกนเนอร์, UPS, โทรศัพท์ หรือพิมพ์ 'IT' เพื่อดูเบอร์ติดต่อ"
+
+    # ── Try OpenRouter first ──
+    api_key = os.environ.get('OPENROUTER_API_KEY','')
+    if api_key:
+        try:
+            r = requests.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'model': 'openrouter/owl-alpha:free',
+                    'messages': [
+                        {'role':'system','content':'คุณเป็น IT HelpBot สำหรับสหกรณ์ออมทรัพย์ ตอบเป็นภาษาไทย สั้น เป็นขั้นตอน ไม่เกิน 5 ขั้นตอน ถ้าไม่รู้ให้แนะนำโทร 888'},
+                        {'role':'user','content':q}
+                    ],
+                    'max_tokens': 300
+                },
+                timeout=8
+            )
+            if r.status_code == 200:
+                ai_answer = r.json()['choices'][0]['message']['content'].strip()
+                return jsonify(answer=ai_answer)
+        except:
+            pass  # fallback to keyword
+
+    # ── Fallback: keyword matching ──
+    ql = q.lower()
     for kw,resp in R.items():
-        if kw in q:a=resp;break
-    return jsonify(answer=a)
+        if kw in ql:
+            return jsonify(answer=resp)
+
+    return jsonify(answer="❓ ลองถามเรื่อง: เครื่องพิมพ์, VPN, เครือข่าย, Core Banking, คอม, Email, สแกน, UPS, โทรศัพท์ หรือพิมพ์ 'IT' เพื่อดูเบอร์ติดต่อ")
 
 # ── Asset API ──
 @app.route('/api/asset/search',methods=['GET'])

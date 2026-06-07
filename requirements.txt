@@ -1,5 +1,8 @@
 # Flask dependency
 Flask>=3.0
 
+# HTTP client for OpenRouter API
+requests>=2.31
+
 # Optional: production server
 gunicorn>=21.2
