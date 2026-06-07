@@ -25,6 +25,7 @@
   .info-panel h4{margin:0 0 5px;color:#2b5c8f;}
   .legend-pill{display:inline-flex;align-items:center;gap:6px;margin-right:10px;font-size:.85rem;}
   .legend-dot{width:13px;height:13px;border-radius:50%;display:inline-block;}
+  .map-label-icon{background:none!important;border:none!important;box-shadow:none!important;}
   .route-step{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
   .priority-high{background:#ffedd5;color:#9a3412;}
   .priority-mid{background:#fef3c7;color:#92400e;}
@@ -194,36 +195,99 @@
   var ticketData = {};
   var geojsonLayer;
   var labelLayer = L.layerGroup().addTo(map);
-  var viewMode = 'tickets'; // 'tickets' | 'assets' | 'both'
+  var viewMode = 'tickets';
+
+  // ── HARDCODED CENTROIDS for 33 districts (fixes coastal misplacement) ──
+  var districtCentroids = {
+    'ไม้แก่น':     [5.93, 101.44],
+    'ยะหา':       [5.89, 101.18],
+    'กาบัง':      [5.95, 101.03],
+    'รามัน':      [5.86, 101.44],
+    'กะพ้อ':      [5.93, 101.46],
+    'ยี่งอ':      [5.78, 101.18],
+    'แว้ง':       [5.72, 101.23],
+    'สุคิริน':     [5.65, 101.42],
+    'สุไหงปาดี':  [5.68, 101.50],
+    'จะแนะ':      [5.78, 101.47],
+    'ธารโต':      [5.62, 101.13],
+    'เจาะไอร้อง':[5.58, 101.18],
+    'รือเสาะ':    [5.55, 101.32],
+    'ตากใบ':      [5.52, 101.53],
+    'บาเจาะ':     [5.50, 101.28],
+    'ลานสกา':     [5.45, 101.17],
+    'สะเดา':      [5.38, 101.13],
+    'จันทน์':     [5.35, 101.15],
+    'พร่อน':      [5.32, 101.18],
+    'ปะลุรู':     [5.30, 101.47],
+    'รัตภูมิ':     [5.28, 101.18],
+    'สิเกา':      [5.25, 101.08],
+    'หาดใหญ่':    [5.18, 101.22],
+    'นาทวี':      [5.15, 101.42],
+    'เทพา':       [5.08, 101.48],
+    'สะบ้าย้อย':  [5.05, 101.10],
+    'บางเขา':     [5.02, 101.22],
+    'มะนัง':      [5.00, 101.33],
+    'ปากพนัง':    [4.97, 101.28],
+    'ระแงะ':      [4.95, 101.48],
+    'ช้างผา':     [4.92, 101.18],
+    'ศรีสาคร':    [4.88, 101.35],
+    'นาหม่อม':    [4.85, 101.25]
+  };
 
   function setViewMode(mode) {
     viewMode = mode;
     document.querySelectorAll('#viewToggle .btn').forEach(b => b.classList.remove('active'));
-    const activeBtn = mode === 'tickets' ? 'viewTickets' : (mode === 'assets' ? 'viewAssets' : 'viewBoth');
+    var activeBtn = mode === 'tickets' ? 'viewTickets' : (mode === 'assets' ? 'viewAssets' : 'viewBoth');
     document.getElementById(activeBtn).classList.add('active');
-    // Toggle legends
     document.getElementById('mapLegend').classList.toggle('d-none', mode === 'assets');
     document.getElementById('assetLegend').classList.toggle('d-none', mode === 'tickets');
-    // Toggle asset column in sidebar
     document.querySelectorAll('.col-assets').forEach(el => el.classList.toggle('d-none', mode === 'tickets'));
     refreshMap();
   }
 
-  function getTicketColor(d) {
-    return d > 8  ? '#084594' :
-           d > 5  ? '#2171b5' :
-           d > 3  ? '#4292c6' :
-           d > 1  ? '#8c96c6' :
-           d > 0  ? '#d0d1e6' :
-                     '#f7f7f7';
+  // ── PRIORITY-BASED COLOR (matches legend: Critical=red, High=orange, Medium=yellow, Low=green) ──
+  function getPriorityColor(d) {
+    var data = ticketData[d] || {critical: 0, high: 0, medium: 0, low: 0};
+    if (data.critical > 0) return '#d32f2f';
+    if (data.high > 0)    return '#f57c00';
+    if (data.medium > 0)  return '#fbc02d';
+    if (data.low > 0)     return '#388e3c';
+    return '#e0e0e0';
   }
 
   function getAssetColor(d) {
-    return d > 20 ? '#1e40af' :
-           d > 10 ? '#2563eb' :
-           d > 5  ? '#60a5fa' :
-           d > 0  ? '#93c5fd' :
-                     '#f0f4f8';
+    var a = (ticketData[d] || {}).assets || 0;
+    return a > 20 ? '#1e40af' : a > 10 ? '#2563eb' : a > 5 ? '#60a5fa' : a > 0 ? '#93c5fd' : '#f0f4f8';
+  }
+
+  function getChoroplethColor(name) {
+    if (viewMode === 'assets') return getAssetColor(name);
+    if (viewMode === 'both') {
+      var d = ticketData[name] || {};
+      if (d.critical > 0) return '#d32f2f';
+      if (d.high > 0)    return '#f57c00';
+      var total = (d.tickets || 0) + (d.assets || 0);
+      return total > 0 ? '#8c96c6' : '#f0f4f8';
+    }
+    return getPriorityColor(name);
+  }
+
+  function getCentroid(feature) {
+    var name = feature.properties.name;
+    // Use hardcoded centroid if available (fixes coastal misplacement)
+    if (districtCentroids[name]) {
+      return L.latLng(districtCentroids[name][0], districtCentroids[name][1]);
+    }
+    // Fallback to polygon layer centroid from rendered geojson
+    if (geojsonLayer) {
+      var found = null;
+      geojsonLayer.eachLayer(function(layer) {
+        if (layer.feature.properties.name === name) found = layer;
+      });
+      if (found && found.getCenter) return found.getCenter();
+    }
+    // Last resort: bounding box center
+    return L.geoJson(feature).getBounds().getCenter();
   }
 
   var info = L.control({position: 'topright'});
@@ -233,22 +297,18 @@
     return this._div;
   };
   info.update = function (props) {
-    if (!props) {
-      this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>แตะ/คลิกอำเภอเพื่อดูตัวเลข';
-      return;
-    }
+    if (!props) { this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>แตะ/คลิกอำเภอเพื่อดูตัวเลข'; return; }
     var name = props.name;
-    var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0, categories: {}, assets: 0};
-    var categoryText = Object.keys(d.categories || {}).sort(function(a,b){ return (d.categories[b]||0) - (d.categories[a]||0); }).map(function(k){ return k + ': ' + (d.categories[k]||0); }).join(' · ') || '-';
+    var d = ticketData[name] || {tickets:0,critical:0,high:0,medium:0,low:0,categories:{},assets:0};
+    var categoryText = Object.keys(d.categories||{}).sort(function(a,b){return (d.categories[b]||0)-(d.categories[a]||0);}).map(function(k){return k+': '+(d.categories[k]||0);}).join(' · ') || '-';
     this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>' +
-      '<b>จังหวัด:</b> ' + props.province +
-      '<br><b>อำเภอ:</b> ' + name +
-      '<br><b>งาน/Ticket ที่ยังไม่จบ:</b> <span style="font-size:16px;color:#084594;font-weight:bold;">' + d.tickets + '</span>' +
-      '<br><span style="color:#dc2626;">Critical: ' + d.critical + '</span>' +
-      ' · <span style="color:#f97316;">High: ' + d.high + '</span>' +
-      ' · <span style="color:#f59e0b;">Medium: ' + d.medium + '</span>' +
-      ' · <span style="color:#16a34a;">Low: ' + d.low + '</span>' +
-      '<br><b>สินทรัพย์:</b> <span style="font-size:14px;color:#2563eb;font-weight:bold;">' + (d.assets || 0) + '</span>' +
+      '<b>จังหวัด:</b> ' + props.province + '<br><b>อำเภอ:</b> ' + name +
+      '<br><b>งาน/Ticket ที่ยังไม่จบ:</b> <span style="font-size:16px;font-weight:bold;">' + d.tickets + '</span>' +
+      '<br><span style="color:#d32f2f;">Critical: ' + d.critical + '</span>' +
+      ' · <span style="color:#f57c00;">High: ' + d.high + '</span>' +
+      ' · <span style="color:#fbc02d;">Medium: ' + d.medium + '</span>' +
+      ' · <span style="color:#388e3c;">Low: ' + d.low + '</span>' +
+      '<br><b>สินทรัพย์:</b> <span style="color:#2563eb;font-weight:bold;">' + (d.assets||0) + '</span>' +
       '<br><b>หมวด:</b> ' + categoryText;
   };
   info.addTo(map);
@@ -258,28 +318,13 @@
   fetchTicketData();
   setInterval(fetchTicketData, 30000);
 
-  function getChoroplethValue(name) {
-    var d = ticketData[name] || {};
-    var t = d.tickets || 0;
-    var a = d.assets || 0;
-    if (viewMode === 'assets') return a;
-    if (viewMode === 'both') return t + a;
-    return t;
-  }
-
-  function getChoroplethColor(name) {
-    var val = getChoroplethValue(name);
-    if (viewMode === 'assets') return getAssetColor(val);
-    if (viewMode === 'both') return getTicketColor(val);
-    return getTicketColor(val);
-  }
-
   function fetchTicketData() {
     fetch('/api/district-tickets')
       .then(res => res.json())
       .then(data => {
         ticketData = data;
-        if (!geojsonLayer) { renderMap(); } else { refreshMap(); }
+        if (!geojsonLayer) renderMap();
+        else refreshMap();
       })
       .catch(err => {
         console.error('Failed to load ticket data', err);
@@ -291,8 +336,7 @@
   function renderMap() {
     geojsonLayer = L.geoJson(southData, {
       style: function(feature) {
-        var name = feature.properties.name;
-        return { fillColor: getChoroplethColor(name), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 };
+        return { fillColor: getChoroplethColor(feature.properties.name), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 };
       },
       onEachFeature: function(feature, layer) {
         function highlight(e) {
@@ -310,36 +354,42 @@
   }
 
   function refreshMap() {
+    // Update choropleth fills
     geojsonLayer.eachLayer(function(layer) {
       var name = layer.feature.properties.name;
       layer.setStyle({ fillColor: getChoroplethColor(name), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 });
     });
+
+    // Rebuild labels
     labelLayer.clearLayers();
-    // Build centroids using Leaflet's built-in polygon centroid (not bounding box)
-    var layerCentroids = {};
-    geojsonLayer.eachLayer(function(layer) {
-      var n = layer.feature.properties.name;
-      if (layer.getCenter) {
-        layerCentroids[n] = layer.getCenter();
-      } else {
-        layerCentroids[n] = layer.getBounds().getCenter();
-      }
-    });
     southData.features.forEach(function(f) {
       var name = f.properties.name;
-      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, assets: 0};
-      if (d.tickets <= 0 && d.assets <= 0) return;
-      var centroid = layerCentroids[name] || L.geoJson(f).getBounds().getCenter();
-      var ticketColor = d.critical > 0 ? '#dc2626' : (d.high > 0 ? '#f97316' : '#334155');
-      var ticketHtml = d.tickets > 0 ? '<div class="ticket-count" style="color:' + ticketColor + '">' + d.tickets + '</div>' : '';
-      var assetHtml = (viewMode !== 'tickets' && d.assets > 0) ? '<div class="asset-count">' + d.assets + '</div>' : '';
+      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0, assets: 0};
+
+      // CRITICAL: hide if no value
+      var hasValue = (d.tickets > 0) || (viewMode !== 'tickets' && d.assets > 0);
+      if (!hasValue) return;
+
+      var centroid = getCentroid(f);
+
+      // Build label: number + short name, NO "อำเภอ" prefix
+      var num = d.tickets > 0 ? d.tickets : d.assets;
+      var numColor = d.critical > 0 ? '#d32f2f' : (d.high > 0 ? '#f57c00' : (d.medium > 0 ? '#fbc02d' : '#388e3c'));
+
+      var html = '<div class="map-label-icon">' +
+        '<span style="color:' + numColor + ';font-weight:800;font-size:13px;">' + num + '</span>' +
+        '<span style="color:#000000;font-weight:700;font-size:10px;margin-left:3px;">' + name + '</span>' +
+        '</div>';
+
       var icon = L.divIcon({
-        className: '',
-        html: '<div class="map-ticket-label">' + ticketHtml + assetHtml + '<div class="map-ticket-name">' + name + '</div></div>',
-        iconSize: [70, 50], iconAnchor: [35, 25]
+        className: 'map-label-icon',
+        html: html,
+        iconSize: [80, 24],
+        iconAnchor: [40, 12]
       });
       L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
     });
+
     generateSidebarTable(southData.features);
   }
 
@@ -350,26 +400,26 @@
 
     var sortedList = features.map(function(f) {
       var name = f.properties.name;
-      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0, assets: 0};
-      return {name: name, province: f.properties.province, tickets: d.tickets, critical: d.critical, high: d.high, assets: d.assets || 0, value: viewMode === 'assets' ? (d.assets || 0) : (viewMode === 'both' ? (d.tickets + d.assets) : d.tickets)};
-    }).sort(function(a, b) { return b.value - a.value; });
+      var d = ticketData[name] || {tickets:0,critical:0,high:0,medium:0,low:0,assets:0};
+      return {name:name, province:f.properties.province, tickets:d.tickets, critical:d.critical, high:d.high, assets:d.assets||0, value: viewMode==='assets'?(d.assets||0):(viewMode==='both'?(d.tickets+d.assets):d.tickets)};
+    }).sort(function(a,b){return b.value-a.value;});
 
     sortedList.forEach(function(item, index) {
       var row = document.createElement('tr');
+      var badgeColor = getPriorityColor(item.name);
       row.innerHTML =
-        '<td><b>' + (index + 1) + '</b></td>' +
-        '<td>' + item.name + '</td>' +
-        '<td>' + item.province + '</td>' +
-        '<td class="text-end"><span class="badge" style="background-color:' + getTicketColor(item.tickets) + '">' + item.tickets + '</span></td>' +
-        '<td class="text-end col-assets">' + (item.assets > 0 ? '<span class="badge bg-primary">' + item.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
-
+        '<td><b>'+(index+1)+'</b></td>'+
+        '<td>'+item.name+'</td>'+
+        '<td>'+item.province+'</td>'+
+        '<td class="text-end"><span class="badge" style="background-color:'+badgeColor+'">'+item.tickets+'</span></td>'+
+        '<td class="text-end col-assets">'+(item.assets>0?'<span class="badge bg-primary">'+item.assets+'</span>':'<span class="text-muted">0</span>')+'</td>';
       row.addEventListener('click', function() {
         geojsonLayer.eachLayer(function(layer) {
           if (layer.feature.properties.name === item.name) {
             map.panTo(layer.getBounds().getCenter());
-            layer.setStyle({ weight: 4, color: '#ef4444' });
+            layer.setStyle({weight:4,color:'#ef4444'});
             info.update(layer.feature.properties);
-            setTimeout(function() { geojsonLayer.resetStyle(layer); }, 1500);
+            setTimeout(function(){geojsonLayer.resetStyle(layer);},1500);
           }
         });
       });
