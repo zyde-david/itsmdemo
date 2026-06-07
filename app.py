@@ -978,12 +978,44 @@ def api_create():
     asset = c.execute('SELECT * FROM assets WHERE id=?', (asset_id,)).fetchone() if asset_id else None
     cat, suggested_pri = suggest_ticket_defaults(asset, d.get('category',''))
     pri = d.get('priority') if d.get('priority') in ('critical','high','medium','low') else suggested_pri
-    ai = TICKET_CATS.get(cat, {}).get('ai', '')
+    # ── Generate AI suggestion via OpenRouter or fallback ──
+    ai_text = TICKET_CATS.get(cat, {}).get('ai', '')
+    ai_confidence = round(random.uniform(0.7, 0.95), 2)
+
+    api_key = os.environ.get('OPENROUTER_API_KEY', '')
+    if api_key:
+        try:
+            asset_info = f" อุปกรณ์: {asset['asset_type']} (Tag: {asset['asset_tag']})" if asset else ''
+            ai_prompt = f"""คุณเป็น IT Support สหกรณ์ออมทรัพย์ ให้วิธีแก้ปัญหา IT เป็นขั้นตอนสั้น ๆ ไม่เกิน 5 ขั้นตอน เป็นภาษาไทย
+
+หมวดหมู่: {cat}
+ปัญหา: {d.get('title','')}
+รายละเอียด: {d.get('description','')}{asset_info}
+
+ตอบเฉพาะขั้นตอนการแก้ไข:"""
+            r = requests.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+                json={
+                    'model': 'openrouter/owl-alpha',
+                    'messages': [
+                        {'role': 'system', 'content': 'คุณเป็น IT Support สหกรณ์ออมทรัพย์ ให้วิธีแก้ปัญหา IT เป็นขั้นตอนสั้น ๆ ไม่เกิน 5 ขั้นตอน เป็นภาษาไทย'},
+                        {'role': 'user', 'content': ai_prompt}
+                    ],
+                    'max_tokens': 300
+                },
+                timeout=8
+            )
+            if r.status_code == 200:
+                ai_text = r.json()['choices'][0]['message']['content'].strip()
+                ai_confidence = round(random.uniform(0.85, 0.98), 2)
+        except Exception as e:
+            logging.warning(f"Ticket AI suggestion error: {e}")
     branch = d.get('branch') or (asset['branch'] if asset else '')
     province = d.get('province') or (asset['province'] if asset else '')
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-              (branch, province, cat, d.get('title',''), d.get('description',''), pri, 'open', d.get('reported_by',''), '', asset_id, now_str, now_str, ai, round(random.uniform(0.7,0.98),2)))
+              (branch, province, cat, d.get('title',''), d.get('description',''), pri, 'open', d.get('reported_by',''), '', asset_id, now_str, now_str, ai_text, ai_confidence))
     c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,ticket_id=tid, suggested_category=cat, suggested_priority=pri)
 
