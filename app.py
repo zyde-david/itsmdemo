@@ -1503,7 +1503,8 @@ def calendar_page():
                            prev_year=prev_month.year, prev_month=prev_month.month,
                            next_year=next_month.year, next_month=next_month.month,
                            leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS,
-                           manpower_by_day=manpower_by_day, total_active_staff=total_active_staff)
+                           manpower_by_day=manpower_by_day, total_active_staff=total_active_staff,
+                           holidays_by_day=holidays_by_day, cal_holidays=[dict(h, weekday=date.fromisoformat(h['date']).strftime('%A')) for h in holiday_rows])
 
 # ─── Holiday API ─────────────────────────────────────────────
 
