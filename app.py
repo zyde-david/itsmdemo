@@ -1580,12 +1580,25 @@ def leave_page():
                 if total_days <= 0:
                     error = 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม'
                 else:
-                    if half_day in ('am', 'pm'):
-                        days = 0.5 if total_days == 1 else total_days - 1 + 0.5
+                    # Check for weekends
+                    d2 = start_dt
+                    has_weekend = False
+                    while d2 <= end_dt:
+                        if d2.weekday() >= 5:
+                            has_weekend = True
+                            break
+                        d2 += timedelta(days=1)
+                    if has_weekend:
+                        error = 'ไม่สามารถขอลาวันเสาร์-อาทิตย์ได้'
                     else:
-                        days = float(total_days)
-                    c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,half_day,reason,status) VALUES (?,?,?,?,?,?,?,?,?)',
-                              (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, half_day, reason, 'pending'))
+                        if half_day in ('am', 'pm'):
+                            days = 0.5 if total_days == 1 else total_days - 1 + 0.5
+                        else:
+                            days = float(total_days)
+                        c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,half_day,reason,status) VALUES (?,?,?,?,?,?,?,?,?)',
+                                  (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, half_day, reason, 'pending'))
+                        c.commit()
+                        message = 'ส่งคำขอลาแล้ว — รอ Manager/Admin อนุมัติ'
                     c.commit()
                     message = 'ส่งคำขอลาแล้ว — รอ Manager/Admin อนุมัติ'
             except ValueError:
@@ -1671,6 +1684,12 @@ def api_leave_create():
         end_dt = _dt.strptime(end_date, '%Y-%m-%d').date()
         if end_dt < start_dt:
             return jsonify({'error': 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม'}), 400
+        # Check for weekends in range
+        d = start_dt
+        while d <= end_dt:
+            if d.weekday() >= 5:  # 5=Sat, 6=Sun
+                return jsonify({'error': 'ไม่สามารถขอลาวันเสาร์-อาทิตย์ได้'}), 400
+            d += timedelta(days=1)
         total_days = (end_dt - start_dt).days + 1
         if half_day in ('am', 'pm'):
             if total_days > 1:

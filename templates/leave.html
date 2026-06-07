@@ -348,11 +348,24 @@
   // Date selection
   window.leaveCal = {
     pick: function(dIso){
+      // Check if clicked day is weekend
+      var d = new Date(dIso+'T00:00:00');
+      var dow = d.getDay();
+      if(dow === 0 || dow === 6){
+        document.getElementById('calHint').textContent = '❌ ไม่สามารถลาวันเสาร์-อาทิตย์ได้';
+        document.getElementById('calHint').style.color = '#dc3545';
+        setTimeout(function(){
+          document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
+          document.getElementById('calHint').style.color = '';
+        }, 2000);
+        return;
+      }
       if(!selectStart || (selectStart && selectEnd)){
         // Start new selection
         selectStart = dIso;
         selectEnd = null;
         document.getElementById('calHint').textContent = 'เลือกวันสิ้นสุด...';
+        document.getElementById('calHint').style.color = '';
       } else if(!selectEnd){
         // Set end
         if(dIso < selectStart){
@@ -361,13 +374,37 @@
         } else {
           selectEnd = dIso;
         }
-        document.getElementById('calHint').textContent = selectStart + ' → ' + selectEnd;
-        // Show modal
-        showModal();
+        // Check if range contains weekends
+        if(hasWeekend(selectStart, selectEnd)){
+          document.getElementById('calHint').textContent = '❌ ช่วงวันที่มีวันเสาร์-อาทิตย์ — กรุณาเลือกใหม่';
+          document.getElementById('calHint').style.color = '#dc3545';
+          selectStart = null;
+          selectEnd = null;
+          setTimeout(function(){
+            document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
+            document.getElementById('calHint').style.color = '';
+          }, 2500);
+        } else {
+          document.getElementById('calHint').textContent = selectStart + ' → ' + selectEnd;
+          document.getElementById('calHint').style.color = '';
+          showModal();
+        }
       }
       renderCal(calYear, calMonth);
     }
   };
+
+  function hasWeekend(startIso, endIso){
+    var s = new Date(startIso+'T00:00:00');
+    var e = new Date(endIso+'T00:00:00');
+    var d = new Date(s);
+    while(d <= e){
+      var dow = d.getDay();
+      if(dow === 0 || dow === 6) return true;
+      d.setDate(d.getDate()+1);
+    }
+    return false;
+  }
 
   function showModal(){
     document.getElementById('modalDateRange').textContent = selectStart + ' → ' + selectEnd;
