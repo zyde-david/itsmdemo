@@ -259,6 +259,7 @@
   var calYear = {{ cal_year|default(2026) }};
   var calMonth = {{ cal_month|default(6) }};
   var leaves = [];
+  var holidays = [];
   var selectStart = null;
   var selectEnd = null;
 
@@ -273,7 +274,8 @@
     fetch('/api/leave/calendar?year='+year+'&month='+month)
       .then(r=>r.json())
       .then(function(data){
-        leaves = data;
+        leaves = data.leaves || [];
+        holidays = data.holidays || [];
         renderCal(year, month);
       });
   }
@@ -300,6 +302,12 @@
       }
     });
 
+    // Build holiday set
+    var holidayMap = {};
+    holidays.forEach(function(h){
+      holidayMap[h.date] = h.name;
+    });
+
     var html = '';
     var day = 1 - startDow;
     for(var w=0; w<6; w++){
@@ -315,7 +323,8 @@
         var d = new Date(year, month-1, cur);
         var dIso = iso(d);
         var isToday = d.getTime()===today.getTime();
-        var isWeekend = dow>=5;
+        var isWeekend = dow>=4; // Fri=4, Sat=5
+        var isHoliday = !!holidayMap[dIso];
         var dayLeaves = leaveMap[dIso]||[];
         var isSelected = selectStart && selectEnd && dIso>=selectStart && dIso<=selectEnd;
         var isStart = selectStart && dIso===selectStart;
@@ -324,6 +333,7 @@
         var cls = 'leave-cal-day';
         if(isToday) cls+=' is-today';
         if(isWeekend) cls+=' is-weekend';
+        if(isHoliday) cls+=' is-holiday';
         if(isSelected) cls+=' is-selected';
         if(isStart||isEnd) cls+=' is-selected';
 
@@ -348,11 +358,11 @@
   // Date selection
   window.leaveCal = {
     pick: function(dIso){
-      // Check if clicked day is weekend
+      // Check if clicked day is weekend (Fri=5, Sat=6 in JS getDay)
       var d = new Date(dIso+'T00:00:00');
       var dow = d.getDay();
-      if(dow === 0 || dow === 6){
-        document.getElementById('calHint').textContent = '❌ ไม่สามารถลาวันเสาร์-อาทิตย์ได้';
+      if(dow === 5 || dow === 6){
+        document.getElementById('calHint').textContent = '❌ ไม่สามารถลาวันศุกร์-เสาร์ได้';
         document.getElementById('calHint').style.color = '#dc3545';
         setTimeout(function(){
           document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
@@ -376,7 +386,7 @@
         }
         // Check if range contains weekends
         if(hasWeekend(selectStart, selectEnd)){
-          document.getElementById('calHint').textContent = '❌ ช่วงวันที่มีวันเสาร์-อาทิตย์ — กรุณาเลือกใหม่';
+          document.getElementById('calHint').textContent = '❌ ช่วงวันที่มีวันศุกร์-เสาร์ — กรุณาเลือกใหม่';
           document.getElementById('calHint').style.color = '#dc3545';
           selectStart = null;
           selectEnd = null;
@@ -400,7 +410,7 @@
     var d = new Date(s);
     while(d <= e){
       var dow = d.getDay();
-      if(dow === 0 || dow === 6) return true;
+      if(d.getDay() === 5 || d.getDay() === 6) return true;
       d.setDate(d.getDate()+1);
     }
     return false;

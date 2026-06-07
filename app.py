@@ -501,6 +501,8 @@ def init_db():
         ensure_column('users', column, definition)
 
     ensure_column('leave_requests', 'half_day', "TEXT DEFAULT 'full'")
+    ensure_column('leave_requests', 'original_request_id', 'INTEGER DEFAULT 0')
+    ensure_column('leave_requests', 'edit_note', "TEXT DEFAULT ''")
 
     # Feedback table
     c.execute('''CREATE TABLE IF NOT EXISTS feedback (
@@ -1584,23 +1586,28 @@ def leave_page():
                     d2 = start_dt
                     has_weekend = False
                     while d2 <= end_dt:
-                        if d2.weekday() >= 5:
+                        if d2.weekday() in (4, 5):
                             has_weekend = True
                             break
                         d2 += timedelta(days=1)
                     if has_weekend:
-                        error = 'ไม่สามารถขอลาวันเสาร์-อาทิตย์ได้'
+                        error = 'ไม่สามารถขอลาวันศุกร์-เสาร์ได้'
                     else:
-                        if half_day in ('am', 'pm'):
-                            days = 0.5 if total_days == 1 else total_days - 1 + 0.5
+                        # Check holidays
+                        hrows = c.execute("SELECT name FROM holidays WHERE date >= ? AND date <= ?",
+                                          (start_date, end_date)).fetchall()
+                        if hrows:
+                            names = ', '.join([h['name'] for h in hrows])
+                            error = 'ไม่สามารถขอลาในวันหยุด: ' + names
                         else:
-                            days = float(total_days)
-                        c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,half_day,reason,status) VALUES (?,?,?,?,?,?,?,?,?)',
-                                  (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, half_day, reason, 'pending'))
-                        c.commit()
-                        message = 'ส่งคำขอลาแล้ว — รอ Manager/Admin อนุมัติ'
-                    c.commit()
-                    message = 'ส่งคำขอลาแล้ว — รอ Manager/Admin อนุมัติ'
+                            if half_day in ('am', 'pm'):
+                                days = 0.5 if total_days == 1 else total_days - 1 + 0.5
+                            else:
+                                days = float(total_days)
+                            c.execute('INSERT INTO leave_requests (user_id,username,leave_type,start_date,end_date,days,half_day,reason,status) VALUES (?,?,?,?,?,?,?,?,?)',
+                                      (current_user['id'], current_user['username'], leave_type, start_date, end_date, days, half_day, reason, 'pending'))
+                            c.commit()
+                            message = 'ส่งคำขอลาแล้ว — รอ Manager/Admin อนุมัติ'
             except ValueError:
                 error = 'รูปแบบวันที่ไม่ถูกต้อง'
     rows = c.execute('SELECT * FROM leave_requests WHERE user_id=? ORDER BY created_at DESC, id DESC', (current_user['id'],)).fetchall()
@@ -1630,12 +1637,22 @@ def leave_page():
     branch_remaining = total_branch_staff - branch_on_leave
     branch_pct = round(branch_remaining / total_branch_staff * 100) if total_branch_staff > 0 else 100
 
+    # Fetch holidays for the current month (±1 month for navigation)
+    from datetime import timedelta as _td
+    cal_first = _date(cal_year, cal_month, 1)
+    cal_last = _date(cal_year, cal_month+1, 1) - _td(days=1) if cal_month < 12 else _date(cal_year, 12, 31)
+    holiday_rows = c.execute(
+        "SELECT date, name FROM holidays WHERE date >= ? AND date <= ? ORDER BY date",
+        (cal_first.isoformat(), cal_last.isoformat())
+    ).fetchall()
+    cal_holidays = [dict(h) for h in holiday_rows]
+
     return render_template('leave.html', current_user=current_user, can_approve=is_manager(), leave_types=LEAVE_TYPES,
                            leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS, pending_count=pending_count,
                            approved_count=approved_count, rejected_count=rejected_count, message=message, error=error,
                            total_branch_staff=total_branch_staff, branch_on_leave=branch_on_leave,
                            branch_remaining=branch_remaining, branch_pct=branch_pct, user_branch=user_branch,
-                           cal_year=cal_year, cal_month=cal_month)
+                           cal_year=cal_year, cal_month=cal_month, cal_holidays=cal_holidays)
 
 @app.route('/api/leave/calendar', methods=['GET'])
 @login_required
@@ -1656,7 +1673,13 @@ def api_leave_calendar():
         "ORDER BY start_date",
         (current_user['id'], f"{year:04d}", f"{month:02d}")
     ).fetchall()
-    return jsonify([dict(r) for r in rows])
+    # Also fetch holidays for this month
+    from datetime import date as _d, timedelta as _td
+    first = _d(year, month, 1)
+    last = _d(year, month+1, 1) - _td(days=1) if month < 12 else _d(year, 12, 31)
+    hrows = c.execute("SELECT date, name FROM holidays WHERE date >= ? AND date <= ? ORDER BY date",
+                      (first.isoformat(), last.isoformat())).fetchall()
+    return jsonify({'leaves': [dict(r) for r in rows], 'holidays': [dict(h) for h in hrows]})
 
 @app.route('/api/leave', methods=['POST'])
 @login_required
@@ -1684,12 +1707,18 @@ def api_leave_create():
         end_dt = _dt.strptime(end_date, '%Y-%m-%d').date()
         if end_dt < start_dt:
             return jsonify({'error': 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม'}), 400
-        # Check for weekends in range
+        # Check for weekends and holidays in range
         d = start_dt
         while d <= end_dt:
-            if d.weekday() >= 5:  # 5=Sat, 6=Sun
-                return jsonify({'error': 'ไม่สามารถขอลาวันเสาร์-อาทิตย์ได้'}), 400
+            if d.weekday() in (4, 5):  # 4=Fri, 5=Sat
+                return jsonify({'error': 'ไม่สามารถขอลาวันศุกร์-เสาร์ได้'}), 400
             d += timedelta(days=1)
+        # Check holidays
+        hrows = c.execute("SELECT name FROM holidays WHERE date >= ? AND date <= ?",
+                          (start_date, end_date)).fetchall()
+        if hrows:
+            names = ', '.join([h['name'] for h in hrows])
+            return jsonify({'error': 'ไม่สามารถขอลาในวันหยุด: ' + names}), 400
         total_days = (end_dt - start_dt).days + 1
         if half_day in ('am', 'pm'):
             if total_days > 1:
