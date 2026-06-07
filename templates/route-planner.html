@@ -15,15 +15,9 @@
   .ticket-count{
     min-width:32px;height:32px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:14px;color:#fff;
-    text-shadow:0 1px 2px rgba(0,0,0,.4);
-    box-shadow:0 2px 6px rgba(0,0,0,.3);
+    font-weight:800;font-size:14px;
+    text-shadow:0 1px 2px rgba(0,0,0,.15);
   }
-  .ticket-count.red{background:#dc2626;}
-  .ticket-count.orange{background:#f97316;}
-  .ticket-count.yellow{background:#f59e0b;}
-  .ticket-count.green{background:#16a34a;}
-  .ticket-count.none{background:#94a3b8;}
   .asset-count{background:#2563eb;color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:1px 5px;text-align:center;min-width:22px;box-shadow:0 1px 4px rgba(0,0,0,.25);}
   .map-ticket-label{display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;}
   .map-ticket-name{font-size:10px;font-weight:700;color:#0f172a;}
@@ -232,14 +226,6 @@
                      '#f0f4f8';
   }
 
-  function getLabelClass(d, critical, high) {
-    if (critical > 0) return 'red';
-    if (high > 0 || d > 3) return 'orange';
-    if (d > 1) return 'yellow';
-    if (d === 1) return 'green';
-    return 'none';
-  }
-
   var info = L.control({position: 'topright'});
   info.onAdd = function () {
     this._div = L.DomUtil.create('div', 'info-panel');
@@ -334,8 +320,8 @@
       var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, assets: 0};
       if (d.tickets <= 0 && d.assets <= 0) return;
       var centroid = L.geoJson(f).getBounds().getCenter();
-      var labelClass = getLabelClass(d.tickets, d.critical, d.high);
-      var ticketHtml = d.tickets > 0 ? '<div class="ticket-count ' + labelClass + '">' + d.tickets + '</div>' : '';
+      var ticketColor = d.critical > 0 ? '#dc2626' : (d.high > 0 ? '#f97316' : '#334155');
+      var ticketHtml = d.tickets > 0 ? '<div class="ticket-count" style="color:' + ticketColor + '">' + d.tickets + '</div>' : '';
       var assetHtml = (viewMode !== 'tickets' && d.assets > 0) ? '<div class="asset-count">' + d.assets + '</div>' : '';
       var icon = L.divIcon({
         className: '',
