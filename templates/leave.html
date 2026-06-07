@@ -251,6 +251,8 @@
 .leave-cal-day .leave-badge { font-size: .55rem; margin-top: 2px; }
 .leave-cal-day.is-muted { opacity: .4; }
 .leave-cal-day.is-weekend { background: #fff8f8; }
+.leave-cal-day.is-holiday { background: #fff0f0; }
+.leave-cal-day.is-holiday .day-num { color: #dc3545; }
 </style>
 
 <script>
@@ -347,6 +349,9 @@
           });
           html += '</div>';
         }
+        if(isHoliday){
+          html += '<div class="mt-1"><span class="badge bg-danger leave-badge" style="font-size:.55rem">🎉 '+holidayMap[dIso]+'</span></div>';
+        }
         html += '</td>';
         day++;
       }
@@ -370,6 +375,16 @@
         }, 2000);
         return;
       }
+      // Check if clicked day is a holiday
+      if(holidayMap[dIso]){
+        document.getElementById('calHint').textContent = '❌ ไม่สามารถลาวันหยุด ('+holidayMap[dIso]+') ได้';
+        document.getElementById('calHint').style.color = '#dc3545';
+        setTimeout(function(){
+          document.getElementById('calHint').textContent = 'คลิกวันเริ่ม → คลิกวันสิ้นสุด เพื่อเลือกช่วงวันที่';
+          document.getElementById('calHint').style.color = '';
+        }, 2000);
+        return;
+      }
       if(!selectStart || (selectStart && selectEnd)){
         // Start new selection
         selectStart = dIso;
@@ -384,9 +399,9 @@
         } else {
           selectEnd = dIso;
         }
-        // Check if range contains weekends
-        if(hasWeekend(selectStart, selectEnd)){
-          document.getElementById('calHint').textContent = '❌ ช่วงวันที่มีวันศุกร์-เสาร์ — กรุณาเลือกใหม่';
+        // Check if range contains weekends or holidays
+        if(hasWeekendOrHoliday(selectStart, selectEnd)){
+          document.getElementById('calHint').textContent = '❌ ช่วงวันที่มีวันศุกร์-เสาร์หรือวันหยุด — กรุณาเลือกใหม่';
           document.getElementById('calHint').style.color = '#dc3545';
           selectStart = null;
           selectEnd = null;
@@ -404,13 +419,14 @@
     }
   };
 
-  function hasWeekend(startIso, endIso){
+  function hasWeekendOrHoliday(startIso, endIso){
     var s = new Date(startIso+'T00:00:00');
     var e = new Date(endIso+'T00:00:00');
     var d = new Date(s);
     while(d <= e){
       var dow = d.getDay();
-      if(d.getDay() === 5 || d.getDay() === 6) return true;
+      if(dow === 5 || dow === 6) return true;
+      if(holidayMap[iso(d)]) return true;
       d.setDate(d.getDate()+1);
     }
     return false;
