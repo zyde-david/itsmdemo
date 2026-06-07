@@ -1117,6 +1117,97 @@ def api_ticket_kb(tid):
     c.commit()
     return jsonify(success=True)
 
+# ── Conversational Ticket Creation ──
+@app.route('/api/chatbot/create-ticket',methods=['POST'])
+@login_required
+def chatbot_create_ticket():
+    """Create a ticket from chatbot conversation. Auto-fills from session."""
+    d = request.json or {}
+    c = get_db()
+
+    # Get user info from session
+    user_id = session.get('user_id')
+    username = session.get('username', '')
+    user = c.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
+    branch = user['branch'] if user else ''
+    staff_id = user['staff_id'] if user else 0
+
+    # Get staff info for province
+    staff = c.execute('SELECT * FROM staff WHERE id=?', (staff_id,)).fetchone() if staff_id else None
+    province = staff['province'] if staff else ''
+
+    # Get ticket details from conversation
+    title = d.get('title', '').strip()
+    description = d.get('description', '').strip()
+    category = d.get('category', '').strip()
+    priority = d.get('priority', 'medium').strip()
+    asset_id = int(d.get('asset_id') or 0)
+
+    if not title:
+        return jsonify(success=False, error='กรุณาระบุหัวข้อปัญหา')
+
+    # Validate category
+    if category not in TICKET_CATS:
+        category = 'คอมพิวเตอร์เสีย'
+
+    # Validate priority
+    if priority not in ('critical', 'high', 'medium', 'low'):
+        priority = TICKET_CATS.get(category, {}).get('priority', 'medium')
+
+    # Generate AI suggestion
+    ai_text = TICKET_CATS.get(category, {}).get('ai', '')
+    ai_confidence = round(random.uniform(0.7, 0.95), 2)
+
+    api_key = os.environ.get('OPENROUTER_API_KEY', '')
+    if api_key:
+        try:
+            asset_info = ''
+            if asset_id:
+                asset = c.execute('SELECT * FROM assets WHERE id=?', (asset_id,)).fetchone()
+                if asset:
+                    asset_info = f" อุปกรณ์: {asset['asset_type']} (Tag: {asset['asset_tag']})"
+            ai_prompt = f"""คุณเป็น IT Support สหกรณ์ออมทรัพย์ ให้วิธีแก้ปัญหา IT เป็นขั้นตอนสั้น ๆ ไม่เกิน 5 ขั้นตอน เป็นภาษาไทย
+
+หมวดหมู่: {category}
+ปัญหา: {title}
+รายละเอียด: {description}{asset_info}
+
+ตอบเฉพาะขั้นตอนการแก้ไข:"""
+            r = requests.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+                json={
+                    'model': 'openrouter/owl-alpha',
+                    'messages': [
+                        {'role': 'system', 'content': 'คุณเป็น IT Support สหกรณ์ออมทรัพย์ ให้วิธีแก้ปัญหา IT เป็นขั้นตอนสั้น ๆ ไม่เกิน 5 ขั้นตอน เป็นภาษาไทย'},
+                        {'role': 'user', 'content': ai_prompt}
+                    ],
+                    'max_tokens': 300
+                },
+                timeout=8
+            )
+            if r.status_code == 200:
+                ai_text = r.json()['choices'][0]['message']['content'].strip()
+                ai_confidence = round(random.uniform(0.85, 0.98), 2)
+        except Exception as e:
+            logging.warning(f"Chatbot ticket AI error: {e}")
+
+    # Create ticket
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ticket_code = f"TK-{datetime.now().strftime('%y')}-{random.randint(1000,9999)}"
+
+    c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+              (ticket_code, branch, province, category, title, description, priority, 'open', username, '', asset_id, now_str, now_str, ai_text, ai_confidence))
+    c.commit()
+    tid = c.execute('SELECT last_insert_rowid()').fetchone()[0]
+
+    return jsonify(
+        success=True,
+        ticket_id=tid,
+        ticket_code=ticket_code,
+        message=f'✅ สร้าง Ticket สำเร็จ: {ticket_code}\nหมวด: {category}\nสถานะ: เปิด'
+    )
+
 # ── Work Notes API ──
 @app.route('/api/ticket/<int:tid>/notes',methods=['GET'])
 @login_required

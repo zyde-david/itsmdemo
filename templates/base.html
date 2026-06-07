@@ -499,15 +499,108 @@ if (!window.pageI18n && !document.querySelector('[data-i18n]')) {
 }
 
 function toggleChat(){const b=document.getElementById('chatBox');b.style.display=b.style.display==='block'?'none':'block'}
+
+// ── Chatbot State ──
+let chatState = { mode: 'chat', ticketData: {} };
+
 async function sendChat(){
- const inp=document.getElementById('chatIn');const msg=inp.value.trim();if(!msg)return;
- inp.value='';const body=document.getElementById('chatBody');
- body.innerHTML+=`<div class="d-flex justify-content-end mb-2"><div class="bg-primary text-white p-2 rounded" style="max-width:80%;font-size:0.8rem;">${msg}</div></div>`;
- body.scrollTop=body.scrollHeight;
- const r=await fetch('/api/chatbot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg})});
- const d=await r.json();const ans=d.answer.replace(/\n/g,'<br>');
- body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">${ans}</div></div>`;
- body.scrollTop=body.scrollHeight;
+  const inp=document.getElementById('chatIn');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';
+  const body=document.getElementById('chatBody');
+  body.innerHTML+=`<div class="d-flex justify-content-end mb-2"><div class="bg-primary text-white p-2 rounded" style="max-width:80%;font-size:0.8rem;">${msg}</div></div>`;
+  body.scrollTop=body.scrollHeight;
+
+  // ── Ticket creation flow ──
+  if(chatState.mode === 'creating_ticket'){
+    chatState.ticketData.title = msg;
+    chatState.mode = 'ask_category';
+    addBotMsg('📂 เลือกหมวดหมู่ปัญหา:\n1. เครื่องพิมพ์/สมุด\n2. คอมพิวเตอร์เสีย\n3. เครือข่าย/อินเทอร์เน็ต\n4. VPN\n5. Core Banking\n6. ไฟฟ้า/UPS\n7. อื่น ๆ\n\nพิมพ์หมายเลขหรือชื่อหมวด');
+    return;
+  }
+
+  if(chatState.mode === 'ask_category'){
+    const cats = ['เครื่องพิมพ์/สมุด','คอมพิวเตอร์เสีย','เครือข่าย/อินเทอร์เน็ต','VPN','Core Banking','ไฟฟ้า/UPS','อื่น ๆ'];
+    let cat = cats[0];
+    const n = parseInt(msg);
+    if(n >= 1 && n <= 7) cat = cats[n-1];
+    else {
+      const found = cats.find(c => c.includes(msg));
+      if(found) cat = found;
+    }
+    chatState.ticketData.category = cat;
+    chatState.mode = 'ask_description';
+    addBotMsg('📝 รบกวนอธิบายปัญหาเพิ่มเติม (เช่น: เครื่องพิมพ์คายกระดาษ ไม่สามารถพิมพ์ได้)');
+    return;
+  }
+
+  if(chatState.mode === 'ask_description'){
+    chatState.ticketData.description = msg;
+    chatState.mode = 'ask_priority';
+    addBotMsg('⚡ ระดับความเร่งด่วน?\n1. Critical (ใช้งานไม่ได้เลย)\n2. High (กระทบงานมาก)\n3. Medium (กระทบงานบ้าง)\n4. Low (ไม่เร่งด่วน)');
+    return;
+  }
+
+  if(chatState.mode === 'ask_priority'){
+    const pris = ['critical','high','medium','low'];
+    let pri = 'medium';
+    const n = parseInt(msg);
+    if(n >= 1 && n <= 4) pri = pris[n-1];
+    chatState.ticketData.priority = pri;
+    chatState.mode = 'confirm';
+    const d = chatState.ticketData;
+    addBotMsg(`📋 สรุป Ticket:\n\n📌 หัวข้อ: ${d.title}\n📂 หมวด: ${d.category}\n📝 รายละเอียด: ${d.description}\n⚡ ความเร่งด่วน: ${d.priority}\n\nพิมพ์ "ยืนยัน" เพื่อสร้าง Ticket หรือ "ยกเลิก" เพื่อเริ่มใหม่`);
+    return;
+  }
+
+  if(chatState.mode === 'confirm'){
+    if(msg.includes('ยืนยัน') || msg.includes('confirm') || msg === '1'){
+      // Create ticket
+      addBotMsg('⏳ กำลังสร้าง Ticket...');
+      try {
+        const r = await fetch('/api/chatbot/create-ticket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(chatState.ticketData)});
+        const d = await r.json();
+        if(d.success){
+          addBotMsg(`✅ สร้าง Ticket สำเร็จ!\n\n🎫 รหัส: ${d.ticket_code}\n📂 หมวด: ${chatState.ticketData.category}\n⚡ สถานะ: เปิด\n\nดู Ticket ได้ที่: /tickets`);
+        } else {
+          addBotMsg(`❌ เกิดข้อผิดพลาด: ${d.error || 'ไม่สามารถสร้างได้'}`);
+        }
+      } catch(e){
+        addBotMsg('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
+      }
+      chatState = { mode: 'chat', ticketData: {} };
+    } else {
+      chatState = { mode: 'chat', ticketData: {} };
+      addBotMsg('❌ ยกเลิกการสร้าง Ticket พิมพ์ "แจ้งซ่อม" เพื่อเริ่มใหม่');
+    }
+    return;
+  }
+
+  // ── Start ticket creation ──
+  if(msg.includes('แจ้งซ่อม') || msg.includes('เปิด ticket') || msg.includes('สร้าง ticket') || msg.includes('แจ้งปัญหา')){
+    chatState = { mode: 'creating_ticket', ticketData: {} };
+    addBotMsg('🎫 สร้าง Ticket ใหม่\n\n📌 พิมพ์หัวข้อปัญหา (เช่น: เครื่องพิมพ์คายกระดาษ)');
+    return;
+  }
+
+  // ── Normal chat: send to OpenRouter ──
+  try {
+    const r=await fetch('/api/chatbot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg})});
+    const d=await r.json();
+    const ans=(d.answer||'').replace(/\n/g,'<br>');
+    const src = d.source === 'ai' ? ' <small class="text-muted" style="font-size:.6rem">✨ AI</small>' : '';
+    body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">${ans}${src}</div></div>`;
+  } catch(e){
+    body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">❌ เกิดข้อผิดพลาด กรุณาลองใหม่</div></div>`;
+  }
+  body.scrollTop=body.scrollHeight;
+}
+
+function addBotMsg(text){
+  const body=document.getElementById('chatBody');
+  body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;white-space:pre-line;">${text}</div></div>`;
+  body.scrollTop=body.scrollHeight;
 }
 // ── Theme System (base.html — global) ──
 // WCAG Relative Luminance → auto-invert text for any custom color
