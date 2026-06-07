@@ -21,7 +21,17 @@
   .priority-mid{background:#fef3c7;color:#92400e;}
   .priority-low{background:#dcfce7;color:#166534;}
   /* CRITICAL: Kill ALL Leaflet default marker backgrounds */
-  .map-label-icon{background:none!important;border:none!important;box-shadow:none!important;}
+  .map-label-icon,
+  .transparent-floating-text,
+  .leaflet-div-icon.map-label-icon,
+  .leaflet-div-icon.transparent-floating-text {
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
   @media(max-width:767.98px){
     .route-map-shell{grid-template-columns:1fr;}
     .route-rank-panel{max-height:300px;order:2;}
@@ -394,23 +404,15 @@
 
       // 2) Cardless floating label — raw text only, no box
       var html =
-        '<div style="text-align:center;white-space:nowrap;line-height:1.3;' +
-          'background:none!important;border:none!important;box-shadow:none!important;">' +
-          '<span style="color:' + color + ';font-weight:800;font-size:14px;' +
-            'text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 9px #fff,' +
-            '-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
-            'paint-order:stroke fill;">' + d.value + '</span>' +
-          '<span style="color:#000;font-weight:700;font-size:10px;margin-left:3px;' +
-            'text-shadow:0 0 3px #fff,0 0 6px #fff,' +
-            '-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
-            'paint-order:stroke fill;">' + d.name + '</span>' +
-        '</div>';
+        '<div class="transparent-floating-text" style="color:#fff;font-weight:bold;font-size:12px;' +
+          'text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;' +
+          'white-space:nowrap;text-align:center;">' + d.value + ' ' + d.name + '</div>';
 
       var icon = L.divIcon({
-        className: 'map-label-icon',
+        className: 'transparent-floating-text',
         html: html,
-        iconSize: [90, 28],
-        iconAnchor: [45, 14]
+        iconSize: [100, 20],
+        iconAnchor: [50, -5]
       });
 
       L.marker(center, {icon: icon, interactive: false}).addTo(labelLayer);
