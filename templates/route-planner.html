@@ -326,62 +326,42 @@
   document.getElementById('stat-tickets').textContent = totalTickets;
   document.getElementById('stat-critical').textContent = totalCritical;
 
-  // Build layer lookup for centroids
+  // Build layer lookup for centroids (NOT added to map — invisible)
   var layerByName = {};
   var hotspotLayer = L.layerGroup().addTo(map);
 
-  // RENDER GEOJSON — only active districts
-  geojsonLayer = L.geoJson(activeDistricts.map(function(d) { return d.feature; }), {
-    style: function(feature) {
-      var sn = getShortName(feature.properties.name);
-      var val = liveDatabaseData[sn] || 0;
-      return {
-        fillColor: getPriorityColor(val),
-        weight: 1.5,
-        opacity: 1,
-        color: '#ffffff',
-        fillOpacity: 0.75
-      };
-    },
-    onEachFeature: function(feature, layer) {
-      var sn = getShortName(feature.properties.name);
-      layerByName[sn] = layer;
+  // Parse GeoJSON for centroid data only — DO NOT render polygons
+  var allFeatures = {{ south_geojson|safe }}.features;
+  allFeatures.forEach(function(f) {
+    var sn = getShortName(f.properties.name);
+    // Create invisible layer for centroid/zoom only
+    var tempLayer = L.geoJson(f);
+    layerByName[sn] = tempLayer;
+  });
 
-      layer.on({
-        mouseover: function(e) {
-          e.target.setStyle({weight: 3, color: '#00ff88', fillOpacity: 0.9});
-          info.update(e.target.feature.properties);
-        },
-        mouseout: function(e) {
-          geojsonLayer.resetStyle(e.target);
-          info.update();
-        },
-        click: function(e) {
-          map.fitBounds(e.target.getBounds());
-          info.update(e.target.feature.properties);
-        }
-      });
-    }
-  }).addTo(map);
-
-  // Fit map to filtered bounds
-  if (activeDistricts.length > 0) {
-    map.fitBounds(geojsonLayer.getBounds().pad(0.05));
+  // Fit map to all district bounds (invisible fit)
+  if (allFeatures.length > 0) {
+    var tempGeo = L.geoJson(allFeatures);
+    map.fitBounds(tempGeo.getBounds().pad(0.05));
   }
 
   // ══════════════════════════════════════════════════════════
-  // 8. RENDER HOTSPOTS & LABELS — circle markers + cardless text
+  // 8. RENDER HOTSPOTS & LABELS — circle markers + cardless text ONLY
   // ══════════════════════════════════════════════════════════
-  function getHotspotCenter(layer, districtName) {
+  function getHotspotCenter(districtName) {
     // HARDCODED LAND ANCHORS — coastal districts
     if (districtName === 'ไม้แก่น') return L.latLng(6.615, 101.668);
     if (districtName === 'สายบุรี') return L.latLng(6.702, 101.616);
     if (districtName === 'แม่ลาน') return L.latLng(6.685, 101.585);
 
+    var layer = layerByName[districtName];
     if (layer && typeof layer.getCenter === 'function') {
       return layer.getCenter();
     }
-    return layer.getBounds().getCenter();
+    if (layer && typeof layer.getBounds === 'function') {
+      return layer.getBounds().getCenter();
+    }
+    return null;
   }
 
   function renderHotspots() {
@@ -389,13 +369,14 @@
     hotspotLayer.clearLayers();
 
     activeDistricts.forEach(function(d) {
-      var layer = layerByName[d.name];
-      var center = getHotspotCenter(layer, d.name);
+      var center = getHotspotCenter(d.name);
+      if (!center) return;
+
       var color = getPriorityColor(d.value);
 
-      // 1) Circle hotspot dot
+      // 1) Circle hotspot dot ONLY
       L.circleMarker(center, {
-        radius: 7,
+        radius: 6,
         fillColor: color,
         color: '#ffffff',
         weight: 1.5,
@@ -444,11 +425,8 @@
         '<td class="text-end col-assets">' + (d.assets > 0 ? '<span class="badge bg-primary">' + d.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
       row.addEventListener('click', function() {
         var target = layerByName[d.name];
-        if (target) {
-          map.fitBounds(target.getBounds());
-          target.setStyle({weight: 4, color: '#00ff88'});
-          info.update(target.feature.properties);
-          setTimeout(function() { geojsonLayer.resetStyle(target); }, 2000);
+        if (target && typeof target.getBounds === 'function') {
+          map.fitBounds(target.getBounds().pad(0.05));
         }
       });
       tbody.appendChild(row);
