@@ -60,7 +60,7 @@
    </div>
    <div class="col-md-2">
     <label class="form-label small mb-1">ค้นหา</label>
-    <input type="text" class="form-control form-control-sm" id="aFilterSearch" placeholder="รุ่ม, serial, tag..." oninput="applyAssetFilters()">
+    <input type="text" class="form-control form-control-sm" id="aFilterSearch" placeholder="รุ่ม, serial, tag..." oninput="debounceAssetSearch()">
    </div>
   </div>
  </div>
@@ -181,13 +181,8 @@ function filterAssetBranchByProvince(province){
   for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
 }
 
-// Persistent custom filter for assets — uses data attributes on <tr>
-// Guard every DOM lookup so one missing element cannot break DataTables sorting/cards.
-$.fn.dataTable.ext.search = [];
-$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-  if(!settings || !settings.nTable || settings.nTable.id !== 'assetsTable') return true;
-  var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
-  if(!row) return true;
+// Asset filter — push new filter on each change (same pattern as tickets)
+function applyAssetFilters(){
   var statusEl = document.getElementById('aFilterStatus');
   var typeEl = document.getElementById('aFilterType');
   var branchEl = document.getElementById('aFilterBranch');
@@ -198,22 +193,33 @@ $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
   var branch = branchEl ? branchEl.value : '';
   var province = provinceEl ? provinceEl.value : '';
   var search = searchEl ? searchEl.value.toLowerCase().trim() : '';
-  if(status && row.getAttribute('data-status') !== status) return false;
-  if(type && row.getAttribute('data-type') !== type) return false;
-  if(branch && row.getAttribute('data-branch') !== branch) return false;
-  if(province && row.getAttribute('data-province') !== province) return false;
-  if(search && row.textContent.toLowerCase().indexOf(search) < 0) return false;
-  return true;
-});
-
-function applyAssetFilters(){
+  if(!$.fn.dataTable.ext.search) $.fn.dataTable.ext.search = [];
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(!settings || !settings.nTable || settings.nTable.id !== 'assetsTable') return true;
+    var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+    if(!row) return true;
+    if(status && row.getAttribute('data-status') !== status) return false;
+    if(type && row.getAttribute('data-type') !== type) return false;
+    if(branch && row.getAttribute('data-branch') !== branch) return false;
+    if(province && row.getAttribute('data-province') !== province) return false;
+    if(search && row.textContent.toLowerCase().indexOf(search) < 0) return false;
+    return true;
+  });
   if(window.assetTable){
     window.assetTable.draw();
   } else if($.fn.dataTable && $.fn.dataTable.isDataTable('#assetsTable')){
     window.assetTable = $('#assetsTable').DataTable();
     window.assetTable.draw();
   }
-  return false;
+}
+
+// Debounce timer for asset search
+let _assetSearchTimer;
+function debounceAssetSearch(){
+  clearTimeout(_assetSearchTimer);
+  _assetSearchTimer = setTimeout(function(){
+    applyAssetFilters();
+  }, 300);
 }
 
 window.filterAssetStatus = filterAssetStatus;

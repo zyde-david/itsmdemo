@@ -17,13 +17,15 @@
 <div class="row g-2 mb-3">
  {% for pv in staff_by_province %}
  <div class="col-4 col-md-4">
-  <div class="card card-stat p-2">
-   <div class="text-center">
-    <h6 class="text-muted small mb-1">{{ pv.province }}</h6>
-    <h4 class="mb-0 fw-bold text-primary">{{ pv.cnt }} คน</h4>
-    <small class="text-muted">{{ pv.it_cnt }} IT</small>
+  <a href="#" onclick="filterStaffByProvince('{{ pv.province }}');return false;" class="text-decoration-none">
+   <div class="card card-stat p-2">
+    <div class="text-center">
+     <h6 class="text-muted small mb-1">{{ pv.province }}</h6>
+     <h4 class="mb-0 fw-bold text-primary">{{ pv.cnt }} คน</h4>
+     <small class="text-muted">{{ pv.it_cnt }} IT</small>
+    </div>
    </div>
-  </div>
+  </a>
  </div>
  {% endfor %}
 </div>
@@ -156,6 +158,44 @@ function toggleStaffFilter(){
 var branchToProvince = {{ branch_to_province|tojson }};
 var provinceToBranches = {{ province_to_branches_short|tojson }};
 
+// Staff filter — push new filter on each change (same pattern as tickets)
+function applyStaffFilters(){
+  if(!window.staffTable) return;
+  var branchEl = document.getElementById('sFilterBranch');
+  var provinceEl = document.getElementById('sFilterProvince');
+  var roleEl = document.getElementById('sFilterRole');
+  var isItEl = document.getElementById('sFilterIsIt');
+  var branch = branchEl ? branchEl.value : '';
+  var province = provinceEl ? provinceEl.value : '';
+  var role = roleEl ? roleEl.value : '';
+  var isIt = isItEl ? isItEl.value : '';
+  // Cascade: branch → province
+  if(branch && branchToProvince[branch] && !province && provinceEl){
+    provinceEl.value = branchToProvince[branch];
+    province = provinceEl.value;
+  }
+  if(!$.fn.dataTable.ext.search) $.fn.dataTable.ext.search = [];
+  $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+    if(!settings || !settings.nTable || settings.nTable.id !== 'staffTable') return true;
+    var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+    if(!row) return true;
+    if(branch && row.getAttribute('data-branch') !== branch) return false;
+    if(province && row.getAttribute('data-province') !== province) return false;
+    if(role && row.getAttribute('data-role') !== role) return false;
+    if(isIt){
+      var rowIsIt = row.getAttribute('data-is-it');
+      if(isIt === '1' && rowIsIt !== '1') return false;
+      if(isIt === '0' && rowIsIt === '1') return false;
+    }
+    return true;
+  });
+  window.staffTable.draw();
+}
+
+window.applyStaffFilters = applyStaffFilters;
+window.toggleStaffFilter = toggleStaffFilter;
+window.filterStaffBranchByProvince = filterStaffBranchByProvince;
+
 function filterStaffBranchByProvince(province){
   var sel = document.getElementById('sFilterBranch');
   var currentVal = sel.value;
@@ -170,49 +210,11 @@ function filterStaffBranchByProvince(province){
     allOpts.forEach(function(o){ var opt=document.createElement('option'); opt.value=o.v; opt.text=o.t; sel.appendChild(opt); });
   } else {
     sel.appendChild(new Option(allOpts[0].t, allOpts[0].v));
-    var branches = provinceToBranches[province] || [];
-    branches.forEach(function(b){ sel.appendChild(new Option(b.short || b.district, b.branch)); });
+    var branchesInProv = provinceToBranches[province] || [];
+    branchesInProv.forEach(function(b){ sel.appendChild(new Option(b.short || b.district, b.branch)); });
   }
   for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===currentVal){ sel.selectedIndex=i; break; } }
 }
-
-// Persistent custom filter for staff — survives sorting and pagination
-// Uses data attributes on <tr> instead of cell text (cells contain HTML badges)
-$.fn.dataTable.ext.search = [];
-$.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
-  if(!settings || !settings.nTable || settings.nTable.id !== 'staffTable') return true;
-  var row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
-  if(!row) return true;
-  var branchEl = document.getElementById('sFilterBranch');
-  var provinceEl = document.getElementById('sFilterProvince');
-  var roleEl = document.getElementById('sFilterRole');
-  var isItEl = document.getElementById('sFilterIsIt');
-  var branch = branchEl ? branchEl.value : '';
-  var province = provinceEl ? provinceEl.value : '';
-  var role = roleEl ? roleEl.value : '';
-  var isIt = isItEl ? isItEl.value : '';
-  // Cascade: branch → province
-  if(branch && branchToProvince[branch] && !province){
-    document.getElementById('sFilterProvince').value = branchToProvince[branch];
-  }
-  if(branch && row.getAttribute('data-branch') !== branch) return false;
-  if(province && row.getAttribute('data-province') !== province) return false;
-  if(role && row.getAttribute('data-role') !== role) return false;
-  if(isIt){
-    var rowIsIt = row.getAttribute('data-is-it');
-    if(isIt === '1' && rowIsIt !== '1') return false;
-    if(isIt === '0' && rowIsIt === '1') return false;
-  }
-  return true;
-});
-
-function applyStaffFilters(){
-  if(window.staffTable) window.staffTable.draw();
-}
-
-window.applyStaffFilters = applyStaffFilters;
-window.toggleStaffFilter = toggleStaffFilter;
-window.filterStaffBranchByProvince = filterStaffBranchByProvince;
 
 function filterStaff(type){
   var isItEl = document.getElementById('sFilterIsIt');
@@ -230,6 +232,21 @@ function filterStaff(type){
   return false;
 }
 window.filterStaff = filterStaff;
+
+function filterStaffByProvince(province){
+  var p = document.getElementById('sFilterProvince');
+  var b = document.getElementById('sFilterBranch');
+  var r = document.getElementById('sFilterRole');
+  var isIt = document.getElementById('sFilterIsIt');
+  if(p) p.value = province;
+  if(b) b.value = '';
+  if(r) r.value = '';
+  if(isIt) isIt.value = '';
+  filterStaffBranchByProvince(province);
+  applyStaffFilters();
+  return false;
+}
+window.filterStaffByProvince = filterStaffByProvince;
 
 // Debounce timer for staff search
 let _staffSearchTimer;

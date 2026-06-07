@@ -460,6 +460,7 @@ def init_db():
     c.execute('CREATE TABLE IF NOT EXISTS asset_logs (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     ensure_asset_history_baseline(c)
     c.execute("CREATE TABLE IF NOT EXISTS leave_requests (id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,username TEXT,leave_type TEXT,start_date DATE,end_date DATE,days REAL,reason TEXT,status TEXT DEFAULT 'pending',approver_id INTEGER DEFAULT 0,approval_note TEXT DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+    c.execute("CREATE TABLE IF NOT EXISTS holidays (id INTEGER PRIMARY KEY AUTOINCREMENT,date TEXT UNIQUE NOT NULL,name TEXT NOT NULL,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     # Migrations for existing persistent Fly/SQLite volumes. CREATE TABLE IF NOT EXISTS
     # does not add columns to old tables, so keep every route/template dependency here.
     def ensure_column(table, column, definition):
@@ -890,6 +891,10 @@ def profile_page():
         asset_payload = staff_asset_history_payload(c, staff)
         c.commit()
     return render_template('profile.html', current_user=current_user, staff=staff, asset_payload=asset_payload)
+
+@app.route('/asset')
+def asset_redirect():
+    return redirect('/assets')
 
 @app.route('/assets')
 @login_required
@@ -1392,16 +1397,34 @@ def calendar_page():
 
     rows = c.execute(
         """
-        SELECT * FROM leave_requests
-        WHERE start_date <= ? AND end_date >= ?
-        ORDER BY start_date ASC, id ASC
+        SELECT lr.*, u.branch as user_branch
+        FROM leave_requests lr
+        LEFT JOIN users u ON lr.user_id = u.id
+        WHERE lr.start_date <= ? AND lr.end_date >= ?
+        ORDER BY lr.start_date ASC, lr.id ASC
         """,
         (last_day.isoformat(), first_day.isoformat())
     ).fetchall()
     leave_requests = [dict(r) for r in rows]
 
+    # Get user's branch for filtering
+    current_user = get_current_user()
+    user_branch = current_user.get('branch', '') if current_user else ''
+
+    # Fetch holidays for this month
+    holiday_rows = c.execute(
+        "SELECT * FROM holidays WHERE date >= ? AND date <= ? ORDER BY date",
+        (first_day.isoformat(), last_day.isoformat())
+    ).fetchall()
+    holidays_by_day = {}
+    for h in holiday_rows:
+        holidays_by_day.setdefault(h['date'], []).append(dict(h))
+
     leave_by_day = {}
     for req in leave_requests:
+        # Filter by branch if user has a branch
+        if user_branch and req.get('user_branch', '') != user_branch:
+            continue
         try:
             start_dt = datetime.strptime(req['start_date'], '%Y-%m-%d').date()
             end_dt = datetime.strptime(req['end_date'], '%Y-%m-%d').date()
@@ -1414,7 +1437,9 @@ def calendar_page():
             cursor += timedelta(days=1)
 
     month_weeks = []
-    for week in calendar.Calendar(firstweekday=6).monthdatescalendar(year, month):
+    # Weekend = Friday (4) + Saturday (5) in Monday-first calendar
+    weekend_days = {4, 5}
+    for week in calendar.Calendar(firstweekday=0).monthdatescalendar(year, month):
         month_weeks.append([
             {
                 'date': day,
@@ -1422,18 +1447,26 @@ def calendar_page():
                 'day': day.day,
                 'in_month': day.month == month,
                 'is_today': day == today,
+                'is_weekend': day.weekday() in weekend_days,
                 'leaves': leave_by_day.get(day.isoformat(), []),
+                'holidays': holidays_by_day.get(day.isoformat(), []),
             }
             for day in week
         ])
 
-    # Manpower calculation
-    total_active_staff = c.execute("SELECT COUNT(*) FROM staff").fetchone()[0] or 0
+    # Manpower calculation — per branch (for manager's branch) or all staff
+    if user_branch:
+        total_active_staff = c.execute("SELECT COUNT(*) FROM staff WHERE branch=?", (user_branch,)).fetchone()[0] or 0
+    else:
+        total_active_staff = c.execute("SELECT COUNT(*) FROM staff").fetchone()[0] or 0
 
-    # Count approved leave per day
+    # Count approved leave per day (filtered by branch if manager)
     approved_leave_by_day = {}
     for req in leave_requests:
         if req['status'] != 'approved':
+            continue
+        # Filter by branch if user has a branch
+        if user_branch and req.get('user_branch', '') != user_branch:
             continue
         try:
             start_dt = datetime.strptime(req['start_date'], '%Y-%m-%d').date()
@@ -1467,6 +1500,50 @@ def calendar_page():
                            next_year=next_month.year, next_month=next_month.month,
                            leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS,
                            manpower_by_day=manpower_by_day, total_active_staff=total_active_staff)
+
+# ─── Holiday API ─────────────────────────────────────────────
+
+@app.route('/api/holidays', methods=['GET'])
+@login_required
+def api_holidays():
+    c = get_db()
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    if year and month:
+        prefix = f'{year:04d}-{month:02d}'
+        rows = c.execute('SELECT * FROM holidays WHERE date LIKE ? ORDER BY date', (f'{prefix}%',)).fetchall()
+    else:
+        rows = c.execute('SELECT * FROM holidays ORDER BY date LIMIT 200').fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/holidays', methods=['POST'])
+@login_required
+def api_holiday_add():
+    if not is_manager():
+        return forbidden_response()
+    data = request.get_json(force=True) or {}
+    date = (data.get('date') or '').strip()
+    name = (data.get('name') or '').strip()
+    if not date or not name:
+        return jsonify({'error': 'date and name required'}), 400
+    try:
+        c = get_db()
+        c.execute('INSERT OR IGNORE INTO holidays (date, name, created_by) VALUES (?, ?, ?)',
+                  (date, name, (get_current_user() or {}).get('username', '')))
+        c.commit()
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/holidays/<int:hid>', methods=['DELETE'])
+@login_required
+def api_holiday_delete(hid):
+    if not is_manager():
+        return forbidden_response()
+    c = get_db()
+    c.execute('DELETE FROM holidays WHERE id=?', (hid,))
+    c.commit()
+    return jsonify({'ok': True})
 
 @app.route('/leave', methods=['GET','POST'])
 @login_required
@@ -1645,7 +1722,8 @@ def leave_approvals_page():
             cursor += timedelta(days=1)
 
     cal_month_weeks = []
-    for week in calendar.Calendar(firstweekday=6).monthdatescalendar(cal_year, cal_month):
+    cal_weekend_days = {4, 5}
+    for week in calendar.Calendar(firstweekday=0).monthdatescalendar(cal_year, cal_month):
         cal_month_weeks.append([
             {
                 'date': day,
@@ -1653,6 +1731,7 @@ def leave_approvals_page():
                 'day': day.day,
                 'in_month': day.month == cal_month,
                 'is_today': day == today_cal,
+                'is_weekend': day.weekday() in cal_weekend_days,
                 'leaves': cal_leave_by_day.get(day.isoformat(), []),
             }
             for day in week

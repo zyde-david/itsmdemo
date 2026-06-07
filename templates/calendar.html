@@ -6,6 +6,10 @@
 .calendar-toolbar .btn{min-height:36px}
 .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:#dfe6ee;border:1px solid #dfe6ee;border-radius:14px;overflow:hidden}
 .calendar-weekday{background:#f8fafc;color:#64748b;font-weight:700;text-align:center;padding:10px 4px;font-size:.78rem;letter-spacing:.02em}
+.calendar-weekday.is-weekend{background:#fff0f0;color:#dc3545}
+.calendar-day.is-weekend-day{background:#fff8f8}
+.calendar-holiday-list{display:flex;flex-direction:column;gap:3px}
+.holiday-chip{background:#fde8e8;color:#b71c1c;border:1px solid #f5c6c6;border-radius:6px;padding:2px 6px;font-size:.65rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
 .calendar-day{background:#fff;min-height:126px;padding:8px;position:relative;display:flex;flex-direction:column;gap:6px}
 .calendar-day.is-muted{background:#f8fafc;color:#94a3b8}
 .calendar-day.is-today{box-shadow:inset 0 0 0 2px #2563eb;z-index:1}
@@ -74,6 +78,11 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
     <a class="btn btn-sm btn-primary" href="/leave">
       <i class="bi bi-plus-lg me-1"></i>ขอลา
     </a>
+    {% if is_manager %}
+    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#holidayModal">
+      <i class="bi bi-calendar-plus me-1"></i>เพิ่มวันหยุด
+    </button>
+    {% endif %}
   </div>
 </div>
 
@@ -108,13 +117,13 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
   </div>
   <div class="card-body p-2 p-md-3">
     <div class="calendar-grid" aria-label="Leave calendar for {{ month_name }}">
-      {% for wd in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] %}
-      <div class="calendar-weekday">{{ wd }}</div>
+      {% for wd in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+      <div class="calendar-weekday {% if wd in ['Fri','Sat'] %}is-weekend{% endif %}">{{ wd }}</div>
       {% endfor %}
       {% for week in month_weeks %}
         {% for day in week %}
         {% set mp = manpower_by_day.get(day.iso, {}) %}
-        <div class="calendar-day {% if not day.in_month %}is-muted{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.leaves %}has-leave{% endif %}" data-date="{{ day.iso }}">
+        <div class="calendar-day {% if not day.in_month %}is-muted{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.is_weekend %}is-weekend-day{% endif %} {% if day.leaves %}has-leave{% endif %}" data-date="{{ day.iso }}">
           <div class="calendar-date">
             <span class="day-num">{{ day.day }}</span>
             <div class="d-flex align-items-center gap-1">
@@ -126,11 +135,18 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
               {% endif %}
             </div>
           </div>
+          {% if day.holidays %}
+          <div class="calendar-holiday-list mb-1">
+            {% for h in day.holidays %}
+            <span class="holiday-chip" title="{{ h.name }}">{{ h.name[:12] }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
           {% if day.leaves %}
           <div class="calendar-leave-list">
             {% for leave in day.leaves[:4] %}
             {% set st = leave.status|default('pending') %}
-            <button type="button" class="leave-chip {{ st }}" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" data-bs-title="{{ status_labels.get(st, st) }}" data-bs-content="<div class='small'><div><strong>{{ leave.username|e }}</strong></div><div>{{ leave.leave_type|e }}</div><div>{{ leave.start_date }} → {{ leave.end_date }}</div><div>ID: {{ leave.id }}</div></div>">
+            <button type="button" class="leave-chip {{ st }}" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-html="true" data-bs-title="{{ status_labels.get(st, st) }}" data-bs-content="<div class='small'><div><strong>{{ leave.username|e }}</strong></div><div>{{ leave.leave_type|e }}</div><div>{{ leave.start_date }} → {{ leave.end_date }}</div><div>ID: {{ leave.id }}</div><hr class='my-1'><a href='/leave' class='btn btn-sm btn-outline-primary w-100'>แก้ไข</a></div>">
               <span class="status-dot {{ st }}"></span>{{ leave.username }} — {{ leave.leave_type }}
             </button>
             {% endfor %}
@@ -188,6 +204,100 @@ document.addEventListener('DOMContentLoaded', function(){
   document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el){
     new bootstrap.Popover(el, {container:'body', sanitize:false});
   });
+
+  // Holiday modal
+  var holidayModal = document.getElementById('holidayModal');
+  if (holidayModal) {
+    var hDate = document.getElementById('holidayDate');
+    var hName = document.getElementById('holidayName');
+    var hList = document.getElementById('holidayList');
+    var hMsg = document.getElementById('holidayMsg');
+
+    function loadHolidays() {
+      var y = new URLSearchParams(window.location.search).get('year') || '';
+      var m = new URLSearchParams(window.location.search).get('month') || '';
+      var url = '/api/holidays';
+      if (y && m) url += '?year=' + y + '&month=' + m;
+      fetch(url).then(r => r.json()).then(function(data) {
+        hList.innerHTML = '';
+        if (!data.length) {
+          hList.innerHTML = '<div class="text-muted small">ยังไม่มีวันหยุดในเดือนนี้</div>';
+          return;
+        }
+        data.forEach(function(h) {
+          var row = document.createElement('div');
+          row.className = 'd-flex justify-content-between align-items-center border-bottom py-1';
+          row.innerHTML = '<span class="small"><strong>' + h.date + '</strong> — ' + h.name + '</span>' +
+            '<button class="btn btn-sm btn-outline-danger" data-id="' + h.id + '"><i class="bi bi-trash"></i></button>';
+          hList.appendChild(row);
+        });
+        hList.querySelectorAll('button[data-id]').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (!confirm('ลบวันหยุดนี้?')) return;
+            fetch('/api/holidays/' + btn.dataset.id, {method: 'DELETE'}).then(function() {
+              loadHolidays();
+              location.reload();
+            });
+          });
+        });
+      });
+    }
+
+    holidayModal.addEventListener('shown.bs.modal', function() {
+      loadHolidays();
+      if (hDate) hDate.value = '';
+      if (hName) hName.value = '';
+      if (hMsg) hMsg.textContent = '';
+    });
+
+    var saveBtn = document.getElementById('holidaySaveBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function() {
+        var d = hDate ? hDate.value : '';
+        var n = hName ? hName.value.trim() : '';
+        if (!d || !n) { if (hMsg) hMsg.textContent = 'กรุณากรอกวันที่และชื่อวันหยุด'; return; }
+        fetch('/api/holidays', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({date: d, name: n})
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.error) { if (hMsg) hMsg.textContent = data.error; return; }
+          if (hName) hName.value = '';
+          loadHolidays();
+          location.reload();
+        });
+      });
+    }
+  }
 });
 </script>
+
+<!-- Holiday Modal -->
+<div class="modal fade" id="holidayModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>จัดการวันหยุด</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-2 mb-3">
+          <div class="col-5">
+            <label class="form-label small">วันที่</label>
+            <input type="date" class="form-control form-control-sm" id="holidayDate">
+          </div>
+          <div class="col-7">
+            <label class="form-label small">ชื่อวันหยุด</label>
+            <input type="text" class="form-control form-control-sm" id="holidayName" placeholder="เช่น วันสงกรานต์">
+          </div>
+        </div>
+        <button class="btn btn-sm btn-danger w-100 mb-2" id="holidaySaveBtn"><i class="bi bi-plus-lg me-1"></i>เพิ่มวันหยุด</button>
+        <div id="holidayMsg" class="text-danger small"></div>
+        <hr>
+        <div class="small fw-bold mb-1">วันหยุดในเดือนนี้</div>
+        <div id="holidayList" style="max-height:200px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

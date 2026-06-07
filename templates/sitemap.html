@@ -20,7 +20,9 @@ window.pageI18n = {
     vision: 'วิสัยทัศน์', visionFeat1: '✓ หน้าสาธารณะที่ /vision', visionFeat2: '✓ ทิศทาง AI เป็นส่วนตัว/LLM ในเครื่อง', visionFeat3: '✓ แผนงานสำหรับแผน BI เส้นทาง ฟลว์แท็ก', visionFeat4: '✓ การอนุมัติของมนุษย์ก่อนการดำเนินการ AI',
     settings: 'ตั้งค่า', settingsFeat1: '✓ เปลี่ยนรหัสผ่าน', settingsFeat2: '✓ การจัดการผู้ใช้ผู้ดูแล', settingsFeat3: '✓ ตั้งค่าธีมและสี', settingsFeat4: '✓ การตั้งค่าแถบด้านข้างมือถือ',
     v2Tables: 'ตาราง v2', v2Feat1: '✓ เวอร์ชันตาราง React/TanStack', v2Feat2: '✓ ตั๋ว พนักงาน ฐานความรู้ v2', v2Feat3: '✓ หน้า v1 เดิมยังใช้ได้', v2Feat4: '✓ ใช้สลับในแถบนำทาง',
-    goToPage: 'ไปที่หน้า'
+    goToPage: 'ไปที่หน้า',
+    aiChat: 'AI Chat', aiChatFeat1: '✓ วิดเจ็ตแชทลอย (ล่างขวา)', aiChatFeat2: '✓ ถามเกี่ยวกับตั๋ว สินทรัพย์ พนักงาน', aiChatFeat3: '✓ ตอบจากข้อมูล demo ตามบริบท', aiChatFeat4: '✓ ใช้ได้ทุกหน้า', aiChatOpen: 'เปิดวิดเจ็ตแชท',
+    feedbackPage: 'Feedback', fbFeat1: '✓ ส่ง feedback จากทุกหน้า', fbFeat2: '✓ ผู้ดูแลตรวจสอบและติดตามสถานะ', fbFeat3: '✓ บันทึกและแก้ไขของผู้ดูแล', fbFeat4: '✓ หน้าสำหรับผู้ดูแลที่ /feedback'
   },
   en: {
     siteMapTitle: 'Site Map',
@@ -39,7 +41,9 @@ window.pageI18n = {
     vision: 'Vision', visionFeat1: '✓ Public page at /vision', visionFeat2: '✓ Privacy-first AI / local LLM direction', visionFeat3: '✓ Roadmap for BI maps, routes, asset-tag flow', visionFeat4: '✓ Human approval before AI actions',
     settings: 'Settings', settingsFeat1: '✓ Password change', settingsFeat2: '✓ Admin user management', settingsFeat3: '✓ Theme and custom color settings', settingsFeat4: '✓ Mobile sidebar preference',
     v2Tables: 'v2 Tables', v2Feat1: '✓ React/TanStack table versions', v2Feat2: '✓ Tickets, Assets, Staff, KB v2', v2Feat3: '✓ Original v1 pages remain available', v2Feat4: '✓ Use navbar switch on each module',
-    goToPage: 'Go to page'
+    goToPage: 'Go to page',
+    aiChat: 'AI Chat', aiChatFeat1: '✓ Floating chat widget (bottom-right)', aiChatFeat2: '✓ Ask questions about tickets, assets, staff', aiChatFeat3: '✓ Context-aware responses from demo data', aiChatFeat4: '✓ Available on all pages', aiChatOpen: 'Open chat widget',
+    feedbackPage: 'Feedback', fbFeat1: '✓ Submit feedback from any page', fbFeat2: '✓ Admin review and status tracking', fbFeat3: '✓ Admin notes and resolution', fbFeat4: '✓ Admin-only page at /feedback'
   },
   ms: {
     siteMapTitle: 'Peta Laman',
@@ -58,7 +62,9 @@ window.pageI18n = {
     vision: 'Visi', visionFeat1: '✓ Halaman awam di /vision', visionFeat2: '✓ Arah AI dahulu privasi / LLM tempatan', visionFeat3: '✓ Peta jalan untuk peta BI, laluan, aliran tag-aset', visionFeat4: '✓ Kelulusan manusia sebelum tindakan AI',
     settings: 'Tetapan', settingsFeat1: '✓ Tukar kata laluan', settingsFeat2: '✓ Pengurusan pengguna admin', settingsFeat3: '✓ Tetapan tema dan warna tersuai', settingsFeat4: '✓ Pilian bar sisi mudah alih',
     v2Tables: 'Jadual v2', v2Feat1: '✓ Versi jadual React/TanStack', v2Feat2: '✓ Tiket, Aset, Kakitangan, KB v2', v2Feat3: '✓ Halaman v1 asal masih tersedia', v2Feat4: '✓ Gunakan suis navbar pada setiap modul',
-    goToPage: 'Pergi ke halaman'
+    goToPage: 'Pergi ke halaman',
+    aiChat: 'AI Chat', aiChatFeat1: '✓ Widget chat terapung (bawah kanan)', aiChatFeat2: '✓ Tanya soalan tentang tiket, aset, kakitangan', aiChatFeat3: '✓ Jawapan mengikut konteks dari data demo', aiChatFeat4: '✓ Tersedia di semua halaman', aiChatOpen: 'Buka widget chat',
+    feedbackPage: 'Maklum Balas', fbFeat1: '✓ Hantar maklum balas dari mana-mana halaman', fbFeat2: '✓ Semakan admin dan penjejakan status', fbFeat3: '✓ Catatan dan penyelesaian admin', fbFeat4: '✓ Halaman admin sahaja di /feedback'
   }
 };
 </script>
@@ -319,6 +325,38 @@ window.pageI18n = {
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- AI Chat -->
+  <div class="col-md-4">
+    <div class="card h-100 border-info" style="border-left:4px solid var(--bs-info)">
+      <div class="card-header bg-info text-white fw-bold"><i class="bi bi-robot me-2"></i><span data-i18n="aiChat">AI Chat</span></div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li data-i18n="aiChatFeat1">✓ Floating chat widget (bottom-right)</li>
+          <li data-i18n="aiChatFeat2">✓ Ask questions about tickets, assets, staff</li>
+          <li data-i18n="aiChatFeat3">✓ Context-aware responses from demo data</li>
+          <li data-i18n="aiChatFeat4">✓ Available on all pages</li>
+        </ul>
+      </div>
+      <div class="card-footer"><span class="btn btn-sm btn-outline-info w-100 disabled" data-i18n="aiChatOpen">Open chat widget</span></div>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  <div class="col-md-4">
+    <div class="card h-100 border-warning" style="border-left:4px solid var(--bs-warning)">
+      <div class="card-header bg-warning text-dark fw-bold"><i class="bi bi-chat-left-text me-2"></i><span data-i18n="feedbackPage">Feedback</span></div>
+      <div class="card-body">
+        <ul class="list-unstyled small mb-0">
+          <li data-i18n="fbFeat1">✓ Submit feedback from any page</li>
+          <li data-i18n="fbFeat2">✓ Admin review and status tracking</li>
+          <li data-i18n="fbFeat3">✓ Admin notes and resolution</li>
+          <li data-i18n="fbFeat4">✓ Admin-only page at /feedback</li>
+        </ul>
+      </div>
+      <div class="card-footer"><a href="/feedback" class="btn btn-sm btn-outline-warning w-100" data-i18n="goToPage">Go to page</a></div>
     </div>
   </div>
 </div>

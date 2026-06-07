@@ -319,7 +319,8 @@ document.getElementById('noteInput').addEventListener('keypress',e=>{if(e.key===
 async function addNote(){
     const note=document.getElementById('noteInput').value.trim();
     const author=document.getElementById('noteAuthor').value.trim()||CURRENT_USER;
-    const reassignTo=document.getElementById('reassignInput').value.trim();
+    const reassignEl=document.getElementById('reassignInput');
+    const reassignTo=reassignEl?reassignEl.value.trim():'';
     if(!note&&!reassignTo)return;
     if(note){
         let fullNote=note;
@@ -327,7 +328,7 @@ async function addNote(){
         await fetch('/api/ticket/'+TICKET_ID+'/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:fullNote,created_by:author})});
     }
     document.getElementById('noteInput').value='';
-    document.getElementById('reassignInput').value='';
+    if(reassignEl)reassignEl.value='';
     if(reassignTo)await reassign(reassignTo);
     location.reload();
 }

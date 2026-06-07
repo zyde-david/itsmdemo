@@ -45,8 +45,8 @@
         <thead class="table-light">
           <tr>
             <th class="text-center" style="width:40px">#</th>
-            {% for wd in ['อา','จ','อ','พ','พฤ','ศ','ส'] %}
-            <th class="text-center" style="width:100px">{{ wd }}</th>
+            {% for wd in ['จ','อ','พ','พฤ','ศ','ส','อา'] %}
+            <th class="text-center {% if wd in ['ศ','ส'] %}table-danger{% endif %}" style="width:100px">{{ wd }}</th>
             {% endfor %}
           </tr>
         </thead>
@@ -58,7 +58,7 @@
             {% set mp = cal_manpower_by_day.get(day.iso, {}) %}
             {% set pct = (mp.remaining / mp.total * 100)|round|int if mp.total > 0 else 100 %}
             {% set badge_color = 'bg-danger' if pct < 50 else ('bg-warning text-dark' if pct < 80 else 'bg-success') %}
-            <td class="p-1 {% if not day.in_month %}bg-light text-muted{% endif %} {% if day.is_today %}table-primary{% endif %}" style="vertical-align:top;min-height:60px">
+            <td class="p-1 {% if not day.in_month %}bg-light text-muted{% endif %} {% if day.is_today %}table-primary{% endif %} {% if day.is_weekend %}table-danger{% endif %}" style="vertical-align:top;min-height:60px">
               <div class="d-flex justify-content-between align-items-start mb-1">
                 <span class="small fw-bold">{{ day.day }}</span>
                 {% if mp and mp.total > 0 %}

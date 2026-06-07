@@ -260,8 +260,8 @@ function applyTicketFilters(){
   if(branch && branchToProvince[branch] && !province){
     document.getElementById('tFilterProvince').value = branchToProvince[branch];
   }
-  // Clear previous page-level filters. DataTables built-in search is not stored here.
-  $.fn.dataTable.ext.search = [];
+  // Do NOT clear ext.search — other pages may have registered filters
+  if(!$.fn.dataTable.ext.search) $.fn.dataTable.ext.search = [];
   $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
     if(!settings || !settings.nTable || settings.nTable.id !== 'ticketsTable') return true;
     const row = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;

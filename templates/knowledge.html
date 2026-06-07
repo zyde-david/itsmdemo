@@ -120,7 +120,7 @@ function applyKbFilters(){
 
 document.addEventListener('DOMContentLoaded',function() {
   const sortCol = document.getElementById('kbFilterSort').value;
-  $.fn.dataTable.ext.search = [];
+  if(!$.fn.dataTable.ext.search) $.fn.dataTable.ext.search = [];
   $.fn.dataTable.ext.search.push(kbFilter);
   kbTable = initTable('#kbTable',{
     order:[[sortCol === 'views' ? 3 : 1,'desc']],
