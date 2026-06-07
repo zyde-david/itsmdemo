@@ -209,6 +209,8 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
   </div>
 </div>
 {% endif %}
+
+{% for week in month_weeks %}
   {% for day in week %}
     {% if day.leaves|length > 4 %}
 <div class="modal fade" id="dayModal{{ day.iso|replace('-','') }}" tabindex="-1" aria-hidden="true">
