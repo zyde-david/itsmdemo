@@ -12,17 +12,19 @@
   .rank-table th{background:rgba(15,23,42,.04);font-weight:700;position:sticky;top:0;z-index:1;}
   .rank-table tr{cursor:pointer;}
   .rank-table tr:hover{background:rgba(13,110,253,.06);}
-  .legend-pill{display:inline-flex;align-items:center;gap:6px;margin-right:10px;font-size:.85rem;}
-  .legend-dot{width:13px;height:13px;border-radius:50%;display:inline-block;}
   .ticket-count{
     min-width:32px;height:32px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
     font-weight:800;font-size:14px;
+    text-shadow:0 1px 2px rgba(0,0,0,.15);
   }
   .asset-count{background:#2563eb;color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:1px 5px;text-align:center;min-width:22px;box-shadow:0 1px 4px rgba(0,0,0,.25);}
   .map-ticket-label{display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;}
   .map-ticket-name{font-size:10px;font-weight:700;color:#0f172a;}
   .info-panel{padding:10px 14px;font-size:14px;background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(0,0,0,.15);border-radius:6px;line-height:1.6;border-left:5px solid #2b5c8f;}
+  .info-panel h4{margin:0 0 5px;color:#2b5c8f;}
+  .legend-pill{display:inline-flex;align-items:center;gap:6px;margin-right:10px;font-size:.85rem;}
+  .legend-dot{width:13px;height:13px;border-radius:50%;display:inline-block;}
   .route-step{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
   .priority-high{background:#ffedd5;color:#9a3412;}
   .priority-mid{background:#fef3c7;color:#92400e;}
@@ -207,6 +209,23 @@
     refreshMap();
   }
 
+  function getTicketColor(d) {
+    return d > 8  ? '#084594' :
+           d > 5  ? '#2171b5' :
+           d > 3  ? '#4292c6' :
+           d > 1  ? '#8c96c6' :
+           d > 0  ? '#d0d1e6' :
+                     '#f7f7f7';
+  }
+
+  function getAssetColor(d) {
+    return d > 20 ? '#1e40af' :
+           d > 10 ? '#2563eb' :
+           d > 5  ? '#60a5fa' :
+           d > 0  ? '#93c5fd' :
+                     '#f0f4f8';
+  }
+
   var info = L.control({position: 'topright'});
   info.onAdd = function () {
     this._div = L.DomUtil.create('div', 'info-panel');
@@ -239,28 +258,20 @@
   fetchTicketData();
   setInterval(fetchTicketData, 30000);
 
-  function getPriorityColor(d) {
-    var data = ticketData[d] || {critical: 0, high: 0, medium: 0, low: 0, tickets: 0};
-    if (data.critical > 0) return '#dc2626';
-    if (data.high > 0) return '#f97316';
-    if (data.medium > 0) return '#f59e0b';
-    if (data.low > 0) return '#16a34a';
-    return '#e2e8f0';
+  function getChoroplethValue(name) {
+    var d = ticketData[name] || {};
+    var t = d.tickets || 0;
+    var a = d.assets || 0;
+    if (viewMode === 'assets') return a;
+    if (viewMode === 'both') return t + a;
+    return t;
   }
 
   function getChoroplethColor(name) {
-    if (viewMode === 'assets') {
-      var a = (ticketData[name] || {}).assets || 0;
-      return a > 20 ? '#1e40af' : a > 10 ? '#2563eb' : a > 5 ? '#60a5fa' : a > 0 ? '#93c5fd' : '#f0f4f8';
-    }
-    if (viewMode === 'both') {
-      var d = ticketData[name] || {};
-      var total = (d.tickets || 0) + (d.assets || 0);
-      if (d.critical > 0) return '#dc2626';
-      if (d.high > 0) return '#f97316';
-      return total > 8 ? '#084594' : total > 5 ? '#2171b5' : total > 3 ? '#4292c6' : total > 0 ? '#8c96c6' : '#f7f7f7';
-    }
-    return getPriorityColor(name);
+    var val = getChoroplethValue(name);
+    if (viewMode === 'assets') return getAssetColor(val);
+    if (viewMode === 'both') return getTicketColor(val);
+    return getTicketColor(val);
   }
 
   function fetchTicketData() {
@@ -309,8 +320,8 @@
       var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, assets: 0};
       if (d.tickets <= 0 && d.assets <= 0) return;
       var centroid = L.geoJson(f).getBounds().getCenter();
-      var numColor = d.critical > 0 ? '#dc2626' : (d.high > 0 ? '#f97316' : (d.medium > 0 ? '#facc15' : '#16a34a'));
-      var ticketHtml = d.tickets > 0 ? '<div class="ticket-count" style="color:' + numColor + '">' + d.tickets + '</div>' : '';
+      var ticketColor = d.critical > 0 ? '#dc2626' : (d.high > 0 ? '#f97316' : '#334155');
+      var ticketHtml = d.tickets > 0 ? '<div class="ticket-count" style="color:' + ticketColor + '">' + d.tickets + '</div>' : '';
       var assetHtml = (viewMode !== 'tickets' && d.assets > 0) ? '<div class="asset-count">' + d.assets + '</div>' : '';
       var icon = L.divIcon({
         className: '',
@@ -339,7 +350,7 @@
         '<td><b>' + (index + 1) + '</b></td>' +
         '<td>' + item.name + '</td>' +
         '<td>' + item.province + '</td>' +
-        '<td class="text-end"><span class="badge" style="background-color:' + getPriorityColor(item.name) + '">' + item.tickets + '</span></td>' +
+        '<td class="text-end"><span class="badge" style="background-color:' + getTicketColor(item.tickets) + '">' + item.tickets + '</span></td>' +
         '<td class="text-end col-assets">' + (item.assets > 0 ? '<span class="badge bg-primary">' + item.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
 
       row.addEventListener('click', function() {
