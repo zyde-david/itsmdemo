@@ -2189,11 +2189,17 @@ def api_district_tickets():
         d = branch_district.get(r['branch'], '')
         if not d:
             continue
-        result.setdefault(d, {'tickets': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'categories': {}})
+        result.setdefault(d, {'tickets': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'categories': {}, 'assets': 0})
         result[d]['tickets'] += r['cnt']
         result[d][r['priority']] = result[d].get(r['priority'], 0) + r['cnt']
         cats = result[d]['categories']
         cats[r['category']] = cats.get(r['category'], 0) + r['cnt']
+    # Include asset counts per district
+    for r in c.execute('SELECT branch, COUNT(*) as cnt FROM assets GROUP BY branch').fetchall():
+        d = branch_district.get(r['branch'], '')
+        if d:
+            result.setdefault(d, {'tickets': 0, 'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'categories': {}, 'assets': 0})
+            result[d]['assets'] += r['cnt']
     return jsonify(result)
 
 

@@ -24,6 +24,7 @@
   .ticket-count.yellow{background:#f59e0b;}
   .ticket-count.green{background:#16a34a;}
   .ticket-count.none{background:#94a3b8;}
+  .asset-count{background:#2563eb;color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:1px 5px;text-align:center;min-width:22px;box-shadow:0 1px 4px rgba(0,0,0,.25);}
   .map-ticket-label{display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;}
   .map-ticket-name{font-size:10px;font-weight:700;color:#0f172a;}
   .info-panel{padding:10px 14px;font-size:14px;background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(0,0,0,.15);border-radius:6px;line-height:1.6;border-left:5px solid #2b5c8f;}
@@ -53,16 +54,23 @@
 </div>
 
 <div class="row g-3 mb-3">
-  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Active/Ongoing Tickets</div><div class="h4 mb-0 text-danger">{{ total_tickets }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Active/Ongoing Tickets</div><div class="h4 mb-0 text-danger" id="stat-tickets">{{ total_tickets }}</div></div></div></div>
   <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Critical</div><div class="h4 mb-0 text-danger">{{ total_critical }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Sites</div><div class="h4 mb-0">{{ districts|length }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary">{{ total_assets }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Sites</div><div class="h4 mb-0" id="stat-districts">{{ districts|length }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary" id="stat-assets">{{ total_assets }}</div></div></div></div>
 </div>
 
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
     <span><i class="bi bi-map me-2"></i>แผนที่วางแผนเส้นทางและจัดอันดับข้อมูล</span>
-    <span class="small text-muted">คลิกแถวเพื่อซูมอำเภอ · รีเฟรชอัตโนมัติทุก 30 วินาที</span>
+    <div class="d-flex align-items-center gap-2">
+      <div class="btn-group btn-group-sm" id="viewToggle">
+        <button class="btn btn-outline-primary active" id="viewTickets" onclick="setViewMode('tickets')"><i class="bi bi-ticket-perforated me-1"></i>Tickets</button>
+        <button class="btn btn-outline-primary" id="viewAssets" onclick="setViewMode('assets')"><i class="bi bi-box-seam me-1"></i>Assets</button>
+        <button class="btn btn-outline-primary" id="viewBoth" onclick="setViewMode('both')"><i class="bi bi-layers me-1"></i>Both</button>
+      </div>
+      <span class="small text-muted">คลิกแถวเพื่อซูมอำเภอ · รีเฟรชอัตโนมัติทุก 30 วินาที</span>
+    </div>
   </div>
   <div class="card-body">
     <div class="route-map-shell">
@@ -78,20 +86,25 @@
               <th>อำเภอ</th>
               <th>จังหวัด</th>
               <th class="text-end">งานยังไม่จบ</th>
+              <th class="text-end col-assets">สินทรัพย์</th>
             </tr>
           </thead>
           <tbody id="rank-table">
-            <tr><td colspan="4" class="text-muted">กำลังโหลด...</td></tr>
+            <tr><td colspan="5" class="text-muted">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
       <div>
         <div id="map"></div>
-        <div class="mt-2">
+        <div class="mt-2" id="mapLegend">
           <span class="legend-pill"><span class="legend-dot" style="background:#dc2626"></span>Critical</span>
           <span class="legend-pill"><span class="legend-dot" style="background:#f97316"></span>High</span>
           <span class="legend-pill"><span class="legend-dot" style="background:#f59e0b"></span>Medium</span>
           <span class="legend-pill"><span class="legend-dot" style="background:#16a34a"></span>Low</span>
+        </div>
+        <div class="legend-assets d-none" id="assetLegend">
+          <span class="legend-pill"><span class="legend-dot" style="background:#2563eb"></span>Assets by district</span>
+          <span class="small text-muted ms-2">Choropleth: asset count</span>
         </div>
         <div class="alert alert-light border mt-3 mb-0 small" role="note">
           <div class="fw-bold mb-1"><i class="bi bi-info-circle me-1"></i>Dispatch Priority · วิธีจัดลำดับงาน</div>
@@ -187,14 +200,36 @@
   var ticketData = {};
   var geojsonLayer;
   var labelLayer = L.layerGroup().addTo(map);
+  var viewMode = 'tickets'; // 'tickets' | 'assets' | 'both'
 
-  function getColor(d) {
+  function setViewMode(mode) {
+    viewMode = mode;
+    document.querySelectorAll('#viewToggle .btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = mode === 'tickets' ? 'viewTickets' : (mode === 'assets' ? 'viewAssets' : 'viewBoth');
+    document.getElementById(activeBtn).classList.add('active');
+    // Toggle legends
+    document.getElementById('mapLegend').classList.toggle('d-none', mode === 'assets');
+    document.getElementById('assetLegend').classList.toggle('d-none', mode === 'tickets');
+    // Toggle asset column in sidebar
+    document.querySelectorAll('.col-assets').forEach(el => el.classList.toggle('d-none', mode === 'tickets'));
+    refreshMap();
+  }
+
+  function getTicketColor(d) {
     return d > 8  ? '#084594' :
            d > 5  ? '#2171b5' :
            d > 3  ? '#4292c6' :
            d > 1  ? '#8c96c6' :
            d > 0  ? '#d0d1e6' :
                      '#f7f7f7';
+  }
+
+  function getAssetColor(d) {
+    return d > 20 ? '#1e40af' :
+           d > 10 ? '#2563eb' :
+           d > 5  ? '#60a5fa' :
+           d > 0  ? '#93c5fd' :
+                     '#f0f4f8';
   }
 
   function getLabelClass(d, critical, high) {
@@ -217,8 +252,8 @@
       return;
     }
     var name = props.name;
-    var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0, categories: {}};
-    var categoryText = Object.keys(d.categories || {}).sort(function(a,b){ return d.categories[b] - d.categories[a]; }).map(function(k){ return k + ': ' + d.categories[k]; }).join(' · ') || '-';
+    var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0, categories: {}, assets: 0};
+    var categoryText = Object.keys(d.categories || {}).sort(function(a,b){ return (d.categories[b]||0) - (d.categories[a]||0); }).map(function(k){ return k + ': ' + (d.categories[k]||0); }).join(' · ') || '-';
     this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>' +
       '<b>จังหวัด:</b> ' + props.province +
       '<br><b>อำเภอ:</b> ' + name +
@@ -227,6 +262,7 @@
       ' · <span style="color:#f97316;">High: ' + d.high + '</span>' +
       ' · <span style="color:#f59e0b;">Medium: ' + d.medium + '</span>' +
       ' · <span style="color:#16a34a;">Low: ' + d.low + '</span>' +
+      '<br><b>สินทรัพย์:</b> <span style="font-size:14px;color:#2563eb;font-weight:bold;">' + (d.assets || 0) + '</span>' +
       '<br><b>หมวด:</b> ' + categoryText;
   };
   info.addTo(map);
@@ -235,6 +271,22 @@
 
   fetchTicketData();
   setInterval(fetchTicketData, 30000);
+
+  function getChoroplethValue(name) {
+    var d = ticketData[name] || {};
+    var t = d.tickets || 0;
+    var a = d.assets || 0;
+    if (viewMode === 'assets') return a;
+    if (viewMode === 'both') return t + a;
+    return t;
+  }
+
+  function getChoroplethColor(name) {
+    var val = getChoroplethValue(name);
+    if (viewMode === 'assets') return getAssetColor(val);
+    if (viewMode === 'both') return getTicketColor(val);
+    return getTicketColor(val);
+  }
 
   function fetchTicketData() {
     fetch('/api/district-tickets')
@@ -246,16 +298,16 @@
       .catch(err => {
         console.error('Failed to load ticket data', err);
         var body = document.getElementById('rank-table');
-        if (body) body.innerHTML = '<tr><td colspan="4" class="text-muted">โหลดข้อมูล Ticket ไม่สำเร็จ</td></tr>';
+        if (body) body.innerHTML = '<tr><td colspan="5" class="text-muted">โหลดข้อมูลไม่สำเร็จ</td></tr>';
       });
+  }
   }
 
   function renderMap() {
     geojsonLayer = L.geoJson(southData, {
       style: function(feature) {
         var name = feature.properties.name;
-        var d = ticketData[name] ? ticketData[name].tickets : 0;
-        return { fillColor: getColor(d), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 };
+        return { fillColor: getChoroplethColor(name), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 };
       },
       onEachFeature: function(feature, layer) {
         function highlight(e) {
@@ -275,20 +327,21 @@
   function refreshMap() {
     geojsonLayer.eachLayer(function(layer) {
       var name = layer.feature.properties.name;
-      var d = ticketData[name] ? ticketData[name].tickets : 0;
-      layer.setStyle({ fillColor: getColor(d), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 });
+      layer.setStyle({ fillColor: getChoroplethColor(name), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 });
     });
     labelLayer.clearLayers();
     southData.features.forEach(function(f) {
       var name = f.properties.name;
-      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0};
-      if (d.tickets <= 0) return;
+      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, assets: 0};
+      if (d.tickets <= 0 && d.assets <= 0) return;
       var centroid = L.geoJson(f).getBounds().getCenter();
       var labelClass = getLabelClass(d.tickets, d.critical, d.high);
+      var ticketHtml = d.tickets > 0 ? '<div class="ticket-count ' + labelClass + '">' + d.tickets + '</div>' : '';
+      var assetHtml = (viewMode !== 'tickets' && d.assets > 0) ? '<div class="asset-count">' + d.assets + '</div>' : '';
       var icon = L.divIcon({
         className: '',
-        html: '<div class="map-ticket-label"><div class="ticket-count ' + labelClass + '">' + d.tickets + '</div><div class="map-ticket-name">' + name + '</div></div>',
-        iconSize: [70, 44], iconAnchor: [35, 22]
+        html: '<div class="map-ticket-label">' + ticketHtml + assetHtml + '<div class="map-ticket-name">' + name + '</div></div>',
+        iconSize: [70, 50], iconAnchor: [35, 25]
       });
       L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
     });
@@ -302,8 +355,8 @@
 
     var sortedList = features.map(function(f) {
       var name = f.properties.name;
-      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0};
-      return {name: name, province: f.properties.province, tickets: d.tickets, critical: d.critical, high: d.high, value: d.tickets};
+      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0, assets: 0};
+      return {name: name, province: f.properties.province, tickets: d.tickets, critical: d.critical, high: d.high, assets: d.assets || 0, value: viewMode === 'assets' ? (d.assets || 0) : (viewMode === 'both' ? (d.tickets + d.assets) : d.tickets)};
     }).sort(function(a, b) { return b.value - a.value; });
 
     sortedList.forEach(function(item, index) {
@@ -312,7 +365,8 @@
         '<td><b>' + (index + 1) + '</b></td>' +
         '<td>' + item.name + '</td>' +
         '<td>' + item.province + '</td>' +
-        '<td class="text-end"><span class="badge" style="background-color:' + getColor(item.tickets) + '">' + item.tickets + '</span></td>';
+        '<td class="text-end"><span class="badge" style="background-color:' + getTicketColor(item.tickets) + '">' + item.tickets + '</span></td>' +
+        '<td class="text-end col-assets">' + (item.assets > 0 ? '<span class="badge bg-primary">' + item.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
 
       row.addEventListener('click', function() {
         geojsonLayer.eachLayer(function(layer) {

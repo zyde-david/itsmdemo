@@ -28,8 +28,8 @@
 .status-dot.pending{background:#f59e0b}.status-dot.approved{background:#198754}.status-dot.rejected{background:#dc3545}.status-dot.cancelled{background:#6c757d}
 .legend-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid #e2e8f0;border-radius:999px;padding:4px 9px;background:#fff;font-size:.75rem}
 .calendar-empty{display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:.72rem;height:100%;text-align:center}
-/* Manpower background colors — subtle day-cell tinting */
-.calendar-day.manpower-ok{background:#d4efdf}.calendar-day.manpower-warn{background:#fff3cd}.calendar-day.manpower-danger{background:#f8d7da}
+/* Manpower background colors — use !important to override base .calendar-day bg */
+.calendar-day.manpower-ok{background:#d4efdf!important}.calendar-day.manpower-warn{background:#fff3cd!important}.calendar-day.manpower-danger{background:#f8d7da!important}
 body[data-theme="dark"] .calendar-grid,
 body[data-theme="custom"] .calendar-grid{background:var(--border-dark);border-color:var(--border-dark)}
 body[data-theme="dark"] .calendar-weekday,
@@ -41,11 +41,11 @@ body[data-theme="custom"] .calendar-day.is-muted{background:rgba(255,255,255,.03
 body[data-theme="dark"] .calendar-day.has-leave,
 body[data-theme="custom"] .calendar-day.has-leave{background:linear-gradient(180deg,var(--bg-surface) 0%,rgba(255,255,255,.04) 100%)}
 body[data-theme="dark"] .calendar-day.manpower-ok,
-body[data-theme="custom"] .calendar-day.manpower-ok{background:#1a4a2e}
+body[data-theme="custom"] .calendar-day.manpower-ok{background:#1a4a2e!important}
 body[data-theme="dark"] .calendar-day.manpower-warn,
-body[data-theme="custom"] .calendar-day.manpower-warn{background:#4d3800}
+body[data-theme="custom"] .calendar-day.manpower-warn{background:#4d3800!important}
 body[data-theme="dark"] .calendar-day.manpower-danger,
-body[data-theme="custom"] .calendar-day.manpower-danger{background:#4d1010}
+body[data-theme="custom"] .calendar-day.manpower-danger{background:#4d1010!important}
 body[data-theme="dark"] .legend-pill,
 body[data-theme="custom"] .legend-pill{background:var(--bg-surface);border-color:var(--border-dark);color:var(--text-surface)}
 body[data-theme="dark"] .popover,
