@@ -14,6 +14,7 @@
   .rank-table tr:hover{background:rgba(13,110,253,.06);}
   .legend-pill{display:inline-flex;align-items:center;gap:6px;margin-right:10px;font-size:.85rem;}
   .legend-dot{width:13px;height:13px;border-radius:50%;display:inline-block;}
+  .map-label-icon{background:none!important;border:none!important;box-shadow:none!important;}
   .route-step{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
   .priority-high{background:#ffedd5;color:#9a3412;}
   .priority-mid{background:#fef3c7;color:#92400e;}
@@ -301,13 +302,15 @@
       if (d.tickets <= 0 && d.assets <= 0) return;
       var centroid = L.geoJson(f).getBounds().getCenter();
       var numColor = d.critical > 0 ? '#dc2626' : (d.high > 0 ? '#f97316' : (d.medium > 0 ? '#facc15' : '#16a34a'));
-      var labelText = '';
-      if (d.tickets > 0) labelText += '<span style="color:' + numColor + ';font-weight:800;font-size:13px;">' + d.tickets + '</span>';
-      labelText += '<span style="color:#1e293b;font-weight:600;font-size:10px;"> ' + name + '</span>';
+      var num = d.tickets > 0 ? d.tickets : (d.assets > 0 ? d.assets : 0);
+      if (num <= 0) return;
       var icon = L.divIcon({
-        className: '',
-        html: '<div style="text-align:center;white-space:nowrap;line-height:1.4;">' + labelText + '</div>',
-        iconSize: [90, 28], iconAnchor: [45, 14]
+        className: 'map-label-icon',
+        html: '<div style="display:flex;align-items:center;gap:4px;pointer-events:none;">' +
+          '<span style="min-width:22px;height:22px;border-radius:50%;background:' + numColor + ';color:#fff;font-weight:800;font-size:11px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 1px 4px rgba(0,0,0,0.4);">' + num + '</span>' +
+          '<span style="color:#1e293b;font-weight:700;font-size:10px;white-space:nowrap;-webkit-text-stroke:0.5px #fff;">' + name + '</span>' +
+          '</div>',
+        iconSize: [120, 24], iconAnchor: [60, 12]
       });
       L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
     });
