@@ -186,55 +186,40 @@
 {% block extra_scripts %}
 <script>
   // ══════════════════════════════════════════════════════════════
-  // 1. MOCK LIVE DATABASE — value 1-4 per district short name
-  //    (In production this comes from /api/district-tickets)
+  // 1. HARDCODED DISTRICT DATA — 15 active districts with full metadata
   // ══════════════════════════════════════════════════════════════
-  var liveDatabaseData = {
-    "เมืองยะลา":       3,
-    "เบตง":           2,
-    "ยะหา":           0,
-    "รามัน":          2,
-    "กาบัง":          0,
-    "กรงปินัง":       4,
-    "ธารโต":          3,
-    "ยี่งอ":          2,
-    "เจาะไอร้อง":    1,
-    "รือเสาะ":        4,
-    "แว้ง":           2,
-    "สุคิริน":         3,
-    "สุไหงปาดี":      1,
-    "จะแนะ":          4,
-    "ไม้แก่น":         2,
-    "ตากใบ":          3,
-    "บาเจาะ":         1,
-    "นราธิวาส":       2,
-    "ตาเซะ":          4,
-    "บางเขา":         1,
-    "ปะลุรู":         3,
-    "มะนัง":          2,
-    "จุฬาภรณ์":       4,
-    "เมืองปัตตานี":   3,
-    "โคกโพธิ์":       1,
-    "หนองจิก":        2,
-    "ปะนาเระ":        4,
-    "มายอ":           3,
-    "ทุ่งยางแดง":     1,
-    "สายบุรี":        2,
-    "แม่ลาน":         4,
-    "เมืองนราธิวาส": 2,
-    "ระแงะ":          1,
-    "ศรีสาคร":        3,
-    "ช้างผา":         4,
-    "นาหม่อม":        1,
-    "นาทวี":          2,
-    "เทพา":           3,
-    "สะบ้าย้อย":      4,
-    "สะเดา":          1,
-    "สิเกา":          2,
-    "หาดใหญ่":        3,
-    "ลานสกา":         4,
-    "กะพ้อ":          1,
-    "รัตภูมิ":         2
+  var districtInfo = {
+    "เจาะไอร้อง": {tickets:3, score:306, critical:1, high:2, medium:0, low:0, assets:2, province:"นราธิวาส", distance:93.5, equipment:["สาย LAN/tester/switch","VPN config/credential"], categories:{"ระบบ Core Banking":1,"เครือข่าย/อินเทอร์เน็ต":1,"VPN/ระบบเสีย":1}},
+    "ระแงะ": {tickets:3, score:246, critical:1, high:1, medium:0, low:1, assets:1, province:"นราธิวาส", distance:78.2, equipment:["สาย LAN/tester/switch"], categories:{"ระบบ Core Banking":1,"เครือข่าย/อินเทอร์เน็ต":1,"คอมพิวเตอร์เสีย":1}},
+    "เมืองปัตตานี": {tickets:2, score:140, critical:0, high:1, medium:1, low:0, assets:3, province:"ปัตตานี", distance:5.0, equipment:["หมึก/ผงซักฟอก/หัวพิมพ์"], categories:{"เครื่องพิมพ์/สมุด":1,"คอมพิวเตอร์เสีย":1}},
+    "โคกโพธิ์": {tickets:3, score:126, critical:0, high:1, medium:1, low:1, assets:1, province:"ปัตตานี", distance:16.6, equipment:["สาย LAN/tester/switch","หมึก/ผงซักฟอก/หัวพิมพ์"], categories:{"เครือข่าย/อินเทอร์เน็ต":1,"เครื่องพิมพ์/สมุด":1,"คอมพิวเตอร์เสีย":1}},
+    "ศรีสาคร": {tickets:3, score:126, critical:0, high:2, medium:0, low:1, assets:1, province:"นราธิวาส", distance:62.4, equipment:["VPN config/credential","สาย LAN/tester/switch"], categories:{"VPN/ระบบเสีย":1,"เครือข่าย/อินเทอร์เน็ต":1,"คอมพิวเตอร์เสีย":1}},
+    "สายบุรี": {tickets:1, score:102, critical:0, high:1, medium:0, low:0, assets:1, province:"ปัตตานี", distance:55.9, equipment:["สาย LAN/tester/switch"], categories:{"เครือข่าย/อินเทอร์เน็ต":1}},
+    "บันนังสตา": {tickets:2, score:82, critical:0, high:1, medium:1, low:0, assets:1, province:"ยะลา", distance:42.1, equipment:["สาย LAN/tester/switch","หมึก/ผงซักฟอก/หัวพิมพ์"], categories:{"ไฟฟ้า/สาธารณูปโภค":1,"เครื่องพิมพ์/สมุด":1}},
+    "รามัน": {tickets:2, score:82, critical:0, high:2, medium:0, low:0, assets:1, province:"ยะลา", distance:38.7, equipment:["สาย LAN/tester/switch"], categories:{"เครือข่าย/อินเทอร์เน็ต":1,"ไฟฟ้า/สาธารณูปโภค":1}},
+    "ยะหา": {tickets:2, score:52, critical:0, high:1, medium:1, low:0, assets:1, province:"ยะลา", distance:28.4, equipment:["สาย LAN/tester/switch","หมึก/ผงซักฟอก/หัวพิมพ์"], categories:{"เครือข่าย/อินเทอร์เน็ต":1,"เครื่องพิมพ์/สมุด":1}},
+    "เบตง": {tickets:2, score:46, critical:0, high:1, medium:0, low:1, assets:1, province:"ยะลา", distance:105.2, equipment:["VPN config/credential","อะไหล่ PC/SSD/RAM"], categories:{"VPN/ระบบเสีย":1,"คอมพิวเตอร์เสีย":1}},
+    "ตากใบ": {tickets:1, score:40, critical:0, high:1, medium:0, low:0, assets:1, province:"นราธิวาส", distance:88.6, equipment:["สาย LAN/tester/switch"], categories:{"เครือข่าย/อินเทอร์เน็ต":1}},
+    "ธารโต": {tickets:2, score:26, critical:0, high:0, medium:1, low:1, assets:1, province:"ยะลา", distance:55.3, equipment:["หมึก/ผงซักฟอก/หัวพิมพ์","อะไหล่ PC/SSD/RAM"], categories:{"เครื่องพิมพ์/สมุด":1,"คอมพิวเตอร์เสีย":1}},
+    "ปะนาเระ": {tickets:1, score:12, critical:0, high:0, medium:1, low:0, assets:1, province:"ปัตตานี", distance:22.5, equipment:["หมึก/ผงซักฟอก/หัวพิมพ์"], categories:{"เครื่องพิมพ์/สมุด":1}},
+    "หนองจิก": {tickets:1, score:5, critical:0, high:0, medium:0, low:1, assets:1, province:"ปัตตานี", distance:12.8, equipment:["อะไหล่ PC/SSD/RAM"], categories:{"คอมพิวเตอร์เสีย":1}},
+    "มายอ": {tickets:1, score:5, critical:0, high:0, medium:0, low:1, assets:1, province:"ปัตตานี", distance:18.3, equipment:["อะไหล่ PC/SSD/RAM"], categories:{"คอมพิวเตอร์เสีย":1}}
+  };
+
+  // Hardcoded exact center for every Amphoe
+  var amphoeCenters = {
+    "เมืองปัตตานี":[6.868,101.251],"โคกโพธิ์":[6.687,101.077],"หนองจิก":[6.843,101.179],
+    "ปะนาเระ":[6.828,101.491],"มายอ":[6.744,101.428],"ทุ่งยางแดง":[6.634,101.487],
+    "สายบุรี":[6.702,101.616],"ไม้แก่น":[6.611,101.666],"ยะหริ่ง":[6.867,101.368],
+    "ยะรัง":[6.762,101.294],"กะพ้อ":[6.564,101.543],"แม่ลาน":[6.694,101.213],
+    "เมืองยะลา":[6.551,101.281],"บันนังสตา":[6.264,101.271],"ยะหา":[6.478,101.141],
+    "รามัน":[6.481,101.411],"เบตง":[5.774,101.072],"กาบัง":[6.438,101.018],
+    "กรงปินัง":[6.417,101.272],"ธารโต":[6.041,101.172],
+    "เมืองนราธิวาส":[6.426,101.824],"ตากใบ":[6.257,102.051],"บาเจาะ":[6.514,101.652],
+    "ยี่งอ":[6.402,101.714],"ระแงะ":[6.297,101.727],"รือเสาะ":[6.392,101.517],
+    "ศรีสาคร":[6.223,101.503],"แว้ง":[5.932,101.891],"สุคิริน":[5.938,101.772],
+    "สุไหงโก-ลก":[6.027,101.966],"สุไหงปาดี":[6.082,101.879],"จะแนะ":[6.111,101.692],
+    "เจาะไอร้อง":[6.219,101.841]
   };
 
   // ══════════════════════════════════════════════════════════════
@@ -296,153 +281,120 @@
   info.addTo(map);
 
   // ══════════════════════════════════════════════════════════════
-  // 7. FILTER & SORT — suppress zero-values, sort by score desc
+  // 7. BUILD ACTIVE DISTRICTS — from hardcoded districtInfo
   // ══════════════════════════════════════════════════════════════
-  var filtered = {{ south_geojson|safe }};
-
-  // Build active districts array with score data, filter out zeros
-  var activeDistricts = filtered.features.filter(function(f) {
-    var sn = getShortName(f.properties.name);
-    return liveDatabaseData[sn] && liveDatabaseData[sn] > 0;
-  }).map(function(f) {
-    var sn = getShortName(f.properties.name);
-    return {
-      feature: f,
-      name: sn,
-      province: f.properties.province || f.properties.PROVINCE || '',
-      value: liveDatabaseData[sn] || 0,
-      assets: f.properties.assets || 0,
-      score: liveDatabaseData[sn] || 0  // use value as score for sorting
-    };
-  }).sort(function(a, b) { return b.score - a.score; });
-
-  // Update stats (only active districts)
-  document.getElementById('stat-districts').textContent = activeDistricts.length;
-  var totalTickets = 0, totalCritical = 0;
-  activeDistricts.forEach(function(d) {
-    totalTickets += d.value;
-    if (d.value === 3) totalCritical++;
-  });
-  document.getElementById('stat-tickets').textContent = totalTickets;
-  document.getElementById('stat-critical').textContent = totalCritical;
-
-  // Build layer lookup for centroids (NOT added to map — invisible)
-  var layerByName = {};
-  var hotspotLayer = L.layerGroup().addTo(map);
-
-  // Parse GeoJSON for centroid data only — DO NOT render polygons
-  var allFeatures = {{ south_geojson|safe }}.features;
-  allFeatures.forEach(function(f) {
-    var sn = getShortName(f.properties.name);
-    // Create invisible layer for centroid/zoom only
-    var tempLayer = L.geoJson(f);
-    layerByName[sn] = tempLayer;
-  });
-
-  // Fit map to all district bounds (invisible fit)
-  if (allFeatures.length > 0) {
-    var tempGeo = L.geoJson(allFeatures);
-    map.fitBounds(tempGeo.getBounds().pad(0.05));
+  function getValueFromPriority(d) {
+    if (d.critical > 0) return 3;
+    if (d.high > 0) return 2;
+    if (d.medium > 0) return 1;
+    if (d.low > 0) return 4;
+    return 0;
   }
 
-  // ══════════════════════════════════════════════════════════
-  // 8. RENDER HOTSPOTS & LABELS — circle markers + cardless text ONLY
-  // ══════════════════════════════════════════════════════════
-  function getHotspotCenter(districtName) {
-    // HARDCODED LAND ANCHORS — coastal districts
-    if (districtName === 'ไม้แก่น') return L.latLng(6.615, 101.668);
-    if (districtName === 'สายบุรี') return L.latLng(6.702, 101.616);
-    if (districtName === 'แม่ลาน') return L.latLng(6.685, 101.585);
+  var activeDistricts = Object.keys(districtInfo).map(function(name) {
+    var info = districtInfo[name] || {};
+    return {
+      name: name,
+      province: info.province || '',
+      tickets: info.tickets || 0,
+      score: info.score || 0,
+      critical: info.critical || 0,
+      high: info.high || 0,
+      medium: info.medium || 0,
+      low: info.low || 0,
+      assets: info.assets || 0,
+      equipment: info.equipment || [],
+      categories: info.categories || {},
+      distance: info.distance || 0
+    };
+  }).filter(function(d) { return d.tickets > 0; })
+    .sort(function(a, b) { return b.score - a.score; });
 
-    var layer = layerByName[districtName];
-    if (layer && typeof layer.getCenter === 'function') {
-      return layer.getCenter();
-    }
-    if (layer && typeof layer.getBounds === 'function') {
-      return layer.getBounds().getCenter();
-    }
-    return null;
+  // Update stats
+  document.getElementById('stat-districts').textContent = activeDistricts.length;
+  var totalTickets = 0;
+  activeDistricts.forEach(function(d) { totalTickets += d.tickets; });
+  document.getElementById('stat-tickets').textContent = totalTickets;
+  document.getElementById('stat-critical').textContent = activeDistricts.filter(function(d){return d.critical>0}).length;
+
+  var hotspotLayer = L.layerGroup().addTo(map);
+
+  // Fit map to southern Thailand
+  map.setView([6.5, 101.3], 9);
+
+  // ══════════════════════════════════════════════════════════
+  // 8. RENDER HOTSPOTS & LABELS
+  // ══════════════════════════════════════════════════════════
+  function getCenter(name) {
+    var c = amphoeCenters[name];
+    if (c) return L.latLng(c[0], c[1]);
+    return L.latLng(6.75, 101.25); // emergency fallback
+  }
+
+  function showDetail(name) {
+    var d = districtInfo[name] || {};
+    var val = getValueFromPriority(d);
+    var color = getPriorityColor(val);
+    var label = val === 3 ? 'Critical' : val === 2 ? 'High' : val === 1 ? 'Medium' : val === 4 ? 'Low' : 'None';
+    var eq = d.equipment || [];
+    var eqHtml = eq.length ? '<div style="margin-top:6px;font-size:10px;color:#94a3b8;font-weight:bold;">🔧 เตรียมอุปกรณ์:</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;">' + eq.map(function(e){return '<span style="background:#1e293b;color:#f1f5f9;border:1px solid #334155;padding:1px 5px;border-radius:3px;font-size:9px;">'+e+'</span>';}).join('') + '</div>' : '';
+    var cats = d.categories || {};
+    var catKeys = Object.keys(cats);
+    var catHtml = catKeys.length ? '<div style="margin-top:4px;font-size:9px;color:#94a3b8;">' + catKeys.slice(0,3).map(function(c){return c+' ('+cats[c]+')';}).join(' · ') + '</div>' : '';
+    info._div.innerHTML = '<div style="min-width:220px;">'
+      + '<div style="font-size:13px;font-weight:bold;color:#fff;border-bottom:1px solid #333;padding-bottom:3px;margin-bottom:4px;">' + (d.tickets||0) + ' ' + name + '</div>'
+      + '<div style="font-size:10px;color:#cbd5e1;">📍 ' + (d.province||'') + ' · ~' + (d.distance||0) + ' กม.</div>'
+      + '<div style="font-size:10px;color:#cbd5e1;margin-top:2px;">C' + (d.critical||0) + ' H' + (d.high||0) + ' M' + (d.medium||0) + ' L' + (d.low||0) + ' · คะแนน ' + (d.score||0) + '</div>'
+      + '<div style="font-size:11px;font-weight:bold;color:' + color + ';margin-top:3px;">' + label + '</div>'
+      + catHtml + eqHtml
+      + '</div>';
   }
 
   function renderHotspots() {
     labelLayer.clearLayers();
     hotspotLayer.clearLayers();
-
     activeDistricts.forEach(function(d) {
-      var center = getHotspotCenter(d.name);
-      if (!center) return;
-
-      var color = getPriorityColor(d.value);
-
-      // 1) Circle hotspot dot ONLY
-      L.circleMarker(center, {
-        radius: 6,
-        fillColor: color,
-        color: '#ffffff',
-        weight: 1.5,
-        fillOpacity: 1
-      }).addTo(hotspotLayer);
-
-      // 2) Cardless floating label — raw text only, no box
-      var html =
-        '<div class="transparent-floating-text" style="color:#fff;font-weight:bold;font-size:12px;' +
-          'text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;' +
-          'white-space:nowrap;text-align:center;">' + d.value + ' ' + d.name + '</div>';
-
-      var icon = L.divIcon({
-        className: 'transparent-floating-text',
-        html: html,
-        iconSize: [100, 20],
-        iconAnchor: [50, -5]
-      });
-
-      L.marker(center, {icon: icon, interactive: false}).addTo(labelLayer);
+      var center = getCenter(d.name);
+      var val = getValueFromPriority(d);
+      var color = getPriorityColor(val);
+      var dot = L.circleMarker(center, {radius:6, fillColor:color, color:'#fff', weight:1.5, fillOpacity:1, interactive:true}).addTo(hotspotLayer);
+      dot.on('click', function(e) { L.DomEvent.stopPropagation(e); showDetail(d.name); });
+      var html = '<div class="transparent-floating-text" style="color:#fff;font-weight:bold;font-size:11px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000;white-space:nowrap;cursor:pointer;">' + d.tickets + ' ' + d.name + '</div>';
+      var icon = L.divIcon({className:'transparent-floating-text', html:html, iconSize:[90,18], iconAnchor:[45,-4]});
+      var label = L.marker(center, {icon:icon, interactive:true}).addTo(labelLayer);
+      label.on('click', function(e) { L.DomEvent.stopPropagation(e); showDetail(d.name); });
     });
   }
-
-  // Initial render
   renderHotspots();
 
   // ══════════════════════════════════════════════════════════
-  // 9. SIDEBAR RANKING TABLE — sorted by score desc
+  // 9. SIDEBAR RANKING TABLE
   // ══════════════════════════════════════════════════════════
   function renderSidebar() {
     var tbody = document.getElementById('rank-table');
     if (!tbody) return;
     tbody.innerHTML = '';
-
-    // activeDistricts is already sorted by score desc
-    var rank = 0;
-    activeDistricts.forEach(function(d) {
-      rank++;
-      var color = getPriorityColor(d.value);
+    activeDistricts.forEach(function(d, i) {
+      var val = getValueFromPriority(d);
+      var color = getPriorityColor(val);
       var row = document.createElement('tr');
-      row.innerHTML =
-        '<td><b>' + rank + '</b></td>' +
-        '<td>' + d.name + '</td>' +
-        '<td>' + d.province + '</td>' +
-        '<td class="text-end"><span class="badge" style="background:' + color + ';color:#fff;">' + d.value + '</span></td>' +
-        '<td class="text-end col-assets">' + (d.assets > 0 ? '<span class="badge bg-primary">' + d.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
+      row.style.cursor = 'pointer';
+      row.innerHTML = '<td><b>' + (i+1) + '</b></td><td>' + d.name + '</td><td>' + d.province + '</td><td class="text-end"><span class="badge" style="background:' + color + ';color:#fff;">' + d.tickets + '</span></td><td class="text-end col-assets">' + (d.assets > 0 ? '<span class="badge bg-primary">' + d.assets + '</span>' : '<span class="text-muted">0</span>') + '</td>';
       row.addEventListener('click', function() {
-        var target = layerByName[d.name];
-        if (target && typeof target.getBounds === 'function') {
-          map.fitBounds(target.getBounds().pad(0.05));
-        }
+        var c = getCenter(d.name);
+        if (c) map.setView(c, 11);
+        showDetail(d.name);
       });
       tbody.appendChild(row);
     });
-
-    if (rank === 0) {
+    if (activeDistricts.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center py-3">ไม่มีอำเภอที่มีงานค้าง</td></tr>';
     }
   }
-
   renderSidebar();
 
-  // Refresh hotspots every 30s (simulating live data)
-  setInterval(function() {
-    renderHotspots();
-  }, 30000);
+  // Refresh every 30s
+  setInterval(renderHotspots, 30000);
 
 </script>
 {% endblock %}
