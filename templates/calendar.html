@@ -28,6 +28,8 @@
 .status-dot.pending{background:#f59e0b}.status-dot.approved{background:#198754}.status-dot.rejected{background:#dc3545}.status-dot.cancelled{background:#6c757d}
 .legend-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid #e2e8f0;border-radius:999px;padding:4px 9px;background:#fff;font-size:.75rem}
 .calendar-empty{display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:.72rem;height:100%;text-align:center}
+/* Manpower background colors — subtle day-cell tinting */
+.calendar-day.manpower-ok{background:#d4efdf}.calendar-day.manpower-warn{background:#fff3cd}.calendar-day.manpower-danger{background:#f8d7da}
 body[data-theme="dark"] .calendar-grid,
 body[data-theme="custom"] .calendar-grid{background:var(--border-dark);border-color:var(--border-dark)}
 body[data-theme="dark"] .calendar-weekday,
@@ -38,6 +40,12 @@ body[data-theme="dark"] .calendar-day.is-muted,
 body[data-theme="custom"] .calendar-day.is-muted{background:rgba(255,255,255,.03);color:var(--text-muted)}
 body[data-theme="dark"] .calendar-day.has-leave,
 body[data-theme="custom"] .calendar-day.has-leave{background:linear-gradient(180deg,var(--bg-surface) 0%,rgba(255,255,255,.04) 100%)}
+body[data-theme="dark"] .calendar-day.manpower-ok,
+body[data-theme="custom"] .calendar-day.manpower-ok{background:#1a4a2e}
+body[data-theme="dark"] .calendar-day.manpower-warn,
+body[data-theme="custom"] .calendar-day.manpower-warn{background:#4d3800}
+body[data-theme="dark"] .calendar-day.manpower-danger,
+body[data-theme="custom"] .calendar-day.manpower-danger{background:#4d1010}
 body[data-theme="dark"] .legend-pill,
 body[data-theme="custom"] .legend-pill{background:var(--bg-surface);border-color:var(--border-dark);color:var(--text-surface)}
 body[data-theme="dark"] .popover,
@@ -101,9 +109,11 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
   </div>
 </div>
 
-<div class="alert alert-info py-2 px-3 mb-3 small d-flex align-items-center gap-2">
-  <i class="bi bi-info-circle"></i>
-  <span>เลข <span class="badge bg-success" style="font-size:.65rem">4/5 (80%)</span> = พนักงานที่เหลือพร้อมทำงานในวันนั้น (Active - ลาที่อนุมัติแล้ว) · <span class="badge bg-danger" style="font-size:.65rem">&lt;50%</span> = พนักงานไม่ถึงครึ่ง ควรระวังเมื่ออนุมัติลา</span>
+<div class="d-flex align-items-center gap-3 mb-3 flex-wrap" style="font-size:.75rem">
+  <span class="text-muted fw-semibold">Manpower:</span>
+  <span class="d-inline-flex align-items-center gap-1"><span style="width:14px;height:14px;border-radius:4px;background:#d4efdf;border:1px solid #a3d9b1;display:inline-block"></span> ≥80% available</span>
+  <span class="d-inline-flex align-items-center gap-1"><span style="width:14px;height:14px;border-radius:4px;background:#fff3cd;border:1px solid #f0d060;display:inline-block"></span> 50-79% available</span>
+  <span class="d-inline-flex align-items-center gap-1"><span style="width:14px;height:14px;border-radius:4px;background:#f8d7da;border:1px solid #e8a0a0;display:inline-block"></span> &lt;50% — ควรระวังเมื่ออนุมัติลา</span>
 </div>
 
 <div class="card shadow-sm">
@@ -123,16 +133,13 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
       {% for week in month_weeks %}
         {% for day in week %}
         {% set mp = manpower_by_day.get(day.iso, {}) %}
-        <div class="calendar-day {% if not day.in_month %}is-muted{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.is_weekend %}is-weekend-day{% endif %} {% if day.leaves %}has-leave{% endif %}" data-date="{{ day.iso }}">
+        {% set mp_pct = (mp.remaining / mp.total * 100)|round|int if mp and mp.total > 0 else none %}
+        {% set mp_class = 'manpower-danger' if mp_pct is not none and mp_pct < 50 else ('manpower-warn' if mp_pct is not none and mp_pct < 80 else ('manpower-ok' if mp_pct is not none else '')) %}
+        <div class="calendar-day {% if not day.in_month %}is-muted{% endif %} {% if day.is_today %}is-today{% endif %} {% if day.is_weekend %}is-weekend-day{% endif %} {% if day.leaves %}has-leave{% endif %} {{ mp_class }}" data-date="{{ day.iso }}">
           <div class="calendar-date">
             <span class="day-num">{{ day.day }}</span>
             <div class="d-flex align-items-center gap-1">
               {% if day.leaves %}<span class="badge rounded-pill bg-primary-subtle text-primary-emphasis">{{ day.leaves|length }}</span>{% endif %}
-              {% if mp and mp.remaining is not none and not day.is_weekend and not day.holidays %}
-              {% set pct = (mp.remaining / mp.total * 100)|round|int if mp.total > 0 else 100 %}
-              {% set badge_color = 'bg-danger' if pct < 50 else ('bg-warning text-dark' if pct < 80 else 'bg-success') %}
-              <span class="badge {{ badge_color }}" title="Manpower: {{ mp.remaining }}/{{ mp.total }} ({{ pct }}%) available" style="font-size:.65rem">{{ mp.remaining }}/{{ mp.total }} ({{ pct }}%)</span>
-              {% endif %}
             </div>
           </div>
           {% if day.holidays %}
