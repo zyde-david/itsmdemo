@@ -189,11 +189,8 @@ body[data-theme="custom"] .popover{--bs-popover-bg:var(--bg-elevated);--bs-popov
             <td><strong>{{ h.date }}</strong></td>
             <td>{{ h.name }}</td>
             <td class="text-center">
-              {% set en = h.weekday|string %}
-              {% set th = {'Monday':'จันทร์','Tuesday':'อังคาร','Wednesday':'พุธ','Thursday':'พฤหัสบดี','Friday':'ศุกร์','Saturday':'เสาร์','Sunday':'อาทิตย์'} %}
-              {% set is_wk = en in ['Friday','Saturday'] %}
-              <span class="badge {% if is_wk %}bg-danger-subtle text-danger-emphasis{% else %}bg-secondary-subtle text-secondary-emphasis{% endif %}">
-                {{ th.get(en, en) }}
+              <span class="badge {% if h.is_weekend %}bg-danger-subtle text-danger-emphasis{% else %}bg-secondary-subtle text-secondary-emphasis{% endif %}">
+                {{ h.weekday }}
               </span>
             </td>
             {% if is_manager %}

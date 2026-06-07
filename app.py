@@ -1498,17 +1498,28 @@ def calendar_page():
                 'remaining': remaining,
             }
 
+    # Build cal_holidays list with pre-computed Thai weekday names
+    thai_dow = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์']
+    cal_holidays = []
+    for h in holiday_rows:
+        d = date.fromisoformat(h['date'])
+        cal_holidays.append({
+            'id': h['id'],
+            'date': h['date'],
+            'name': h['name'],
+            'weekday': thai_dow[d.weekday()],
+            'is_weekend': d.weekday() in (4, 5),
+        })
+
     return render_template('calendar.html', current_user=get_current_user(), month_weeks=month_weeks,
                            month_name=first_day.strftime('%B %Y'), month=month, year=year,
                            prev_year=prev_month.year, prev_month=prev_month.month,
                            next_year=next_month.year, next_month=next_month.month,
                            leave_requests=leave_requests, status_labels=LEAVE_STATUS_LABELS,
                            manpower_by_day=manpower_by_day, total_active_staff=total_active_staff,
-                           holidays_by_day=holidays_by_day, cal_holidays=[dict(h, weekday=date.fromisoformat(h['date']).strftime('%A')) for h in holiday_rows])
+                           holidays_by_day=holidays_by_day, cal_holidays=cal_holidays)
 
 # ─── Holiday API ─────────────────────────────────────────────
-
-@app.route('/api/holidays', methods=['GET'])
 @login_required
 def api_holidays():
     c = get_db()
