@@ -199,7 +199,7 @@
     refreshMap();
   }
 
-  var info = L.control({position: 'topright'});
+  var info = L.control({position: 'bottomleft'});
   info.onAdd = function () {
     this._div = L.DomUtil.create('div', 'info-panel');
     this.update();
