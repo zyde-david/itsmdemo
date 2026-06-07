@@ -218,38 +218,26 @@
   info.addTo(map);
 
   // ══════════════════════════════════════════════════════════════
-  // 7. FETCH GEOJSON & RENDER
+  // 7. USE SERVER-PROVIDED GEOJSON (already filtered to 3 provinces)
   // ══════════════════════════════════════════════════════════════
-  var TARGET_PROVINCES = ['ปัตตานี', 'ยะลา', 'นราธิวาส'];
+  var filtered = {{ south_geojson|safe }};
 
-  fetch('https://raw.githubusercontent.com/hasand99/thailand-amphoe-geojson/main/thailand-amphoe.json')
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      // FILTER: only 3 southern border provinces
-      var filtered = {
-        type: 'FeatureCollection',
-        features: data.features.filter(function(f) {
-          var prov = f.properties.province || f.properties.PROVINCE || f.properties.Province || '';
-          return TARGET_PROVINCES.indexOf(prov) !== -1;
-        })
-      };
+  // Update stats
+  document.getElementById('stat-districts').textContent = filtered.features.length;
+  var totalTickets = 0, totalCritical = 0;
+  filtered.features.forEach(function(f) {
+    var sn = getShortName(f.properties.name);
+    var v = liveDatabaseData[sn] || 0;
+    totalTickets += v;
+    if (v === 3) totalCritical++;
+  });
+  document.getElementById('stat-tickets').textContent = totalTickets;
+  document.getElementById('stat-critical').textContent = totalCritical;
 
-      // Update stats
-      document.getElementById('stat-districts').textContent = filtered.features.length;
-      var totalTickets = 0, totalCritical = 0;
-      filtered.features.forEach(function(f) {
-        var sn = getShortName(f.properties.name);
-        var v = liveDatabaseData[sn] || 0;
-        totalTickets += v;
-        if (v === 3) totalCritical++;
-      });
-      document.getElementById('stat-tickets').textContent = totalTickets;
-      document.getElementById('stat-critical').textContent = totalCritical;
+  // Build layer lookup for centroids
+  var layerByName = {};
 
-      // Build layer lookup for centroids
-      var layerByName = {};
-
-      // RENDER GEOJSON
+  // RENDER GEOJSON
       geojsonLayer = L.geoJson(filtered, {
         style: function(feature) {
           var sn = getShortName(feature.properties.name);
@@ -376,15 +364,8 @@
 
       // Refresh labels every 30s (simulating live data)
       setInterval(function() {
-        // In production: fetch('/api/district-tickets').then(data => { liveDatabaseData = data; renderLabels(); renderSidebar(); });
         renderLabels();
       }, 30000);
 
-    })
-    .catch(function(err) {
-      console.error('Failed to load GeoJSON:', err);
-      document.getElementById('rank-table').innerHTML =
-        '<tr><td colspan="4" class="text-danger text-center py-3">โหลดข้อมูลไม่สำเร็จ: ' + err.message + '</td></tr>';
-    });
 </script>
 {% endblock %}
