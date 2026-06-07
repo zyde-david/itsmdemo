@@ -90,7 +90,7 @@
 
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-dark text-white fw-bold" style="background:#0F172A!important"><i class="bi bi-route me-2"></i>ลำดับแนะนำสำหรับออกไซต์</div>
-  <div class="card-body p-0">
+  <div class="card-body p-0" id="route-sequence">
     {% for d in route_points %}
     <div class="px-3 py-3 border-bottom">
       <div class="d-flex align-items-center gap-3">
@@ -413,6 +413,19 @@
         if (!tbody) return;
         tbody.innerHTML = '';
 
+        // Build route order from the rendered route sequence (server-side order)
+        var routeOrder = [];
+        var routeSteps = document.querySelectorAll('#route-sequence .route-step');
+        routeSteps.forEach(function(step) {
+          var row = step.closest('.px-3');
+          if (!row) return;
+          var nameEl = row.querySelector('.fw-bold');
+          if (!nameEl) return;
+          var fullName = nameEl.textContent.trim();
+          var shortName = fullName.split(' — ')[0].trim();
+          routeOrder.push(shortName);
+        });
+
         var sorted = filtered.features.map(function(f) {
           var sn = getShortName(f.properties.name);
           return {
@@ -421,7 +434,17 @@
             value: liveDatabaseData[sn] || 0,
             assets: f.properties.assets || 0
           };
-        }).sort(function(a, b) { return b.value - a.value; });
+        });
+
+        // Sort by route order first, then by value desc for any not in route
+        sorted.sort(function(a, b) {
+          var ai = routeOrder.indexOf(a.name);
+          var bi = routeOrder.indexOf(b.name);
+          if (ai >= 0 && bi >= 0) return ai - bi;
+          if (ai >= 0) return -1;
+          if (bi >= 0) return 1;
+          return b.value - a.value;
+        });
 
         var rank = 0;
         sorted.forEach(function(item) {
