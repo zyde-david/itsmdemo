@@ -701,12 +701,7 @@ function initTable(selector,opts={}){
 </script>
 {% block extra_scripts %}{% endblock %}
 
-<!-- Feedback FAB -->
-<button id="fbFab" class="btn btn-primary rounded-circle position-fixed" style="bottom:20px;right:20px;width:52px;height:52px;z-index:998;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25)" title="Feedback" onclick="openFeedback()">
-  <i class="bi bi-chat-left-text" style="font-size:1.3rem"></i>
-</button>
-
-<!-- Feedback Modal -->
+<!-- Feedback Modal (used by feedback page via JS include) -->
 <div class="modal fade" id="fbModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -751,55 +746,7 @@ function initTable(selector,opts={}){
   </div>
 </div>
 
-<script>
-let fbRating = 0;
-function openFeedback() {
-  fbRating = 0;
-  document.getElementById('fbRatingVal').value = 0;
-  document.getElementById('fbMessage').value = '';
-  document.getElementById('fbCategory').value = 'general';
-  document.getElementById('fbPage').textContent = 'Page: ' + window.location.pathname;
-  updateStars(0);
-  new bootstrap.Modal(document.getElementById('fbModal')).show();
-}
-function updateStars(n) {
-  const stars = document.querySelectorAll('#fbRating i');
-  stars.forEach((s, i) => {
-    s.className = i < n ? 'bi bi-star-fill text-warning' : 'bi bi-star text-warning';
-  });
-}
-document.querySelectorAll('#fbRating i').forEach(s => {
-  s.addEventListener('click', () => {
-    fbRating = parseInt(s.dataset.val);
-    document.getElementById('fbRatingVal').value = fbRating;
-    updateStars(fbRating);
-  });
-  s.addEventListener('mouseenter', () => updateStars(parseInt(s.dataset.val)));
-});
-document.getElementById('fbRating').addEventListener('mouseleave', () => updateStars(fbRating));
 
-function submitFeedback() {
-  const msg = document.getElementById('fbMessage').value.trim();
-  if (!msg) { alert('Please enter a message'); return; }
-  fetch('/api/feedback', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      category: document.getElementById('fbCategory').value,
-      rating: fbRating,
-      message: msg,
-      page: window.location.pathname
-    })
-  }).then(r => r.json()).then(d => {
-    if (d.ok) {
-      bootstrap.Modal.getInstance(document.getElementById('fbModal')).hide();
-      const fab = document.getElementById('fbFab');
-      fab.innerHTML = '<i class="bi bi-check-lg" style="font-size:1.5rem"></i>';
-      setTimeout(() => { fab.innerHTML = '<i class="bi bi-chat-left-text" style="font-size:1.3rem"></i>'; }, 2000);
-    }
-  });
-}
-</script>
 
 <div class="footer text-center py-3" style="color:#95a5a6;font-size:.7rem">
   ITSM Demo v0.7 | 9ddd217 |
