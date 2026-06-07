@@ -120,7 +120,7 @@
         <span class="route-step {% if d.color == 'orange' %}priority-high{% elif d.color == 'yellow' %}priority-mid{% else %}priority-low{% endif %}">{{ loop.index }}</span>
         <div class="flex-grow-1">
           <div class="fw-bold">{{ d.short_branch }} — {{ d.name }}</div>
-          <div class="small text-muted">ใกล้ HQ/สาขาก่อนหน้า ~{{ d.leg_km }} กม. · C{{ d.critical }} H{{ d.high }} M{{ d.medium }} L{{ d.low }}</div>
+          <div class="small text-muted">ใกล้ HQ/สาขาก่อนหน้า ~{{ d.leg_km }} กม. · <span class="{% if d.critical > 0 %}text-danger fw-bold{% endif %}">C{{ d.critical }}</span> <span class="{% if d.high > 0 %}text-warning fw-bold{% endif %}">H{{ d.high }}</span> M{{ d.medium }} L{{ d.low }}</div>
         </div>
         <div class="text-end small"><span class="badge bg-danger">{{ d.tickets }} Case</span><div class="mt-1">คะแนน {{ d.score }}</div></div>
       </div>
@@ -171,7 +171,7 @@
   <div class="card-body p-0">
     {% for d in districts %}
     <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom small">
-      <span class="badge {% if d.color == 'orange' %}bg-danger{% elif d.color == 'yellow' %}bg-warning text-dark{% elif d.color == 'green' %}bg-success{% else %}bg-secondary{% endif %}" style="width:54px">{{ d.tickets }}</span>
+      <span class="badge" style="width:54px;{% if d.critical > 0 %}background:#fee2e2;color:#dc2626;{% elif d.high > 0 %}background:#ffedd5;color:#f97316;{% elif d.color == 'green' %}background:#dcfce7;color:#16a34a;{% else %}background:#f1f5f9;color:#64748b;{% endif %}">{{ d.tickets }}</span>
       <div class="flex-grow-1"><b>{{ d.short_branch }}</b> — {{ d.name }} <span class="text-muted">{{ d.province }}</span></div>
       <div class="text-end text-muted">
         <span class="text-danger">C{{ d.critical }}</span> /
