@@ -61,7 +61,7 @@
             <td class="p-1 {% if not day.in_month %}bg-light text-muted{% endif %} {% if day.is_today %}table-primary{% endif %} {% if day.is_weekend %}table-danger{% endif %}" style="vertical-align:top;min-height:60px">
               <div class="d-flex justify-content-between align-items-start mb-1">
                 <span class="small fw-bold">{{ day.day }}</span>
-                {% if mp and mp.total > 0 %}
+                {% if mp and mp.total > 0 and not day.is_weekend and not day.holidays %}
                 <span class="badge {{ badge_color }}" style="font-size:.6rem" title="Manpower: {{ mp.remaining }}/{{ mp.total }}">{{ mp.remaining }}/{{ mp.total }}</span>
                 {% endif %}
               </div>
