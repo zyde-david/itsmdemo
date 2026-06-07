@@ -6,35 +6,26 @@
 <style>
   .route-map-shell{display:grid;grid-template-columns:minmax(260px,32%) 1fr;gap:16px;align-items:stretch;}
   .route-rank-panel{max-height:600px;overflow:auto;border:1px solid rgba(0,0,0,.08);border-radius:10px;background:var(--bg-surface,#fff);}
-  #map{height:600px;width:100%;border-radius:10px;border:1px solid #ddd;}
+  #map{height:600px;width:100%;border-radius:10px;border:1px solid #333;}
   .rank-table{width:100%;border-collapse:collapse;font-size:.82rem;}
-  .rank-table th,.rank-table td{padding:8px 8px;border-bottom:1px solid rgba(0,0,0,.08);vertical-align:middle;}
+  .rank-table th,.rank-table td{padding:8px;border-bottom:1px solid rgba(0,0,0,.08);vertical-align:middle;}
   .rank-table th{background:rgba(15,23,42,.04);font-weight:700;position:sticky;top:0;z-index:1;}
   .rank-table tr{cursor:pointer;}
   .rank-table tr:hover{background:rgba(13,110,253,.06);}
-  .ticket-count{
-    min-width:32px;height:32px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:14px;
-    text-shadow:0 1px 2px rgba(0,0,0,.15);
-  }
-  .asset-count{background:#2563eb;color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:1px 5px;text-align:center;min-width:22px;box-shadow:0 1px 4px rgba(0,0,0,.25);}
-  .map-ticket-label{display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;}
-  .map-ticket-name{font-size:10px;font-weight:700;color:#0f172a;}
-  .info-panel{padding:10px 14px;font-size:14px;background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(0,0,0,.15);border-radius:6px;line-height:1.6;border-left:5px solid #2b5c8f;}
-  .info-panel h4{margin:0 0 5px;color:#2b5c8f;}
+  .info-panel{padding:10px 14px;font-size:13px;background:rgba(0,0,0,.8);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4);border-radius:6px;line-height:1.5;border-left:4px solid #d32f2f;}
+  .info-panel h4{margin:0 0 4px;color:#fff;font-size:14px;}
   .legend-pill{display:inline-flex;align-items:center;gap:6px;margin-right:10px;font-size:.85rem;}
   .legend-dot{width:13px;height:13px;border-radius:50%;display:inline-block;}
-  .map-label-icon{background:none!important;border:none!important;box-shadow:none!important;}
   .route-step{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;}
   .priority-high{background:#ffedd5;color:#9a3412;}
   .priority-mid{background:#fef3c7;color:#92400e;}
   .priority-low{background:#dcfce7;color:#166534;}
+  /* CRITICAL: Kill ALL Leaflet default marker backgrounds */
+  .map-label-icon{background:none!important;border:none!important;box-shadow:none!important;}
   @media(max-width:767.98px){
     .route-map-shell{grid-template-columns:1fr;}
     .route-rank-panel{max-height:300px;order:2;}
     #map{height:420px;}
-    .route-step{width:30px;height:30px;font-size:.85rem;}
   }
 </style>
 {% endblock %}
@@ -43,35 +34,36 @@
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
   <div>
     <h4 class="mb-1"><i class="bi bi-signpost-split me-2"></i>Route Planner</h4>
-    <div class="text-muted small">Page 4 · ตัวเลขบนแผนที่ = งาน/Ticket ที่ยังไม่จบ แยกดูระดับและหมวดได้</div>
+    <div class="text-muted small">Real-time dispatch map · 3 Southern Border Provinces · ITIL priority coloring</div>
   </div>
   <a href="{{ url_for('tickets_page') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-ticket-detailed me-1"></i>ดู Tickets</a>
 </div>
 
 <div class="row g-3 mb-3">
-  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Active/Ongoing Tickets</div><div class="h4 mb-0 text-danger" id="stat-tickets">{{ total_tickets }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Critical</div><div class="h4 mb-0 text-danger">{{ total_critical }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Sites</div><div class="h4 mb-0" id="stat-districts">{{ districts|length }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary" id="stat-assets">{{ total_assets }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Active Tickets</div><div class="h4 mb-0 text-danger" id="stat-tickets">—</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Critical</div><div class="h4 mb-0 text-danger" id="stat-critical">—</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Districts</div><div class="h4 mb-0" id="stat-districts">—</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card text-center shadow-sm"><div class="card-body py-3"><div class="text-muted small">Assets</div><div class="h4 mb-0 text-primary" id="stat-assets">—</div></div></div></div>
 </div>
 
 <div class="card shadow-sm mb-3">
   <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
     <span><i class="bi bi-map me-2"></i>แผนที่วางแผนเส้นทางและจัดอันดับข้อมูล</span>
-    <div class="d-flex align-items-center gap-2">
-      <div class="btn-group btn-group-sm" id="viewToggle">
-        <button class="btn btn-outline-primary active" id="viewTickets" onclick="setViewMode('tickets')"><i class="bi bi-ticket-perforated me-1"></i>Tickets</button>
-        <button class="btn btn-outline-primary" id="viewAssets" onclick="setViewMode('assets')"><i class="bi bi-box-seam me-1"></i>Assets</button>
-        <button class="btn btn-outline-primary" id="viewBoth" onclick="setViewMode('both')"><i class="bi bi-layers me-1"></i>Both</button>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <div id="mapLegend" class="d-flex flex-wrap gap-1">
+        <span class="legend-pill"><span class="legend-dot" style="background:#d32f2f"></span>Critical</span>
+        <span class="legend-pill"><span class="legend-dot" style="background:#f57c00"></span>High</span>
+        <span class="legend-pill"><span class="legend-dot" style="background:#fbc02d"></span>Medium</span>
+        <span class="legend-pill"><span class="legend-dot" style="background:#388e3c"></span>Low</span>
       </div>
-      <span class="small text-muted">คลิกแถวเพื่อซูมอำเภอ · รีเฟรชอัตโนมัติทุก 30 วินาที</span>
+      <span class="small text-muted">คลิกแถวเพื่อซูมอำเภอ</span>
     </div>
   </div>
-  <div class="card-body">
+  <div class="card-body p-0">
     <div class="route-map-shell">
       <div class="route-rank-panel">
         <div class="p-3 border-bottom">
-          <div class="fw-bold"><i class="bi bi-list-ol me-1"></i>จัดอันดับตามจำนวน Ticket</div>
+          <div class="fw-bold"><i class="bi bi-list-ol me-1"></i>จัดอันดับตามความเร่งด่วน</div>
           <div class="small text-muted">เรียงจากอำเภอที่มีงาน/Ticket ยังไม่จบมากไปน้อย</div>
         </div>
         <table class="rank-table">
@@ -80,351 +72,319 @@
               <th style="width:48px">#</th>
               <th>อำเภอ</th>
               <th>จังหวัด</th>
-              <th class="text-end">งานยังไม่จบ</th>
-              <th class="text-end col-assets">สินทรัพย์</th>
+              <th class="text-end">งาน</th>
             </tr>
           </thead>
           <tbody id="rank-table">
-            <tr><td colspan="5" class="text-muted">กำลังโหลด...</td></tr>
+            <tr><td colspan="4" class="text-muted text-center py-3">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
       <div>
         <div id="map"></div>
-        <div class="mt-2" id="mapLegend">
-          <span class="legend-pill"><span class="legend-dot" style="background:#dc2626"></span>Critical</span>
-          <span class="legend-pill"><span class="legend-dot" style="background:#f97316"></span>High</span>
-          <span class="legend-pill"><span class="legend-dot" style="background:#f59e0b"></span>Medium</span>
-          <span class="legend-pill"><span class="legend-dot" style="background:#16a34a"></span>Low</span>
-        </div>
-        <div class="legend-assets d-none" id="assetLegend">
-          <span class="legend-pill"><span class="legend-dot" style="background:#2563eb"></span>Assets by district</span>
-          <span class="small text-muted ms-2">Choropleth: asset count</span>
-        </div>
-        <div class="alert alert-light border mt-3 mb-0 small" role="note">
-          <div class="fw-bold mb-1"><i class="bi bi-info-circle me-1"></i>Dispatch Priority · วิธีจัดลำดับงาน</div>
-          <p class="mb-1"><b>TH:</b> ระบบใช้แนวคิด ITIL แบบ Impact × Urgency: Impact คือจำนวนผู้ใช้ อุปกรณ์ หรือไซต์ที่ได้รับผลกระทบ; Urgency คือความเร็วที่ต้องแก้ไข งาน Critical/High จะถูกส่งทีมก่อน</p>
-          <p class="mb-1"><b>EN:</b> Priority follows ITIL-style Impact × Urgency. Impact means affected users, devices, or sites; Urgency means how quickly the issue needs a fix. Critical/High cases are dispatched first.</p>
-          <p class="mb-0 text-muted"><b>สัญลักษณ์:</b> เลขบนแผนที่ = งาน/Ticket ที่ยังไม่จบในอำเภอนั้น (ไม่ใช่จำนวนสาขา) · สี = ระดับเร่งด่วน · ดูหมวดงานและอุปกรณ์ที่ต้องเตรียมจากตารางล่าง</p>
-        </div>
       </div>
     </div>
-  </div>
-</div>
-
-<div class="card shadow-sm mb-3">
-  <div class="card-header bg-dark text-white fw-bold" style="background:#0F172A!important"><i class="bi bi-route me-2"></i>ลำดับแนะนำสำหรับออกไซต์</div>
-  <div class="card-body p-0">
-    {% for d in route_points %}
-    <div class="px-3 py-3 border-bottom">
-      <div class="d-flex align-items-center gap-3">
-        <span class="route-step {% if d.color == 'orange' %}priority-high{% elif d.color == 'yellow' %}priority-mid{% else %}priority-low{% endif %}">{{ loop.index }}</span>
-        <div class="flex-grow-1">
-          <div class="fw-bold">{{ d.short_branch }} — {{ d.name }}</div>
-          <div class="small text-muted">ใกล้ HQ/สาขาก่อนหน้า ~{{ d.leg_km }} กม. · <span class="{% if d.critical > 0 %}text-danger fw-bold{% endif %}">C{{ d.critical }}</span> <span class="{% if d.high > 0 %}text-warning fw-bold{% endif %}">H{{ d.high }}</span> M{{ d.medium }} L{{ d.low }}</div>
-        </div>
-        <div class="text-end small"><span class="badge bg-danger">{{ d.tickets }} Case</span><div class="mt-1">คะแนน {{ d.score }}</div></div>
-      </div>
-      {% if d.categories %}
-      <div class="mt-2 ps-5">
-        <div class="small fw-bold text-muted mb-1"><i class="bi bi-tools me-1"></i>เตรียมอุปกรณ์/อะไหล่:</div>
-        <div class="d-flex flex-wrap gap-1">
-          {% for cat, cnt in d.categories.items()|sort(reverse=true) %}
-          <span class="badge bg-light text-dark border">
-            {% if 'เครื่องพิมพ์' in cat or 'printer' in cat.lower() %}<i class="bi bi-printer me-1 text-primary"></i>
-            {% elif 'เครือข่าย' in cat or 'network' in cat.lower() %}<i class="bi bi-wifi me-1 text-success"></i>
-            {% elif 'VPN' in cat %}<i class="bi bi-shield-lock me-1 text-warning"></i>
-            {% elif 'คอมพิวเตอร์' in cat or 'computer' in cat.lower() %}<i class="bi bi-pc-display me-1 text-info"></i>
-            {% elif 'Core Banking' in cat or 'banking' in cat.lower() %}<i class="bi bi-bank me-1 text-danger"></i>
-            {% else %}<i class="bi bi-gear me-1 text-secondary"></i>{% endif %}
-            {{ cat }} ({{ cnt }})
-          </span>
-          {% endfor %}
-        </div>
-        <div class="small text-muted mt-1">
-          {% set prep_notes = [] %}
-          {% for cat in d.categories %}
-            {% if 'เครื่องพิมพ์' in cat or 'printer' in cat.lower() %}
-              {% if 'หมึก/ผงซักฟอก/หัวพิมพ์' not in prep_notes %}{{ prep_notes.append('หมึก/ผงซักฟอก/หัวพิมพ์') }}{% endif %}
-            {% elif 'เครือข่าย' in cat or 'network' in cat.lower() %}
-              {% if 'สาย LAN/tester/switch' not in prep_notes %}{{ prep_notes.append('สาย LAN/tester/switch') }}{% endif %}
-            {% elif 'VPN' in cat %}
-              {% if 'VPN config/credential' not in prep_notes %}{{ prep_notes.append('VPN config/credential') }}{% endif %}
-            {% elif 'คอมพิวเตอร์' in cat or 'computer' in cat.lower() %}
-              {% if 'อะไหล่ PC/SSD/RAM' not in prep_notes %}{{ prep_notes.append('อะไหล่ PC/SSD/RAM') }}{% endif %}
-            {% elif 'Core Banking' in cat or 'banking' in cat.lower() %}
-              {% if 'ติดต่อทีม banking ล่วงหน้า' not in prep_notes %}{{ prep_notes.append('ติดต่อทีม banking ล่วงหน้า') }}{% endif %}
-            {% endif %}
-          {% endfor %}
-          {% if prep_notes %}<i class="bi bi-check2-circle me-1 text-success"></i>{{ prep_notes | join(' · ') }}{% endif %}
-        </div>
-      </div>
-      {% endif %}
-    </div>
-    {% else %}
-    <div class="p-4 text-center text-muted">ไม่มี active case สำหรับวางแผน dispatch</div>
-    {% endfor %}
-  </div>
-</div>
-
-<div class="card shadow-sm">
-  <div class="card-header bg-white fw-bold"><i class="bi bi-list-ol me-2"></i>ทุกสาขาเรียงตามความเร่งด่วน</div>
-  <div class="card-body p-0">
-    {% for d in districts %}
-    <div class="d-flex align-items-center gap-3 px-3 py-2 border-bottom small">
-      <span class="badge" style="width:54px;{% if d.critical > 0 %}background:#fee2e2;color:#dc2626;{% elif d.high > 0 %}background:#ffedd5;color:#f97316;{% elif d.color == 'green' %}background:#dcfce7;color:#16a34a;{% else %}background:#f1f5f9;color:#64748b;{% endif %}">{{ d.tickets }}</span>
-      <div class="flex-grow-1"><b>{{ d.short_branch }}</b> — {{ d.name }} <span class="text-muted">{{ d.province }}</span></div>
-      <div class="text-end text-muted">
-        <span class="text-danger">C{{ d.critical }}</span> /
-        <span class="text-warning">H{{ d.high }}</span> /
-        <span class="text-info">M{{ d.medium }}</span> /
-        <span class="text-success">L{{ d.low }}</span>
-        {% if d.categories %}<br><span class="small">{{ d.category_summary }}</span>{% endif %}
-      </div>
-    </div>
-    {% endfor %}
   </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  var map = L.map('map').setView([6.32, 101.40], 9.5);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-
-  var ticketData = {};
-  var geojsonLayer;
-  var labelLayer = L.layerGroup().addTo(map);
-  var viewMode = 'tickets';
-
-  // ── HARDCODED CENTROIDS for 33 districts (fixes coastal misplacement) ──
-  var districtCentroids = {
-    'ไม้แก่น':     [5.93, 101.44],
-    'ยะหา':       [5.89, 101.18],
-    'กาบัง':      [5.95, 101.03],
-    'รามัน':      [5.86, 101.44],
-    'กะพ้อ':      [5.93, 101.46],
-    'ยี่งอ':      [5.78, 101.18],
-    'แว้ง':       [5.72, 101.23],
-    'สุคิริน':     [5.65, 101.42],
-    'สุไหงปาดี':  [5.68, 101.50],
-    'จะแนะ':      [5.78, 101.47],
-    'ธารโต':      [5.62, 101.13],
-    'เจาะไอร้อง':[5.58, 101.18],
-    'รือเสาะ':    [5.55, 101.32],
-    'ตากใบ':      [5.52, 101.53],
-    'บาเจาะ':     [5.50, 101.28],
-    'ลานสกา':     [5.45, 101.17],
-    'สะเดา':      [5.38, 101.13],
-    'จันทน์':     [5.35, 101.15],
-    'พร่อน':      [5.32, 101.18],
-    'ปะลุรู':     [5.30, 101.47],
-    'รัตภูมิ':     [5.28, 101.18],
-    'สิเกา':      [5.25, 101.08],
-    'หาดใหญ่':    [5.18, 101.22],
-    'นาทวี':      [5.15, 101.42],
-    'เทพา':       [5.08, 101.48],
-    'สะบ้าย้อย':  [5.05, 101.10],
-    'บางเขา':     [5.02, 101.22],
-    'มะนัง':      [5.00, 101.33],
-    'ปากพนัง':    [4.97, 101.28],
-    'ระแงะ':      [4.95, 101.48],
-    'ช้างผา':     [4.92, 101.18],
-    'ศรีสาคร':    [4.88, 101.35],
-    'นาหม่อม':    [4.85, 101.25]
+  // ══════════════════════════════════════════════════════════════
+  // 1. MOCK LIVE DATABASE — value 1-4 per district short name
+  //    (In production this comes from /api/district-tickets)
+  // ══════════════════════════════════════════════════════════════
+  var liveDatabaseData = {
+    "เมืองยะลา":       3,
+    "เบตง":           2,
+    "ยะหา":           1,
+    "รามัน":          2,
+    "กาบัง":          1,
+    "กรงปินัง":       4,
+    "ธารโต":          3,
+    "ยี่งอ":          2,
+    "เจาะไอร้อง":    1,
+    "รือเสาะ":        4,
+    "แว้ง":           2,
+    "สุคิริน":         3,
+    "สุไหงปาดี":      1,
+    "จะแนะ":          4,
+    "ไม้แก่น":         2,
+    "ตากใบ":          3,
+    "บาเจาะ":         1,
+    "นราธิวาส":       2,
+    "ตาเซะ":          4,
+    "บางเขา":         1,
+    "ปะลุรู":         3,
+    "มะนัง":          2,
+    "จุฬาภรณ์":       4,
+    "เมืองปัตตานี":   3,
+    "โคกโพธิ์":       1,
+    "หนองจิก":        2,
+    "ปะนาเระ":        4,
+    "มายอ":           3,
+    "ทุ่งยางแดง":     1,
+    "สายบุรี":        2,
+    "ไม้แก่น":         3,
+    "แม่ลาน":         4,
+    "เมืองนราธิวาส": 2,
+    "ระแงะ":          1,
+    "ศรีสาคร":        3,
+    "ช้างผา":         4,
+    "นาหม่อม":        1,
+    "นาทวี":          2,
+    "เทพา":           3,
+    "สะบ้าย้อย":      4,
+    "สะเดา":          1,
+    "สิเกา":          2,
+    "หาดใหญ่":        3,
+    "ลานสกา":         4,
+    "กะพ้อ":          1,
+    "รัตภูมิ":         2
   };
 
-  function setViewMode(mode) {
-    viewMode = mode;
-    document.querySelectorAll('#viewToggle .btn').forEach(b => b.classList.remove('active'));
-    var activeBtn = mode === 'tickets' ? 'viewTickets' : (mode === 'assets' ? 'viewAssets' : 'viewBoth');
-    document.getElementById(activeBtn).classList.add('active');
-    document.getElementById('mapLegend').classList.toggle('d-none', mode === 'assets');
-    document.getElementById('assetLegend').classList.toggle('d-none', mode === 'tickets');
-    document.querySelectorAll('.col-assets').forEach(el => el.classList.toggle('d-none', mode === 'tickets'));
-    refreshMap();
+  // ══════════════════════════════════════════════════════════════
+  // 2. MAP INIT — Dark Matter tiles for vivid priority colors
+  // ══════════════════════════════════════════════════════════════
+  var map = L.map('map', {zoomControl: true}).setView([6.5, 101.3], 9);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+
+  var geojsonLayer;
+  var labelLayer = L.layerGroup().addTo(map);
+
+  // ══════════════════════════════════════════════════════════════
+  // 3. PRIORITY COLOR FUNCTION (ITIL dispatch scheme)
+  // ══════════════════════════════════════════════════════════════
+  function getPriorityColor(value) {
+    if (value === 3) return '#d32f2f';  // Critical — Dark Red
+    if (value === 2) return '#f57c00';  // High — Dark Orange
+    if (value === 1) return '#fbc02d';  // Medium — Yellow
+    if (value === 4) return '#388e3c';  // Low — Green
+    return '#2a2a2a';                   // Default/Empty — Slate Gray
   }
 
-  // ── PRIORITY-BASED COLOR (matches legend: Critical=red, High=orange, Medium=yellow, Low=green) ──
-  function getPriorityColor(d) {
-    var data = ticketData[d] || {critical: 0, high: 0, medium: 0, low: 0};
-    if (data.critical > 0) return '#d32f2f';
-    if (data.high > 0)    return '#f57c00';
-    if (data.medium > 0)  return '#fbc02d';
-    if (data.low > 0)     return '#388e3c';
-    return '#e0e0e0';
+  // ══════════════════════════════════════════════════════════════
+  // 4. DISTRICT NAME CLEANER — strip "อำเภอ" prefix
+  // ══════════════════════════════════════════════════════════════
+  function getShortName(rawName) {
+    if (!rawName) return '';
+    return rawName.replace(/^อำเภอ\s*/, '').replace(/^เมือง\s*/, 'เมือง');
   }
 
-  function getAssetColor(d) {
-    var a = (ticketData[d] || {}).assets || 0;
-    return a > 20 ? '#1e40af' : a > 10 ? '#2563eb' : a > 5 ? '#60a5fa' : a > 0 ? '#93c5fd' : '#f0f4f8';
-  }
-
-  function getChoroplethColor(name) {
-    if (viewMode === 'assets') return getAssetColor(name);
-    if (viewMode === 'both') {
-      var d = ticketData[name] || {};
-      if (d.critical > 0) return '#d32f2f';
-      if (d.high > 0)    return '#f57c00';
-      var total = (d.tickets || 0) + (d.assets || 0);
-      return total > 0 ? '#8c96c6' : '#f0f4f8';
+  // ══════════════════════════════════════════════════════════════
+  // 5. CENTROID CALCULATOR — with Mai Kaen override
+  // ══════════════════════════════════════════════════════════════
+  function getCentroid(layer, districtName) {
+    // HARDCODED OVERRIDE: Mai Kaen coastal fix
+    if (districtName === 'ไม้แก่น') {
+      return L.latLng(6.62, 101.67);
     }
-    return getPriorityColor(name);
+    // Standard: use Leaflet's built-in polygon centroid
+    if (layer && typeof layer.getCenter === 'function') {
+      return layer.getCenter();
+    }
+    // Fallback: bounding box center
+    return layer.getBounds().getCenter();
   }
 
-  function getCentroid(feature) {
-    var name = feature.properties.name;
-    // Use hardcoded centroid if available (fixes coastal misplacement)
-    if (districtCentroids[name]) {
-      return L.latLng(districtCentroids[name][0], districtCentroids[name][1]);
-    }
-    // Fallback to polygon layer centroid from rendered geojson
-    if (geojsonLayer) {
-      var found = null;
-      geojsonLayer.eachLayer(function(layer) {
-        if (layer.feature.properties.name === name) found = layer;
-      });
-      if (found && found.getCenter) return found.getCenter();
-    }
-    // Last resort: bounding box center
-    return L.geoJson(feature).getBounds().getCenter();
-  }
-
+  // ══════════════════════════════════════════════════════════════
+  // 6. INFO PANEL (topright, dark theme)
+  // ══════════════════════════════════════════════════════════════
   var info = L.control({position: 'topright'});
-  info.onAdd = function () {
+  info.onAdd = function() {
     this._div = L.DomUtil.create('div', 'info-panel');
     this.update();
     return this._div;
   };
-  info.update = function (props) {
-    if (!props) { this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>แตะ/คลิกอำเภอเพื่อดูตัวเลข'; return; }
-    var name = props.name;
-    var d = ticketData[name] || {tickets:0,critical:0,high:0,medium:0,low:0,categories:{},assets:0};
-    var categoryText = Object.keys(d.categories||{}).sort(function(a,b){return (d.categories[b]||0)-(d.categories[a]||0);}).map(function(k){return k+': '+(d.categories[k]||0);}).join(' · ') || '-';
-    this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4>' +
-      '<b>จังหวัด:</b> ' + props.province + '<br><b>อำเภอ:</b> ' + name +
-      '<br><b>งาน/Ticket ที่ยังไม่จบ:</b> <span style="font-size:16px;font-weight:bold;">' + d.tickets + '</span>' +
-      '<br><span style="color:#d32f2f;">Critical: ' + d.critical + '</span>' +
-      ' · <span style="color:#f57c00;">High: ' + d.high + '</span>' +
-      ' · <span style="color:#fbc02d;">Medium: ' + d.medium + '</span>' +
-      ' · <span style="color:#388e3c;">Low: ' + d.low + '</span>' +
-      '<br><b>สินทรัพย์:</b> <span style="color:#2563eb;font-weight:bold;">' + (d.assets||0) + '</span>' +
-      '<br><b>หมวด:</b> ' + categoryText;
+  info.update = function(props) {
+    if (!props) {
+      this._div.innerHTML = '<h4>📊 รายละเอียดพื้นที่</h4><span style="color:#aaa;">แตะ/คลิกอำเภอเพื่อดูตัวเลข</span>';
+      return;
+    }
+    var shortName = getShortName(props.name);
+    var val = liveDatabaseData[shortName] || 0;
+    var color = getPriorityColor(val);
+    var label = val === 3 ? 'Critical' : val === 2 ? 'High' : val === 1 ? 'Medium' : val === 4 ? 'Low' : 'None';
+    this._div.innerHTML =
+      '<h4>📊 รายละเอียดพื้นที่</h4>' +
+      '<b>จังหวัด:</b> ' + (props.province || '—') +
+      '<br><b>อำเภอ:</b> ' + shortName +
+      '<br><b>งาน/Ticket:</b> <span style="font-size:16px;font-weight:bold;color:' + color + '">' + val + '</span>' +
+      '<br><b>ระดับ:</b> <span style="color:' + color + '">' + label + '</span>';
   };
   info.addTo(map);
 
-  var southData = {{ south_geojson|safe }};
+  // ══════════════════════════════════════════════════════════════
+  // 7. FETCH GEOJSON & RENDER
+  // ══════════════════════════════════════════════════════════════
+  var TARGET_PROVINCES = ['ปัตตานี', 'ยะลา', 'นราธิวาส'];
 
-  fetchTicketData();
-  setInterval(fetchTicketData, 30000);
+  fetch('https://raw.githubusercontent.com/hasand99/thailand-amphoe-geojson/main/thailand-amphoe.json')
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      // FILTER: only 3 southern border provinces
+      var filtered = {
+        type: 'FeatureCollection',
+        features: data.features.filter(function(f) {
+          var prov = f.properties.province || f.properties.PROVINCE || f.properties.Province || '';
+          return TARGET_PROVINCES.indexOf(prov) !== -1;
+        })
+      };
 
-  function fetchTicketData() {
-    fetch('/api/district-tickets')
-      .then(res => res.json())
-      .then(data => {
-        ticketData = data;
-        if (!geojsonLayer) renderMap();
-        else refreshMap();
-      })
-      .catch(err => {
-        console.error('Failed to load ticket data', err);
-        var body = document.getElementById('rank-table');
-        if (body) body.innerHTML = '<tr><td colspan="5" class="text-muted">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+      // Update stats
+      document.getElementById('stat-districts').textContent = filtered.features.length;
+      var totalTickets = 0, totalCritical = 0;
+      filtered.features.forEach(function(f) {
+        var sn = getShortName(f.properties.name);
+        var v = liveDatabaseData[sn] || 0;
+        totalTickets += v;
+        if (v === 3) totalCritical++;
       });
-  }
+      document.getElementById('stat-tickets').textContent = totalTickets;
+      document.getElementById('stat-critical').textContent = totalCritical;
 
-  function renderMap() {
-    geojsonLayer = L.geoJson(southData, {
-      style: function(feature) {
-        return { fillColor: getChoroplethColor(feature.properties.name), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 };
-      },
-      onEachFeature: function(feature, layer) {
-        function highlight(e) {
-          var l = e.target;
-          l.setStyle({ weight: 3, color: '#333', fillOpacity: 0.95 });
-          info.update(l.feature.properties);
+      // Build layer lookup for centroids
+      var layerByName = {};
+
+      // RENDER GEOJSON
+      geojsonLayer = L.geoJson(filtered, {
+        style: function(feature) {
+          var sn = getShortName(feature.properties.name);
+          var val = liveDatabaseData[sn] || 0;
+          var color = getPriorityColor(val);
+          var opacity = val === 0 ? 0.3 : 0.75;
+          return {
+            fillColor: color,
+            weight: 1.5,
+            opacity: 1,
+            color: '#ffffff',
+            fillOpacity: opacity
+          };
+        },
+        onEachFeature: function(feature, layer) {
+          var sn = getShortName(feature.properties.name);
+          layerByName[sn] = layer;
+
+          layer.on({
+            mouseover: function(e) {
+              e.target.setStyle({weight: 3, color: '#00ff88', fillOpacity: 0.9});
+              info.update(e.target.feature.properties);
+            },
+            mouseout: function(e) {
+              geojsonLayer.resetStyle(e.target);
+              info.update();
+            },
+            click: function(e) {
+              map.fitBounds(e.target.getBounds());
+              info.update(e.target.feature.properties);
+            }
+          });
         }
-        function reset(e) { geojsonLayer.resetStyle(e.target); info.update(); }
-        layer.on({ mouseover: highlight, mouseout: reset, click: highlight,
-          touchend: function(e) { L.DomEvent.stop(e); highlight(e); }
+      }).addTo(map);
+
+      // Fit map to filtered bounds
+      if (filtered.features.length > 0) {
+        map.fitBounds(geojsonLayer.getBounds().pad(0.05));
+      }
+
+      // ══════════════════════════════════════════════════════════
+      // 8. RENDER LABELS — clean text, no boxes, conditional
+      // ══════════════════════════════════════════════════════════
+      function renderLabels() {
+        labelLayer.clearLayers();
+
+        filtered.features.forEach(function(f) {
+          var rawName = f.properties.name;
+          var shortName = getShortName(rawName);
+          var val = liveDatabaseData[shortName] || 0;
+
+          // CRITICAL: hide if no value
+          if (!val || val === 0) return;
+
+          var layer = layerByName[shortName];
+          var centroid = getCentroid(layer, shortName);
+          var numColor = getPriorityColor(val);
+
+          // Build clean floating text: "[Value] [Short Name]"
+          var html =
+            '<div class="map-label-icon" style="text-align:center;white-space:nowrap;line-height:1.3;">' +
+              '<span style="color:' + numColor + ';font-weight:800;font-size:14px;' +
+                'text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 9px #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
+                'paint-order:stroke fill;">' + val + '</span>' +
+              '<span style="color:#000000;font-weight:700;font-size:10px;margin-left:3px;' +
+                'text-shadow:0 0 3px #fff,0 0 6px #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff;' +
+                'paint-order:stroke fill;">' + shortName + '</span>' +
+            '</div>';
+
+          var icon = L.divIcon({
+            className: 'map-label-icon',
+            html: html,
+            iconSize: [90, 28],
+            iconAnchor: [45, 14]
+          });
+
+          L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
         });
       }
-    }).addTo(map);
-    refreshMap();
-  }
 
-  function refreshMap() {
-    // Update choropleth fills
-    geojsonLayer.eachLayer(function(layer) {
-      var name = layer.feature.properties.name;
-      layer.setStyle({ fillColor: getChoroplethColor(name), weight: 1.5, opacity: 1, color: 'white', fillOpacity: 0.85 });
-    });
+      // Initial render
+      renderLabels();
 
-    // Rebuild labels
-    labelLayer.clearLayers();
-    southData.features.forEach(function(f) {
-      var name = f.properties.name;
-      var d = ticketData[name] || {tickets: 0, critical: 0, high: 0, medium: 0, low: 0, assets: 0};
+      // ══════════════════════════════════════════════════════════
+      // 9. SIDEBAR RANKING TABLE
+      // ══════════════════════════════════════════════════════════
+      function renderSidebar() {
+        var tbody = document.getElementById('rank-table');
+        if (!tbody) return;
+        tbody.innerHTML = '';
 
-      // CRITICAL: hide if no value
-      var hasValue = (d.tickets > 0) || (viewMode !== 'tickets' && d.assets > 0);
-      if (!hasValue) return;
+        var sorted = filtered.features.map(function(f) {
+          var sn = getShortName(f.properties.name);
+          return {
+            name: sn,
+            province: f.properties.province || f.properties.PROVINCE || '',
+            value: liveDatabaseData[sn] || 0
+          };
+        }).sort(function(a, b) { return b.value - a.value; });
 
-      var centroid = getCentroid(f);
-
-      // Build label: number + short name, NO "อำเภอ" prefix
-      var num = d.tickets > 0 ? d.tickets : d.assets;
-      var numColor = d.critical > 0 ? '#d32f2f' : (d.high > 0 ? '#f57c00' : (d.medium > 0 ? '#fbc02d' : '#388e3c'));
-
-      var html = '<div class="map-label-icon">' +
-        '<span style="color:' + numColor + ';font-weight:800;font-size:13px;">' + num + '</span>' +
-        '<span style="color:#000000;font-weight:700;font-size:10px;margin-left:3px;">' + name + '</span>' +
-        '</div>';
-
-      var icon = L.divIcon({
-        className: 'map-label-icon',
-        html: html,
-        iconSize: [80, 24],
-        iconAnchor: [40, 12]
-      });
-      L.marker(centroid, {icon: icon, interactive: false}).addTo(labelLayer);
-    });
-
-    generateSidebarTable(southData.features);
-  }
-
-  function generateSidebarTable(features) {
-    var tableBody = document.getElementById('rank-table');
-    if (!tableBody) return;
-    tableBody.innerHTML = '';
-
-    var sortedList = features.map(function(f) {
-      var name = f.properties.name;
-      var d = ticketData[name] || {tickets:0,critical:0,high:0,medium:0,low:0,assets:0};
-      return {name:name, province:f.properties.province, tickets:d.tickets, critical:d.critical, high:d.high, assets:d.assets||0, value: viewMode==='assets'?(d.assets||0):(viewMode==='both'?(d.tickets+d.assets):d.tickets)};
-    }).sort(function(a,b){return b.value-a.value;});
-
-    sortedList.forEach(function(item, index) {
-      var row = document.createElement('tr');
-      var badgeColor = getPriorityColor(item.name);
-      row.innerHTML =
-        '<td><b>'+(index+1)+'</b></td>'+
-        '<td>'+item.name+'</td>'+
-        '<td>'+item.province+'</td>'+
-        '<td class="text-end"><span class="badge" style="background-color:'+badgeColor+'">'+item.tickets+'</span></td>'+
-        '<td class="text-end col-assets">'+(item.assets>0?'<span class="badge bg-primary">'+item.assets+'</span>':'<span class="text-muted">0</span>')+'</td>';
-      row.addEventListener('click', function() {
-        geojsonLayer.eachLayer(function(layer) {
-          if (layer.feature.properties.name === item.name) {
-            map.panTo(layer.getBounds().getCenter());
-            layer.setStyle({weight:4,color:'#ef4444'});
-            info.update(layer.feature.properties);
-            setTimeout(function(){geojsonLayer.resetStyle(layer);},1500);
-          }
+        sorted.forEach(function(item, i) {
+          if (item.value === 0) return; // skip empty
+          var color = getPriorityColor(item.value);
+          var row = document.createElement('tr');
+          row.innerHTML =
+            '<td><b>' + (i + 1) + '</b></td>' +
+            '<td>' + item.name + '</td>' +
+            '<td>' + item.province + '</td>' +
+            '<td class="text-end"><span class="badge" style="background:' + color + ';color:#fff;">' + item.value + '</span></td>';
+          row.addEventListener('click', function() {
+            var target = layerByName[item.name];
+            if (target) {
+              map.fitBounds(target.getBounds());
+              target.setStyle({weight: 4, color: '#00ff88'});
+              info.update(target.feature.properties);
+              setTimeout(function() { geojsonLayer.resetStyle(target); }, 2000);
+            }
+          });
+          tbody.appendChild(row);
         });
-      });
-      tableBody.appendChild(row);
+      }
+
+      renderSidebar();
+
+      // Refresh labels every 30s (simulating live data)
+      setInterval(function() {
+        // In production: fetch('/api/district-tickets').then(data => { liveDatabaseData = data; renderLabels(); renderSidebar(); });
+        renderLabels();
+      }, 30000);
+
+    })
+    .catch(function(err) {
+      console.error('Failed to load GeoJSON:', err);
+      document.getElementById('rank-table').innerHTML =
+        '<tr><td colspan="4" class="text-danger text-center py-3">โหลดข้อมูลไม่สำเร็จ: ' + err.message + '</td></tr>';
     });
-  }
 </script>
 {% endblock %}
