@@ -2088,6 +2088,7 @@ def route_planner_page():
             })
 
         active_sites = [d for d in districts if d['tickets'] > 0]
+        inactive_sites = [d for d in districts if d['tickets'] == 0]
         ranked = sorted(districts, key=lambda x: (x['score'], -x['distance_from_hq']), reverse=True)
 
         remaining = active_sites[:]
@@ -2099,6 +2100,15 @@ def route_planner_page():
             chosen['leg_km'] = round(distance_km(current, (chosen['lat'], chosen['lng'])), 1)
             route_points.append(chosen)
             current = (chosen['lat'], chosen['lng'])
+
+        # Append 0-ticket branches after active ones (marked as inactive)
+        for site in inactive_sites:
+            if len(route_points) >= 18:
+                break
+            site['leg_km'] = round(distance_km(current, (site['lat'], site['lng'])), 1)
+            site['inactive'] = True
+            route_points.append(site)
+            current = (site['lat'], site['lng'])
 
         min_lat, max_lat = 5.70, 6.95
         min_lng, max_lng = 100.95, 102.10
