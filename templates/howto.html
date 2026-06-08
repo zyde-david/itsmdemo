@@ -126,9 +126,10 @@
   <div class="card-header bg-white fw-bold text-success"><i class="bi bi-shield-lock me-2"></i>AI Function &amp; Privacy Direction</div>
   <div class="card-body small">
     <div class="row g-3">
-      <div class="col-md-4"><strong>Local LLM / private mode</strong><p class="text-muted mb-0">สำหรับข้อมูล private เช่น ticket, asset, staff และสาขา ระบบจะใช้ local LLM/private mode เป็นทางหลัก เพื่อไม่ส่งข้อมูลดิบออกนอก server โดยค่าเริ่มต้น</p></div>
-      <div class="col-md-4"><strong>Cloud AI/API ต้อง opt-in</strong><p class="text-muted mb-0">ถ้าใช้ provider ภายนอก ให้ส่งเฉพาะ facts ที่จำเป็น ลดข้อมูลส่วนตัว และให้ผู้ใช้/ผู้ดูแลอนุมัติก่อน</p></div>
-      <div class="col-md-4"><strong>AI เป็น helper เท่านั้น</strong><p class="text-muted mb-0">AI ช่วยสรุป ticket แนะนำ category/priority และร่าง KB ได้ แต่การเปลี่ยนสถานะ มอบหมายงาน SLA หรือเผยแพร่ KB ต้องให้คนยืนยัน <a href="/vision" class="text-decoration-none">ดู Vision</a></p></div>
+      <div class="col-md-3"><strong>🤖 AI Chatbot (Real AI)</strong><p class="text-muted mb-0">แชทบอทตอบคำถามปัญหา IT ได้จริงผ่าน AI (owl-alpha) พร้อมแนะนำวิธีแก้เป็นขั้นตอน สามารถสร้าง Ticket จากการแชทได้ด้วย</p></div>
+      <div class="col-md-3"><strong>💡 Dashboard AI Insight</strong><p class="text-muted mb-0">AI วิเคราะภาพข้อมูล Ticket จริง ให้คำแนะนำ 3 ข้อ เช่น หมวดที่พบบ่อย สาขาที่มีปัญหาเยอะ เทรนด์ 7 วัน</p></div>
+      <div class="col-md-3"><strong>📋 AI Ticket Suggestion</strong><p class="text-muted mb-0">เมื่อสร้าง Ticket จากแชท AI จะสรุปข้อมูล แนะนำวิธีแก้ และบันทึก Chat Log เป็น Work Note ใน Ticket โดยอัตโนมัติ</p></div>
+      <div class="col-md-3"><strong>🔒 AI เป็น helper เท่านั้น</strong><p class="text-muted mb-0">AI ช่วยสรุป แนะนำ และร่างฉบับ แต่การเปลี่ยนสถานะ มอบหมายงาน หรือเผยแพร่ ต้องให้คนยืนยันเสมอ <a href="/vision" class="text-decoration-none">ดู Vision</a></p></div>
     </div>
   </div>
 </div>
@@ -136,8 +137,25 @@
 <!-- How To -->
 <h5 class="mb-3"><i class="bi bi-list-ol me-2"></i>How To Use</h5>
 <div class="accordion mb-4" id="howtoAccordion">
+
+  <!-- Chatbot -->
   <div class="accordion-item">
-    <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ht-tickets"><i class="bi bi-ticket-perforated me-2 text-danger"></i>Tickets</button></h2>
+    <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ht-chatbot"><i class="bi bi-chat-dots me-2 text-primary"></i>AI Chatbot</button></h2>
+    <div id="ht-chatbot" class="accordion-collapse collapse show" data-bs-parent="#howtoAccordion">
+      <div class="accordion-body small">
+        <ol>
+          <li><strong>เปิดแชท</strong> — กดปุ่ม 💬 มุมล่างขวา (ทุกหน้า)</li>
+          <li><strong>ถามปัญหา IT</strong> — พิมพ์ เช่น "เครื่องพิมพ์คายกระดาษ", "VPN เชื่อมต่อไม่ได้", "WiFi ดรอป"</li>
+          <li><strong>AI ตอบ</strong> — ระบบใช้ AI (owl-alpha) วิเคราะภาพและแนะนำวิธีแก้เป็นขั้นตอน</li>
+          <li><strong>สร้าง Ticket จากแชท</strong> — พิมพ์ "แจ้งซ่อม" หรือ "เปิด ticket" แล้วตอบคำถามทีละขั้น: หัวข้อ → หมวด → รายละเอียด → ความเร่งด่วน → ยืนยัน</li>
+          <li><strong>Chat Log บันทึกอัตโนมัติ</strong> — เมื่อสร้าง Ticket จากแชท ระบบจะบันทึกบทสนทนาทั้งหมดเป็น Work Note ใน Ticket</li>
+          <li><strong>AI Suggestion</strong> — ทุก Ticket ที่สร้างจากแชทจะมีคำแนะนำวิธีแก้จาก AI แสดงในหน้า Ticket Detail</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tickets -->
     <div id="ht-tickets" class="accordion-collapse collapse show" data-bs-parent="#howtoAccordion">
       <div class="accordion-body small">
         <ol>
@@ -670,6 +688,16 @@
           <tr><td></td><td>7 Jun</td><td>Route Planner and Language</td><td>Fixed route-planner template syntax error, added Pattani users seeding, enhanced route planner with category breakdown and prep notes in dispatch table, and added TH/EN language switcher to sitemap.</td></tr>
           <tr><td></td><td>7 Jun</td><td>Tables, About Me, and RBAC</td><td>Fixed V1 table sorting and enabled KB row clicks, upgraded About Me page with full resume content and footer link, and made inject_rbac safe with try/except to prevent 500 errors on public pages.</td></tr>
           <tr><td></td><td>7 Jun</td><td>UI, Docs, and Mobile</td><td>Added Claude UI slop audit rule, released current ITSM UI docs batch, fixed mobile sidebar and footer language UI, polished V2 table UI, and restored tech stack description and footer GitHub link.</td></tr>
+          <tr><td></td><td>8 Jun</td><td>Daily docs upkeep: update ITSM How To / Dev Log and Site Map</td><td>Reviewed recent commits, updated documentation with today's work, verified site map and howto content, ran local sanity check</td></tr>
+          <tr class="table-primary"><td colspan="4"><b>v0.7 — AI Integration</b></td></tr>
+          <tr><td></td><td>8 Jun</td><td>AI Chatbot (Real AI)</td><td>Connected chatbot to OpenRouter (owl-alpha) for real AI responses. Keyword fallback if API fails.</td></tr>
+          <tr><td></td><td>8 Jun</td><td>Dashboard AI Insight</td><td>AI analyzes real ticket data (top category, branch, province, 7-day trend) and generates 3 recommendations</td></tr>
+          <tr><td></td><td>8 Jun</td><td>AI Ticket Suggestion</td><td>When creating ticket from chat, AI generates step-by-step fix suggestion based on title/description/category</td></tr>
+          <tr><td></td><td>8 Jun</td><td>Chat Log as Work Note</td><td>Full chat conversation saved as Work Note + Chat Log card on Ticket Detail page</td></tr>
+          <tr><td></td><td>8 Jun</td><td>Conversational Ticket Creation</td><td>Type "แจ้งซ่อม" in chatbot → step-by-step flow (title → category → description → priority → confirm)</td></tr>
+          <tr><td></td><td>8 Jun</td><td>AI Helped Badge</td><td>Tickets created from chat show "AI ช่วยแก้ปัญหา" badge on detail page</td></tr>
+          <tr><td></td><td>8 Jun</td><td>Zigzag Public Pages</td><td>Redesigned /howto-public, /interview, /vision with zigzag layout, side nav dots, Next/Back links</td></tr>
+          <tr><td></td><td>8 Jun</td><td>Expanded Chatbot Keywords</td><td>40+ keywords across 11 categories (printer, VPN, network, core banking, computer, email, scanner, UPS, phone, etc.)</td></tr>
         </tbody>
       </table>
     </div>
