@@ -502,6 +502,7 @@ function toggleChat(){const b=document.getElementById('chatBox');b.style.display
 
 // ── Chatbot State ──
 let chatState = { mode: 'chat', ticketData: {} };
+let chatHistory = []; // Track all messages for ticket creation
 
 async function sendChat(){
   const inp=document.getElementById('chatIn');
@@ -511,6 +512,9 @@ async function sendChat(){
   const body=document.getElementById('chatBody');
   body.innerHTML+=`<div class="d-flex justify-content-end mb-2"><div class="bg-primary text-white p-2 rounded" style="max-width:80%;font-size:0.8rem;">${msg}</div></div>`;
   body.scrollTop=body.scrollHeight;
+
+  // Track chat history
+  chatHistory.push({role:'user', msg});
 
   // ── Ticket creation flow ──
   if(chatState.mode === 'creating_ticket'){
@@ -556,10 +560,12 @@ async function sendChat(){
 
   if(chatState.mode === 'confirm'){
     if(msg.includes('ยืนยัน') || msg.includes('confirm') || msg === '1'){
-      // Create ticket
       addBotMsg('⏳ กำลังสร้าง Ticket...');
+      // Build chat log
+      const chatLog = chatHistory.map(h => `${h.role==='user'?'👤':'🤖'}: ${h.msg}`).join('\n');
+      const ticketData = {...chatState.ticketData, chat_log: chatLog};
       try {
-        const r = await fetch('/api/chatbot/create-ticket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(chatState.ticketData)});
+        const r = await fetch('/api/chatbot/create-ticket',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ticketData)});
         const d = await r.json();
         if(d.success){
           addBotMsg(`✅ สร้าง Ticket สำเร็จ!\n\n🎫 รหัส: ${d.ticket_code}\n📂 หมวด: ${chatState.ticketData.category}\n⚡ สถานะ: เปิด\n\nดู Ticket ได้ที่: /tickets`);
@@ -570,8 +576,10 @@ async function sendChat(){
         addBotMsg('❌ เกิดข้อผิดพลาด กรุณาลองใหม่');
       }
       chatState = { mode: 'chat', ticketData: {} };
+      chatHistory = [];
     } else {
       chatState = { mode: 'chat', ticketData: {} };
+      chatHistory = [];
       addBotMsg('❌ ยกเลิกการสร้าง Ticket พิมพ์ "แจ้งซ่อม" เพื่อเริ่มใหม่');
     }
     return;
@@ -580,6 +588,7 @@ async function sendChat(){
   // ── Start ticket creation ──
   if(msg.includes('แจ้งซ่อม') || msg.includes('เปิด ticket') || msg.includes('สร้าง ticket') || msg.includes('แจ้งปัญหา')){
     chatState = { mode: 'creating_ticket', ticketData: {} };
+    chatHistory = [];
     addBotMsg('🎫 สร้าง Ticket ใหม่\n\n📌 พิมพ์หัวข้อปัญหา (เช่น: เครื่องพิมพ์คายกระดาษ)');
     return;
   }
@@ -590,6 +599,7 @@ async function sendChat(){
     const d=await r.json();
     const ans=(d.answer||'').replace(/\n/g,'<br>');
     const src = d.source === 'ai' ? ' <small class="text-muted" style="font-size:.6rem">✨ AI</small>' : '';
+    chatHistory.push({role:'bot', msg: d.answer});
     body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">${ans}${src}</div></div>`;
   } catch(e){
     body.innerHTML+=`<div class="d-flex mb-2"><div class="bg-white p-2 rounded shadow-sm" style="max-width:80%;font-size:0.8rem;">❌ เกิดข้อผิดพลาด กรุณาลองใหม่</div></div>`;

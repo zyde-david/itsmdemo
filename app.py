@@ -453,7 +453,7 @@ def init_db():
     c=get_db()
     c.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,role TEXT DEFAULT \'user\',staff_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     c.execute('CREATE TABLE IF NOT EXISTS staff (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,role TEXT,branch TEXT,province TEXT,is_it INTEGER DEFAULT 0)')
-    c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_code TEXT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,asset_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,reported_at TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL)')
+    c.execute('CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_code TEXT,branch TEXT,province TEXT,category TEXT,title TEXT,description TEXT,priority TEXT,status TEXT,reported_by TEXT,assigned_to TEXT,asset_id INTEGER DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,reported_at TIMESTAMP,resolved_at TIMESTAMP,ai_suggestion TEXT,ai_confidence REAL,chat_log TEXT,ai_helped INTEGER DEFAULT 0)')
     c.execute('CREATE TABLE IF NOT EXISTS work_notes (id INTEGER PRIMARY KEY AUTOINCREMENT,ticket_id INTEGER,note TEXT,created_by TEXT,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
     c.execute('CREATE TABLE IF NOT EXISTS assets (id INTEGER PRIMARY KEY AUTOINCREMENT,asset_code TEXT,branch TEXT,asset_type TEXT,name TEXT,serial TEXT,status TEXT,brand TEXT,spec TEXT,assigned_to TEXT,last_check DATE,next_check DATE,notes TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS knowledge_base (id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,category TEXT,content TEXT,views INTEGER DEFAULT 0)')
@@ -561,7 +561,7 @@ def init_db():
     print('Seeding...')
     S=_staff();T=_tickets(S);A=_assets()
     for s in S:c.execute('INSERT INTO staff (name,role,branch,province,is_it) VALUES (?,?,?,?,?)',(s['name'],s['role'],s['branch'],s['province'],1 if s['is_it'] else 0))
-    for t in T:c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,resolved_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(t.get('ticket_code',''),t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t.get('asset_id',0),t['created_at'],t.get('reported_at',''),t['resolved_at'],t['ai_suggestion'],t['ai_confidence']))
+    for t in T:c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,resolved_at,ai_suggestion,ai_confidence,chat_log,ai_helped) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(t.get('ticket_code',''),t['branch'],t['province'],t['category'],t['title'],t['description'],t['priority'],t['status'],t['reported_by'],t['assigned_to'],t.get('asset_id',0),t['created_at'],t.get('reported_at',''),t['resolved_at'],t['ai_suggestion'],t['ai_confidence'],'',0))
     for a in A:c.execute('INSERT INTO assets (asset_code,branch,asset_type,name,serial,status,brand,spec,assigned_to,last_check,next_check,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',(a.get('asset_code',''),a['branch'],a['asset_type'],a['name'],a['serial'],a['status'],a.get('brand',''),a.get('spec',''),a.get('assigned_to',''),a['last_check'],a['next_check'],a['notes']))
     for k in KB:c.execute('INSERT INTO knowledge_base (title,category,content,views) VALUES (?,?,?,?)',(k['title'],k['cat'],k['content'],k['v']))
     c.commit();
@@ -1014,8 +1014,8 @@ def api_create():
     branch = d.get('branch') or (asset['branch'] if asset else '')
     province = d.get('province') or (asset['province'] if asset else '')
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-              (branch, province, cat, d.get('title',''), d.get('description',''), pri, 'open', d.get('reported_by',''), '', asset_id, now_str, now_str, ai_text, ai_confidence))
+    c.execute('INSERT INTO tickets (branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,ai_suggestion,ai_confidence,chat_log,ai_helped) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+              (branch, province, cat, d.get('title',''), d.get('description',''), pri, 'open', d.get('reported_by',''), '', asset_id, now_str, now_str, ai_text, ai_confidence, '', 0))
     c.commit();tid=c.execute('SELECT last_insert_rowid()').fetchone()[0];
     return jsonify(success=True,ticket_id=tid, suggested_category=cat, suggested_priority=pri)
 
@@ -1192,14 +1192,35 @@ def chatbot_create_ticket():
         except Exception as e:
             logging.warning(f"Chatbot ticket AI error: {e}")
 
+    # Build chat log from conversation
+    chat_log = d.get('chat_log', '')
+    if not chat_log:
+        # Build from ticket data
+        chat_log = f"[Chatbot Conversation]\n"
+        chat_log += f"ผู้แจ้ง: {username}\n"
+        chat_log += f"หัวข้อ: {title}\n"
+        chat_log += f"หมวด: {category}\n"
+        chat_log += f"รายละเอียด: {description}\n"
+        chat_log += f"ความเร่งด่วน: {priority}\n"
+        chat_log += f"---\nAI Suggestion:\n{ai_text}"
+
     # Create ticket
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     ticket_code = f"TK-{datetime.now().strftime('%y')}-{random.randint(1000,9999)}"
 
-    c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,ai_suggestion,ai_confidence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-              (ticket_code, branch, province, category, title, description, priority, 'open', username, '', asset_id, now_str, now_str, ai_text, ai_confidence))
+    c.execute('INSERT INTO tickets (ticket_code,branch,province,category,title,description,priority,status,reported_by,assigned_to,asset_id,created_at,reported_at,ai_suggestion,ai_confidence,chat_log,ai_helped) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+              (ticket_code, branch, province, category, title, description, priority, 'open', username, '', asset_id, now_str, now_str, ai_text, ai_confidence, chat_log, 1))
     c.commit()
     tid = c.execute('SELECT last_insert_rowid()').fetchone()[0]
+
+    # Also save as work note
+    try:
+        note_text = f"🎫 สร้างจาก Chatbot\n\n{chat_log}"
+        c.execute('INSERT INTO work_notes (ticket_id,note,created_by,created_at) VALUES (?,?,?,?)',
+                  (tid, note_text, 'AI Chatbot', now_str))
+        c.commit()
+    except:
+        pass
 
     return jsonify(
         success=True,
